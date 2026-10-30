@@ -1,35 +1,3 @@
-<script setup>
-defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  title: {
-    type: String,
-    default: 'Xác nhận xóa',
-  },
-  message: {
-    type: String,
-    default: 'Bạn có chắc chắn muốn xóa mục này không? Thao tác này không thể hoàn tác.',
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-})
-
-const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
-
-function handleClose() {
-  emit('update:modelValue', false)
-  emit('cancel')
-}
-
-function handleConfirm() {
-  emit('confirm')
-}
-</script>
-
 <template>
   <v-dialog
     :model-value="modelValue"
@@ -80,10 +48,43 @@ function handleConfirm() {
   </v-dialog>
 </template>
 
+<script setup>
+defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
+  },
+  title: {
+    type: String,
+    default: "Xác nhận xóa",
+  },
+  message: {
+    type: String,
+    default:
+      "Bạn có chắc chắn muốn xóa mục này không? Thao tác này không thể hoàn tác.",
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const emit = defineEmits(["update:modelValue", "confirm", "cancel"]);
+
+function handleClose() {
+  emit("update:modelValue", false);
+  emit("cancel");
+}
+
+function handleConfirm() {
+  emit("confirm");
+}
+</script>
+
 <style scoped>
 .confirm-dialog-card {
   border-radius: 24px !important;
-  border: 1px solid #FECDCA !important;
+  border: 1px solid #fecdca !important;
   box-shadow: 0 12px 32px rgba(240, 68, 56, 0.15) !important;
 }
 
@@ -91,8 +92,8 @@ function handleConfirm() {
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: #FEF3F2;
-  border: 1px solid #FECDCA;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
 }
 
 .dialog-title {
@@ -104,4 +105,3 @@ function handleConfirm() {
   line-height: 1.6;
 }
 </style>
-

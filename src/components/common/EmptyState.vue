@@ -1,28 +1,3 @@
-<script setup>
-import DuckBearMascot from './DuckBearMascot.vue'
-
-defineProps({
-  title: {
-    type: String,
-    default: 'Chưa có dữ liệu nào',
-  },
-  description: {
-    type: String,
-    default: 'Hiện tại chưa có thông tin nào trong mục này.',
-  },
-  actionText: {
-    type: String,
-    default: '',
-  },
-  actionIcon: {
-    type: String,
-    default: 'mdi-plus',
-  },
-})
-
-const emit = defineEmits(['action'])
-</script>
-
 <template>
   <v-card
     class="empty-state-shub text-center pa-8 pa-md-12 mx-auto my-6"
@@ -54,17 +29,42 @@ const emit = defineEmits(['action'])
   </v-card>
 </template>
 
+<script setup>
+import DuckBearMascot from "./DuckBearMascot.vue";
+
+defineProps({
+  title: {
+    type: String,
+    default: "Chưa có dữ liệu nào",
+  },
+  description: {
+    type: String,
+    default: "Hiện tại chưa có thông tin nào trong mục này.",
+  },
+  actionText: {
+    type: String,
+    default: "",
+  },
+  actionIcon: {
+    type: String,
+    default: "mdi-plus",
+  },
+});
+
+const emit = defineEmits(["action"]);
+</script>
+
 <style scoped>
 .empty-state-shub {
-  background: #FFFFFF !important;
+  background: #ffffff !important;
   border-radius: 24px !important;
-  border: 1px solid #E4ECF7 !important;
+  border: 1px solid #e4ecf7 !important;
   box-shadow: 0 8px 24px rgba(47, 124, 246, 0.06) !important;
   max-width: 580px;
 }
 
 .empty-title {
-  color: #1D2939;
+  color: #1d2939;
 }
 
 .empty-desc {
@@ -73,4 +73,3 @@ const emit = defineEmits(['action'])
   line-height: 1.6;
 }
 </style>
-

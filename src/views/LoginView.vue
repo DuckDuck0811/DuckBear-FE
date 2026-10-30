@@ -1,159 +1,3 @@
-<script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
-import { useAuthStore } from "../stores/auth";
-
-const router = useRouter();
-const auth = useAuthStore();
-
-// 'login' | 'register'
-const mode = ref("login");
-
-// Form data
-const email = ref("");
-const password = ref("");
-const fullName = ref("");
-const role = ref("STUDENT");
-const showPassword = ref(false);
-
-// Trạng thái focus & tương tác
-const emailFocused = ref(false);
-const passwordFocused = ref(false);
-const snowKey = ref(0);
-const form = ref(null);
-const loading = ref(false);
-const errorMessage = ref("");
-const blink = ref(false);
-let blinkTimer = null;
-
-// Trạng thái che mắt và hé mắt
-const isCovering = computed(() => passwordFocused.value && !showPassword.value);
-const isPeeking = computed(() => passwordFocused.value && showPassword.value);
-
-// Biểu cảm của gấu
-const expression = computed(() => {
-  if (isCovering.value) return "shy";
-  if (isPeeking.value) return "peeking";
-  if (email.value.includes("@") && email.value.includes(".")) return "happy";
-  if (email.value.length > 0) return "curious";
-  return "calm";
-});
-
-// Dòng chú thích biểu cảm dưới gấu
-const bearCaption = computed(() => {
-  if (isCovering.value) return "Bị ném 2 quả bóng tuyết che kín mắt rồi! ❄️🙈";
-  if (isPeeking.value) return "Khoét 2 lỗ tuyết nhìn trộm mật khẩu nè! 👀❄️";
-  if (expression.value === "happy") return "Email trông chuẩn rồi đấy!";
-  if (expression.value === "curious") return "Gấu đang nhìn theo bạn gõ chữ...";
-  return "Học vui mỗi ngày cùng DuckBear";
-});
-
-// Tọa độ liếc mắt theo độ dài email
-const gazeStyle = computed(() => {
-  if (isCovering.value) {
-    return {
-      "--gaze-x": "0px",
-      "--gaze-pupil-x": "0px",
-      "--gaze-pupil-y": "0px",
-    };
-  }
-
-  if (isPeeking.value) {
-    return {
-      "--gaze-x": "0px",
-      "--gaze-pupil-x": "0px",
-      "--gaze-pupil-y": "2.5px",
-    };
-  }
-
-  if (emailFocused.value) {
-    const shift = Math.min(Math.max((email.value.length - 8) * 0.32, -4), 4.5);
-    return {
-      "--gaze-x": `${shift * 0.65}px`,
-      "--gaze-pupil-x": `${shift * 1.1}px`,
-      "--gaze-pupil-y": "1.8px",
-    };
-  }
-
-  return {
-    "--gaze-x": "0px",
-    "--gaze-pupil-x": "0px",
-    "--gaze-pupil-y": "0px",
-  };
-});
-
-// Validation rules
-const emailRules = [
-  (v) => !!v || "Email không được để trống",
-  (v) => /.+@.+\..+/.test(v) || "Email không hợp lệ",
-];
-const passwordRules = [
-  (v) => !!v || "Mật khẩu không được để trống",
-  (v) => (v && v.length >= 6) || "Mật khẩu cần ít nhất 6 ký tự",
-];
-const nameRules = [(v) => !!v || "Vui lòng nhập họ và tên"];
-
-function switchMode(next) {
-  mode.value = next;
-  errorMessage.value = "";
-  form.value?.resetValidation();
-}
-
-async function submit() {
-  errorMessage.value = "";
-  const result = await form.value.validate();
-  if (!result.valid) return;
-
-  loading.value = true;
-  try {
-    if (mode.value === "login") {
-      await auth.login({ email: email.value.trim(), password: password.value });
-    } else {
-      await auth.register({
-        email: email.value.trim(),
-        password: password.value,
-        fullName: fullName.value.trim(),
-        role: role.value,
-      });
-    }
-    await router.push("/");
-  } catch (error) {
-    errorMessage.value =
-      error.message || "Không thể đăng nhập. Vui lòng thử lại.";
-  } finally {
-    loading.value = false;
-  }
-}
-
-// Xử lý ném tuyết từng quả khi focus ô mật khẩu
-function onPasswordFocus() {
-  passwordFocused.value = true;
-  emailFocused.value = false;
-  snowKey.value++;
-}
-
-function onPasswordBlur() {
-  passwordFocused.value = false;
-}
-
-// Chớp mắt ngẫu nhiên
-function scheduleBlink() {
-  blinkTimer = window.setTimeout(
-    () => {
-      blink.value = true;
-      window.setTimeout(() => {
-        blink.value = false;
-        scheduleBlink();
-      }, 160);
-    },
-    2800 + Math.random() * 2600,
-  );
-}
-
-onMounted(scheduleBlink);
-onBeforeUnmount(() => window.clearTimeout(blinkTimer));
-</script>
-
 <template>
   <main class="login-page">
     <div class="login-container w-100">
@@ -260,7 +104,13 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
                 />
                 <!-- Miệng chữ O ngạc nhiên khi bị ném tuyết trúng mặt -->
                 <g class="mouth-surprised">
-                  <ellipse cx="120" cy="133.5" rx="3.6" ry="4.4" fill="#2c4250" />
+                  <ellipse
+                    cx="120"
+                    cy="133.5"
+                    rx="3.6"
+                    ry="4.4"
+                    fill="#2c4250"
+                  />
                   <ellipse cx="120" cy="135" rx="2.2" ry="1.8" fill="#ff99a8" />
                 </g>
                 <!-- Miệng cười tinh nghịch khi mở lỗ tuyết nhìn trộm -->
@@ -531,7 +381,15 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
             >
               <!-- Tay trái -->
               <g class="paw-chest paw-left">
-                <ellipse cx="82" cy="184" rx="16" ry="12.5" fill="#ffffff" stroke="#c7e4ef" stroke-width="2" />
+                <ellipse
+                  cx="82"
+                  cy="184"
+                  rx="16"
+                  ry="12.5"
+                  fill="#ffffff"
+                  stroke="#c7e4ef"
+                  stroke-width="2"
+                />
                 <ellipse cx="82" cy="185" rx="7" ry="5.5" fill="#f8bcc3" />
                 <circle cx="74" cy="178" r="2.5" fill="#f8bcc3" />
                 <circle cx="82" cy="175" r="2.8" fill="#f8bcc3" />
@@ -540,7 +398,15 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
 
               <!-- Tay phải -->
               <g class="paw-chest paw-right">
-                <ellipse cx="158" cy="184" rx="16" ry="12.5" fill="#ffffff" stroke="#c7e4ef" stroke-width="2" />
+                <ellipse
+                  cx="158"
+                  cy="184"
+                  rx="16"
+                  ry="12.5"
+                  fill="#ffffff"
+                  stroke="#c7e4ef"
+                  stroke-width="2"
+                />
                 <ellipse cx="158" cy="185" rx="7" ry="5.5" fill="#f8bcc3" />
                 <circle cx="150" cy="178" r="2.5" fill="#f8bcc3" />
                 <circle cx="158" cy="175" r="2.8" fill="#f8bcc3" />
@@ -582,26 +448,6 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
             </p>
           </div>
 
-          <!-- Bộ chuyển đổi chế độ Segmented Pill -->
-          <div class="auth-tabs d-flex pa-1 rounded-pill mb-5" role="tablist">
-            <button
-              type="button"
-              class="tab-btn flex-grow-1 rounded-pill font-weight-bold"
-              :class="{ active: mode === 'login' }"
-              @click="switchMode('login')"
-            >
-              Đăng nhập
-            </button>
-            <button
-              type="button"
-              class="tab-btn flex-grow-1 rounded-pill font-weight-bold"
-              :class="{ active: mode === 'register' }"
-              @click="switchMode('register')"
-            >
-              Đăng ký
-            </button>
-          </div>
-
           <!-- Thông báo lỗi khi đăng nhập thất bại -->
           <v-alert
             v-if="errorMessage"
@@ -634,6 +480,12 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
                 density="comfortable"
                 color="primary"
                 hide-details="auto"
+                @focus="
+                  nameFocused = true;
+                  emailFocused = false;
+                  passwordFocused = false;
+                "
+                @blur="nameFocused = false"
               />
             </div>
 
@@ -657,6 +509,7 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
                 hide-details="auto"
                 @focus="
                   emailFocused = true;
+                  nameFocused = false;
                   passwordFocused = false;
                 "
                 @blur="emailFocused = false"
@@ -704,27 +557,6 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
               </v-text-field>
             </div>
 
-            <!-- Vai trò (khi đăng ký) -->
-            <div v-if="mode === 'register'" class="mb-4">
-              <label
-                class="field-label text-caption font-weight-bold mb-1 d-block"
-                >VAI TRÒ TRONG LỚP HỌC</label
-              >
-              <v-select
-                v-model="role"
-                prepend-inner-icon="mdi-shield-account-outline"
-                :items="[
-                  { title: 'Học sinh', value: 'STUDENT' },
-                  { title: 'Giáo viên', value: 'TEACHER' },
-                ]"
-                variant="outlined"
-                rounded="lg"
-                density="comfortable"
-                color="primary"
-                hide-details="auto"
-              />
-            </div>
-
             <!-- Nút gửi Submit Pill -->
             <v-btn
               type="submit"
@@ -735,9 +567,7 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
               class="btn-shub-primary py-3 font-weight-black text-body-1 mt-3"
               :loading="loading"
             >
-              {{
-                mode === "login" ? "Đăng nhập vào lớp" : "Khởi tạo tài khoản"
-              }}
+              {{ mode === "login" ? "Đăng nhập vào lớp" : "Tạo tài khoản" }}
             </v-btn>
           </v-form>
 
@@ -768,6 +598,169 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
     </div>
   </main>
 </template>
+
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useAuthStore } from "../stores/auth";
+
+const router = useRouter();
+const route = useRoute();
+const auth = useAuthStore();
+
+const mode = computed(() =>
+  route.name === "register-form" ? "register" : "login",
+);
+
+// Form data
+const email = ref("");
+const password = ref("");
+const fullName = ref("");
+const role = computed(() =>
+  route.params.role === "teacher" ? "TEACHER" : "STUDENT",
+);
+const showPassword = ref(false);
+
+// Trạng thái focus & tương tác
+const emailFocused = ref(false);
+const nameFocused = ref(false);
+const passwordFocused = ref(false);
+const snowKey = ref(0);
+const form = ref(null);
+const loading = ref(false);
+const errorMessage = ref("");
+const blink = ref(false);
+let blinkTimer = null;
+
+// Trạng thái che mắt và hé mắt
+const isCovering = computed(() => passwordFocused.value && !showPassword.value);
+const isPeeking = computed(() => passwordFocused.value && showPassword.value);
+
+// Biểu cảm của gấu
+const expression = computed(() => {
+  if (isCovering.value) return "shy";
+  if (isPeeking.value) return "peeking";
+  if (email.value.includes("@") && email.value.includes(".")) return "happy";
+  if (email.value.length > 0) return "curious";
+  return "calm";
+});
+
+// Dòng chú thích biểu cảm dưới gấu
+const bearCaption = computed(() => {
+  if (isCovering.value) return "Bị ném 2 quả bóng tuyết che kín mắt rồi! ❄️🙈";
+  if (isPeeking.value) return "Khoét 2 lỗ tuyết nhìn trộm mật khẩu nè! 👀❄️";
+  if (expression.value === "happy") return "Email trông chuẩn rồi đấy!";
+  if (expression.value === "curious") return "Gấu đang nhìn theo bạn gõ chữ...";
+  return "Học vui mỗi ngày cùng DuckBear";
+});
+
+// Tọa độ liếc mắt theo độ dài email
+const gazeStyle = computed(() => {
+  if (isCovering.value) {
+    return {
+      "--gaze-x": "0px",
+      "--gaze-pupil-x": "0px",
+      "--gaze-pupil-y": "0px",
+    };
+  }
+
+  if (isPeeking.value) {
+    return {
+      "--gaze-x": "0px",
+      "--gaze-pupil-x": "0px",
+      "--gaze-pupil-y": "2.5px",
+    };
+  }
+
+  if (emailFocused.value || nameFocused.value) {
+    const typedText = nameFocused.value ? fullName.value : email.value;
+    const shift = Math.min(Math.max((typedText.length - 5) * 0.42, -3), 6);
+    return {
+      "--gaze-x": `${shift * 0.35}px`,
+      "--gaze-pupil-x": `${shift}px`,
+      "--gaze-pupil-y": "1px",
+    };
+  }
+
+  return {
+    "--gaze-x": "0px",
+    "--gaze-pupil-x": "0px",
+    "--gaze-pupil-y": "0px",
+  };
+});
+
+// Validation rules
+const emailRules = [
+  (v) => !!v || "Email không được để trống",
+  (v) => /.+@.+\..+/.test(v) || "Email không hợp lệ",
+];
+const passwordRules = [
+  (v) => !!v || "Mật khẩu không được để trống",
+  (v) => (v && v.length >= 6) || "Mật khẩu cần ít nhất 6 ký tự",
+];
+const nameRules = [(v) => !!v || "Vui lòng nhập họ và tên"];
+
+function switchMode(next) {
+  errorMessage.value = "";
+  form.value?.resetValidation();
+  router.push(next === "register" ? "/register" : "/login");
+}
+
+async function submit() {
+  errorMessage.value = "";
+  const result = await form.value.validate();
+  if (!result.valid) return;
+
+  loading.value = true;
+  try {
+    if (mode.value === "login") {
+      await auth.login({ email: email.value.trim(), password: password.value });
+    } else {
+      await auth.register({
+        email: email.value.trim(),
+        password: password.value,
+        fullName: fullName.value.trim(),
+        role: role.value,
+      });
+    }
+    await router.push("/");
+  } catch (error) {
+    errorMessage.value =
+      error.message || "Không thể đăng nhập. Vui lòng thử lại.";
+  } finally {
+    loading.value = false;
+  }
+}
+
+// Xử lý ném tuyết từng quả khi focus ô mật khẩu
+function onPasswordFocus() {
+  passwordFocused.value = true;
+  emailFocused.value = false;
+  nameFocused.value = false;
+  snowKey.value++;
+}
+
+function onPasswordBlur() {
+  passwordFocused.value = false;
+}
+
+// Chớp mắt ngẫu nhiên
+function scheduleBlink() {
+  blinkTimer = window.setTimeout(
+    () => {
+      blink.value = true;
+      window.setTimeout(() => {
+        blink.value = false;
+        scheduleBlink();
+      }, 160);
+    },
+    2800 + Math.random() * 2600,
+  );
+}
+
+onMounted(scheduleBlink);
+onBeforeUnmount(() => window.clearTimeout(blinkTimer));
+</script>
 
 <style scoped>
 .login-page {
@@ -995,7 +988,8 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
 
 /* Quả bóng dính trên mắt trái (nảy lên tại 0.18s) */
 .landed-left {
-  animation: landBounceLeft 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0.18s both;
+  animation: landBounceLeft 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0.18s
+    both;
   transform-origin: 94px 105px;
 }
 
@@ -1016,7 +1010,8 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
 
 /* Quả bóng dính trên mắt phải (nảy lên sau tại 0.32s) */
 .landed-right {
-  animation: landBounceRight 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0.32s both;
+  animation: landBounceRight 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28) 0.32s
+    both;
   transform-origin: 146px 105px;
 }
 

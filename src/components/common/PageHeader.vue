@@ -1,24 +1,3 @@
-<script setup>
-defineProps({
-  tag: {
-    type: String,
-    default: '',
-  },
-  title: {
-    type: String,
-    required: true,
-  },
-  subtitle: {
-    type: String,
-    default: '',
-  },
-  icon: {
-    type: String,
-    default: 'mdi-book-open-variant',
-  },
-})
-</script>
-
 <template>
   <v-card
     class="page-header-banner pa-5 pa-md-7 mb-6"
@@ -57,6 +36,27 @@ defineProps({
     </div>
   </v-card>
 </template>
+
+<script setup>
+defineProps({
+  tag: {
+    type: String,
+    default: '',
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  subtitle: {
+    type: String,
+    default: '',
+  },
+  icon: {
+    type: String,
+    default: 'mdi-book-open-variant',
+  },
+})
+</script>
 
 <style scoped>
 .page-header-banner {

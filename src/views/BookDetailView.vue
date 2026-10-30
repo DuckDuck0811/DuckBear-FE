@@ -1,269 +1,3 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { api } from '../services/api'
-import { useAuthStore } from '../stores/auth'
-import AppHeader from '../components/common/AppHeader.vue'
-import EmptyState from '../components/common/EmptyState.vue'
-import ConfirmDialog from '../components/common/ConfirmDialog.vue'
-
-const route = useRoute()
-const router = useRouter()
-const authStore = useAuthStore()
-
-const bookId = route.params.id
-const book = ref(null)
-const isLoading = ref(false)
-const openedPanels = ref([])
-
-// Snackbar thông báo
-const snackbar = ref({
-  show: false,
-  message: '',
-  color: 'success',
-})
-
-function showNotice(message, color = 'success') {
-  snackbar.value = {
-    show: true,
-    message,
-    color,
-  }
-}
-
-// ---- Quản lý Chương ----
-const showChapterDialog = ref(false)
-const isEditingChapter = ref(false)
-const chapterFormRef = ref(null)
-const isSubmittingChapter = ref(false)
-const chapterForm = ref({
-  id: null,
-  title: '',
-  orderIndex: 0,
-})
-
-const showDeleteChapterConfirm = ref(false)
-const chapterToDelete = ref(null)
-const isDeletingChapter = ref(false)
-
-// ---- Quản lý Bài học ----
-const showLessonDialog = ref(false)
-const isEditingLesson = ref(false)
-const lessonFormRef = ref(null)
-const isSubmittingLesson = ref(false)
-const targetChapterId = ref(null)
-const lessonForm = ref({
-  id: null,
-  title: '',
-  content: '',
-  orderIndex: 0,
-})
-
-const showDeleteLessonConfirm = ref(false)
-const lessonToDelete = ref(null)
-const isDeletingLesson = ref(false)
-
-const requiredRule = [(v) => !!v || 'Vui lòng nhập thông tin']
-
-// Lấy chi tiết sách
-async function fetchBookDetail() {
-  isLoading.value = true
-  try {
-    const data = await api(`/books/${bookId}`)
-    book.value = data
-    if (data?.chapters) {
-      openedPanels.value = data.chapters.map((_, i) => i)
-    }
-  } catch (err) {
-    showNotice(err.message, 'error')
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// ==== THAO TÁC VỚI CHƯƠNG ====
-function openAddChapterDialog() {
-  isEditingChapter.value = false
-  chapterForm.value = {
-    id: null,
-    title: '',
-    orderIndex: (book.value?.chapters?.length || 0) + 1,
-  }
-  showChapterDialog.value = true
-}
-
-function openEditChapterDialog(chapter, event) {
-  event?.stopPropagation()
-  isEditingChapter.value = true
-  chapterForm.value = {
-    id: chapter.id,
-    title: chapter.title,
-    orderIndex: chapter.orderIndex ?? 0,
-  }
-  showChapterDialog.value = true
-}
-
-async function handleSaveChapter() {
-  const { valid } = await chapterFormRef.value.validate()
-  if (!valid) return
-
-  isSubmittingChapter.value = true
-  try {
-    const payload = {
-      title: chapterForm.value.title.trim(),
-      orderIndex: Number(chapterForm.value.orderIndex) || 0,
-    }
-
-    if (isEditingChapter.value) {
-      await api(`/chapters/${chapterForm.value.id}`, {
-        method: 'PATCH',
-        body: payload,
-      })
-      showNotice('Cập nhật chương thành công!')
-    } else {
-      await api(`/books/${bookId}/chapters`, {
-        method: 'POST',
-        body: payload,
-      })
-      showNotice('Thêm chương mới thành công!')
-    }
-    showChapterDialog.value = false
-    await fetchBookDetail()
-  } catch (err) {
-    showNotice(err.message, 'error')
-  } finally {
-    isSubmittingChapter.value = false
-  }
-}
-
-function confirmDeleteChapter(chapter, event) {
-  event?.stopPropagation()
-  chapterToDelete.value = chapter
-  showDeleteChapterConfirm.value = true
-}
-
-async function handleDeleteChapter() {
-  if (!chapterToDelete.value) return
-  isDeletingChapter.value = true
-  try {
-    await api(`/chapters/${chapterToDelete.value.id}`, {
-      method: 'DELETE',
-    })
-    showNotice('Xóa chương thành công!')
-    showDeleteChapterConfirm.value = false
-    chapterToDelete.value = null
-    await fetchBookDetail()
-  } catch (err) {
-    showNotice(err.message, 'error')
-  } finally {
-    isDeletingChapter.value = false
-  }
-}
-
-// ==== THAO TÁC VỚI BÀI HỌC ====
-function openAddLessonDialog(chapterId, event) {
-  event?.stopPropagation()
-  isEditingLesson.value = false
-  targetChapterId.value = chapterId
-  const chapter = book.value?.chapters?.find((c) => c.id === chapterId)
-  lessonForm.value = {
-    id: null,
-    title: '',
-    content: '',
-    orderIndex: (chapter?.lessons?.length || 0) + 1,
-  }
-  showLessonDialog.value = true
-}
-
-function openEditLessonDialog(lesson, event) {
-  event?.stopPropagation()
-  isEditingLesson.value = true
-  lessonForm.value = {
-    id: lesson.id,
-    title: lesson.title,
-    content: lesson.content || '',
-    orderIndex: lesson.orderIndex ?? 0,
-  }
-  showLessonDialog.value = true
-}
-
-async function handleSaveLesson() {
-  const { valid } = await lessonFormRef.value.validate()
-  if (!valid) return
-
-  isSubmittingLesson.value = true
-  try {
-    const payload = {
-      title: lessonForm.value.title.trim(),
-      content: lessonForm.value.content || '',
-      orderIndex: Number(lessonForm.value.orderIndex) || 0,
-    }
-
-    if (isEditingLesson.value) {
-      await api(`/lessons/${lessonForm.value.id}`, {
-        method: 'PATCH',
-        body: payload,
-      })
-      showNotice('Cập nhật bài học thành công!')
-    } else {
-      await api(`/chapters/${targetChapterId.value}/lessons`, {
-        method: 'POST',
-        body: payload,
-      })
-      showNotice('Thêm bài học mới thành công!')
-    }
-    showLessonDialog.value = false
-    await fetchBookDetail()
-  } catch (err) {
-    showNotice(err.message, 'error')
-  } finally {
-    isSubmittingLesson.value = false
-  }
-}
-
-function confirmDeleteLesson(lesson, event) {
-  event?.stopPropagation()
-  lessonToDelete.value = lesson
-  showDeleteLessonConfirm.value = true
-}
-
-async function handleDeleteLesson() {
-  if (!lessonToDelete.value) return
-  isDeletingLesson.value = true
-  try {
-    await api(`/lessons/${lessonToDelete.value.id}`, {
-      method: 'DELETE',
-    })
-    showNotice('Xóa bài học thành công!')
-    showDeleteLessonConfirm.value = false
-    lessonToDelete.value = null
-    await fetchBookDetail()
-  } catch (err) {
-    showNotice(err.message, 'error')
-  } finally {
-    isDeletingLesson.value = false
-  }
-}
-
-function goToLesson(lessonId) {
-  router.push(`/lessons/${lessonId}`)
-}
-
-function goBack() {
-  router.push('/')
-}
-
-// Bảng màu cho badge số thứ tự chương
-const chapterColorPalette = ['primary', 'orange', 'success', 'purple', 'warning', 'info']
-function getChapterColor(index) {
-  return chapterColorPalette[index % chapterColorPalette.length]
-}
-
-onMounted(() => {
-  fetchBookDetail()
-})
-</script>
-
 <template>
   <v-layout class="min-vh-100" style="background-color: #F4F8FF;">
     <AppHeader />
@@ -680,6 +414,272 @@ onMounted(() => {
     </v-main>
   </v-layout>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { api } from '../services/api'
+import { useAuthStore } from '../stores/auth'
+import AppHeader from '../components/common/AppHeader.vue'
+import EmptyState from '../components/common/EmptyState.vue'
+import ConfirmDialog from '../components/common/ConfirmDialog.vue'
+
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+const bookId = route.params.id
+const book = ref(null)
+const isLoading = ref(false)
+const openedPanels = ref([])
+
+// Snackbar thông báo
+const snackbar = ref({
+  show: false,
+  message: '',
+  color: 'success',
+})
+
+function showNotice(message, color = 'success') {
+  snackbar.value = {
+    show: true,
+    message,
+    color,
+  }
+}
+
+// ---- Quản lý Chương ----
+const showChapterDialog = ref(false)
+const isEditingChapter = ref(false)
+const chapterFormRef = ref(null)
+const isSubmittingChapter = ref(false)
+const chapterForm = ref({
+  id: null,
+  title: '',
+  orderIndex: 0,
+})
+
+const showDeleteChapterConfirm = ref(false)
+const chapterToDelete = ref(null)
+const isDeletingChapter = ref(false)
+
+// ---- Quản lý Bài học ----
+const showLessonDialog = ref(false)
+const isEditingLesson = ref(false)
+const lessonFormRef = ref(null)
+const isSubmittingLesson = ref(false)
+const targetChapterId = ref(null)
+const lessonForm = ref({
+  id: null,
+  title: '',
+  content: '',
+  orderIndex: 0,
+})
+
+const showDeleteLessonConfirm = ref(false)
+const lessonToDelete = ref(null)
+const isDeletingLesson = ref(false)
+
+const requiredRule = [(v) => !!v || 'Vui lòng nhập thông tin']
+
+// Lấy chi tiết sách
+async function fetchBookDetail() {
+  isLoading.value = true
+  try {
+    const data = await api(`/books/${bookId}`)
+    book.value = data
+    if (data?.chapters) {
+      openedPanels.value = data.chapters.map((_, i) => i)
+    }
+  } catch (err) {
+    showNotice(err.message, 'error')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// ==== THAO TÁC VỚI CHƯƠNG ====
+function openAddChapterDialog() {
+  isEditingChapter.value = false
+  chapterForm.value = {
+    id: null,
+    title: '',
+    orderIndex: (book.value?.chapters?.length || 0) + 1,
+  }
+  showChapterDialog.value = true
+}
+
+function openEditChapterDialog(chapter, event) {
+  event?.stopPropagation()
+  isEditingChapter.value = true
+  chapterForm.value = {
+    id: chapter.id,
+    title: chapter.title,
+    orderIndex: chapter.orderIndex ?? 0,
+  }
+  showChapterDialog.value = true
+}
+
+async function handleSaveChapter() {
+  const { valid } = await chapterFormRef.value.validate()
+  if (!valid) return
+
+  isSubmittingChapter.value = true
+  try {
+    const payload = {
+      title: chapterForm.value.title.trim(),
+      orderIndex: Number(chapterForm.value.orderIndex) || 0,
+    }
+
+    if (isEditingChapter.value) {
+      await api(`/chapters/${chapterForm.value.id}`, {
+        method: 'PATCH',
+        body: payload,
+      })
+      showNotice('Cập nhật chương thành công!')
+    } else {
+      await api(`/books/${bookId}/chapters`, {
+        method: 'POST',
+        body: payload,
+      })
+      showNotice('Thêm chương mới thành công!')
+    }
+    showChapterDialog.value = false
+    await fetchBookDetail()
+  } catch (err) {
+    showNotice(err.message, 'error')
+  } finally {
+    isSubmittingChapter.value = false
+  }
+}
+
+function confirmDeleteChapter(chapter, event) {
+  event?.stopPropagation()
+  chapterToDelete.value = chapter
+  showDeleteChapterConfirm.value = true
+}
+
+async function handleDeleteChapter() {
+  if (!chapterToDelete.value) return
+  isDeletingChapter.value = true
+  try {
+    await api(`/chapters/${chapterToDelete.value.id}`, {
+      method: 'DELETE',
+    })
+    showNotice('Xóa chương thành công!')
+    showDeleteChapterConfirm.value = false
+    chapterToDelete.value = null
+    await fetchBookDetail()
+  } catch (err) {
+    showNotice(err.message, 'error')
+  } finally {
+    isDeletingChapter.value = false
+  }
+}
+
+// ==== THAO TÁC VỚI BÀI HỌC ====
+function openAddLessonDialog(chapterId, event) {
+  event?.stopPropagation()
+  isEditingLesson.value = false
+  targetChapterId.value = chapterId
+  const chapter = book.value?.chapters?.find((c) => c.id === chapterId)
+  lessonForm.value = {
+    id: null,
+    title: '',
+    content: '',
+    orderIndex: (chapter?.lessons?.length || 0) + 1,
+  }
+  showLessonDialog.value = true
+}
+
+function openEditLessonDialog(lesson, event) {
+  event?.stopPropagation()
+  isEditingLesson.value = true
+  lessonForm.value = {
+    id: lesson.id,
+    title: lesson.title,
+    content: lesson.content || '',
+    orderIndex: lesson.orderIndex ?? 0,
+  }
+  showLessonDialog.value = true
+}
+
+async function handleSaveLesson() {
+  const { valid } = await lessonFormRef.value.validate()
+  if (!valid) return
+
+  isSubmittingLesson.value = true
+  try {
+    const payload = {
+      title: lessonForm.value.title.trim(),
+      content: lessonForm.value.content || '',
+      orderIndex: Number(lessonForm.value.orderIndex) || 0,
+    }
+
+    if (isEditingLesson.value) {
+      await api(`/lessons/${lessonForm.value.id}`, {
+        method: 'PATCH',
+        body: payload,
+      })
+      showNotice('Cập nhật bài học thành công!')
+    } else {
+      await api(`/chapters/${targetChapterId.value}/lessons`, {
+        method: 'POST',
+        body: payload,
+      })
+      showNotice('Thêm bài học mới thành công!')
+    }
+    showLessonDialog.value = false
+    await fetchBookDetail()
+  } catch (err) {
+    showNotice(err.message, 'error')
+  } finally {
+    isSubmittingLesson.value = false
+  }
+}
+
+function confirmDeleteLesson(lesson, event) {
+  event?.stopPropagation()
+  lessonToDelete.value = lesson
+  showDeleteLessonConfirm.value = true
+}
+
+async function handleDeleteLesson() {
+  if (!lessonToDelete.value) return
+  isDeletingLesson.value = true
+  try {
+    await api(`/lessons/${lessonToDelete.value.id}`, {
+      method: 'DELETE',
+    })
+    showNotice('Xóa bài học thành công!')
+    showDeleteLessonConfirm.value = false
+    lessonToDelete.value = null
+    await fetchBookDetail()
+  } catch (err) {
+    showNotice(err.message, 'error')
+  } finally {
+    isDeletingLesson.value = false
+  }
+}
+
+function goToLesson(lessonId) {
+  router.push(`/lessons/${lessonId}`)
+}
+
+function goBack() {
+  router.push('/')
+}
+
+// Bảng màu cho badge số thứ tự chương
+const chapterColorPalette = ['primary', 'orange', 'success', 'purple', 'warning', 'info']
+function getChapterColor(index) {
+  return chapterColorPalette[index % chapterColorPalette.length]
+}
+
+onMounted(() => {
+  fetchBookDetail()
+})
+</script>
 
 <style scoped>
 .min-vh-100 {
