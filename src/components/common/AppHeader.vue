@@ -56,6 +56,7 @@ function goHome() {
       aria-label="Về trang chủ DuckBear"
       @click="goHome"
       @keydown.enter="goHome"
+      @keydown.space.prevent="goHome"
     >
       <DuckBearMascot :size="42" mood="greeting" class="mr-2" />
       <div>
