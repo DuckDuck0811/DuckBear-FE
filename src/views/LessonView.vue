@@ -1,107 +1,3 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { api } from '../services/api'
-import { useAuthStore } from '../stores/auth'
-import AppHeader from '../components/common/AppHeader.vue'
-import DuckBearMascot from '../components/common/DuckBearMascot.vue'
-
-const route = useRoute()
-const router = useRouter()
-const authStore = useAuthStore()
-
-const lessonId = route.params.id
-const lesson = ref(null)
-const isLoading = ref(false)
-
-// Snackbar thông báo
-const snackbar = ref({
-  show: false,
-  message: '',
-  color: 'success',
-})
-
-function showNotice(message, color = 'success') {
-  snackbar.value = {
-    show: true,
-    message,
-    color,
-  }
-}
-
-// Dialog Chỉnh sửa bài học
-const showEditDialog = ref(false)
-const isSubmitting = ref(false)
-const formRef = ref(null)
-const editForm = ref({
-  title: '',
-  content: '',
-  orderIndex: 0,
-})
-
-const requiredRule = [(v) => !!v || 'Tiêu đề không được để trống']
-
-// Lấy thông tin bài học
-async function fetchLesson() {
-  isLoading.value = true
-  try {
-    const data = await api(`/lessons/${lessonId}`)
-    lesson.value = data
-  } catch (err) {
-    showNotice(err.message, 'error')
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Mở dialog sửa bài học
-function openEditModal() {
-  if (!lesson.value) return
-  editForm.value = {
-    title: lesson.value.title || '',
-    content: lesson.value.content || '',
-    orderIndex: lesson.value.orderIndex ?? 0,
-  }
-  showEditDialog.value = true
-}
-
-// Lưu cập nhật bài học
-async function handleUpdateLesson() {
-  const { valid } = await formRef.value.validate()
-  if (!valid) return
-
-  isSubmitting.value = true
-  try {
-    const payload = {
-      title: editForm.value.title.trim(),
-      content: editForm.value.content,
-      orderIndex: Number(editForm.value.orderIndex) || 0,
-    }
-
-    const updated = await api(`/lessons/${lessonId}`, {
-      method: 'PATCH',
-      body: payload,
-    })
-
-    lesson.value = updated
-    showNotice('Cập nhật bài học thành công!')
-    showEditDialog.value = false
-  } catch (err) {
-    showNotice(err.message, 'error')
-  } finally {
-    isSubmitting.value = false
-  }
-}
-
-function goBack() {
-  router.back()
-}
-
-onMounted(() => {
-  fetchLesson()
-})
-</script>
-
 <template>
   <v-layout class="min-vh-100" style="background-color: #F4F8FF;">
     <AppHeader />
@@ -326,6 +222,110 @@ onMounted(() => {
     </v-main>
   </v-layout>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { api } from '../services/api'
+import { useAuthStore } from '../stores/auth'
+import AppHeader from '../components/common/AppHeader.vue'
+import DuckBearMascot from '../components/common/DuckBearMascot.vue'
+
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+const lessonId = route.params.id
+const lesson = ref(null)
+const isLoading = ref(false)
+
+// Snackbar thông báo
+const snackbar = ref({
+  show: false,
+  message: '',
+  color: 'success',
+})
+
+function showNotice(message, color = 'success') {
+  snackbar.value = {
+    show: true,
+    message,
+    color,
+  }
+}
+
+// Dialog Chỉnh sửa bài học
+const showEditDialog = ref(false)
+const isSubmitting = ref(false)
+const formRef = ref(null)
+const editForm = ref({
+  title: '',
+  content: '',
+  orderIndex: 0,
+})
+
+const requiredRule = [(v) => !!v || 'Tiêu đề không được để trống']
+
+// Lấy thông tin bài học
+async function fetchLesson() {
+  isLoading.value = true
+  try {
+    const data = await api(`/lessons/${lessonId}`)
+    lesson.value = data
+  } catch (err) {
+    showNotice(err.message, 'error')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Mở dialog sửa bài học
+function openEditModal() {
+  if (!lesson.value) return
+  editForm.value = {
+    title: lesson.value.title || '',
+    content: lesson.value.content || '',
+    orderIndex: lesson.value.orderIndex ?? 0,
+  }
+  showEditDialog.value = true
+}
+
+// Lưu cập nhật bài học
+async function handleUpdateLesson() {
+  const { valid } = await formRef.value.validate()
+  if (!valid) return
+
+  isSubmitting.value = true
+  try {
+    const payload = {
+      title: editForm.value.title.trim(),
+      content: editForm.value.content,
+      orderIndex: Number(editForm.value.orderIndex) || 0,
+    }
+
+    const updated = await api(`/lessons/${lessonId}`, {
+      method: 'PATCH',
+      body: payload,
+    })
+
+    lesson.value = updated
+    showNotice('Cập nhật bài học thành công!')
+    showEditDialog.value = false
+  } catch (err) {
+    showNotice(err.message, 'error')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+function goBack() {
+  router.back()
+}
+
+onMounted(() => {
+  fetchLesson()
+})
+</script>
 
 <style scoped>
 .min-vh-100 {

@@ -1,52 +1,10 @@
-<script setup>
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../../stores/auth'
-import DuckBearMascot from './DuckBearMascot.vue'
-
-const router = useRouter()
-const authStore = useAuthStore()
-
-const user = computed(() => authStore.user)
-
-const userInitial = computed(() => {
-  const name = user.value?.fullName || user.value?.email || 'D'
-  return name.trim().charAt(0).toUpperCase()
-})
-
-const roleDisplayName = computed(() => {
-  const role = user.value?.role
-  if (role === 'TEACHER') return 'Giáo viên'
-  if (role === 'STUDENT') return 'Học sinh'
-  if (role === 'ADMIN') return 'Quản trị viên'
-  return role || 'Thành viên'
-})
-
-const roleColor = computed(() => {
-  const role = user.value?.role
-  if (role === 'TEACHER') return 'primary'
-  if (role === 'STUDENT') return 'success'
-  if (role === 'ADMIN') return 'purple'
-  return 'info'
-})
-
-function handleLogout() {
-  authStore.logout()
-  router.push('/login')
-}
-
-function goHome() {
-  router.push('/')
-}
-</script>
-
 <template>
   <v-app-bar
     color="white"
     flat
     class="border-b px-2 px-md-6"
     height="70"
-    style="border-color: #E4ECF7 !important; z-index: 100;"
+    style="border-color: #e4ecf7 !important; z-index: 100"
   >
     <!-- Logo DuckBear & Mascot -->
     <div
@@ -61,15 +19,25 @@ function goHome() {
       <DuckBearMascot :size="42" mood="greeting" class="mr-2" />
       <div>
         <div class="brand-text">
-          <span class="text-primary font-weight-black">Duck</span><span class="text-orange font-weight-black">Bear</span>
+          <span class="text-primary font-weight-black">Duck</span
+          ><span class="text-orange font-weight-black">Bear</span>
         </div>
-        <div class="brand-sub font-weight-bold">
-          CLASSROOM
-        </div>
+        <div class="brand-sub font-weight-bold">CLASSROOM</div>
       </div>
     </div>
 
     <v-spacer />
+
+    <v-btn
+      v-if="user"
+      variant="tonal"
+      color="primary"
+      prepend-icon="mdi-account-group-outline"
+      class="mr-3"
+      @click="router.push('/classes')"
+    >
+      Lớp học
+    </v-btn>
 
     <!-- Khu vực Người dùng & Đăng xuất -->
     <div v-if="user" class="d-flex align-center">
@@ -84,7 +52,10 @@ function goHome() {
         </v-avatar>
 
         <div class="text-left d-none d-sm-block mr-2">
-          <div class="user-name font-weight-bold text-truncate" style="max-width: 180px;">
+          <div
+            class="user-name font-weight-bold text-truncate"
+            style="max-width: 180px"
+          >
             {{ user.fullName || user.email }}
           </div>
           <v-chip
@@ -94,7 +65,9 @@ function goHome() {
             class="font-weight-bold mt-1"
           >
             <v-icon
-              :icon="user.role === 'TEACHER' ? 'mdi-school' : 'mdi-account-check'"
+              :icon="
+                user.role === 'TEACHER' ? 'mdi-school' : 'mdi-account-check'
+              "
               size="12"
               class="mr-1"
             />
@@ -119,6 +92,48 @@ function goHome() {
   </v-app-bar>
 </template>
 
+<script setup>
+import { computed } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/auth";
+import DuckBearMascot from "./DuckBearMascot.vue";
+
+const router = useRouter();
+const authStore = useAuthStore();
+
+const user = computed(() => authStore.user);
+
+const userInitial = computed(() => {
+  const name = user.value?.fullName || user.value?.email || "D";
+  return name.trim().charAt(0).toUpperCase();
+});
+
+const roleDisplayName = computed(() => {
+  const role = user.value?.role;
+  if (role === "TEACHER") return "Giáo viên";
+  if (role === "STUDENT") return "Học sinh";
+  if (role === "ADMIN") return "Quản trị viên";
+  return role || "Thành viên";
+});
+
+const roleColor = computed(() => {
+  const role = user.value?.role;
+  if (role === "TEACHER") return "primary";
+  if (role === "STUDENT") return "success";
+  if (role === "ADMIN") return "purple";
+  return "info";
+});
+
+function handleLogout() {
+  authStore.logout();
+  router.push("/login");
+}
+
+function goHome() {
+  router.push("/");
+}
+</script>
+
 <style scoped>
 .cursor-pointer {
   cursor: pointer;
@@ -141,18 +156,17 @@ function goHome() {
 .brand-sub {
   font-size: 0.65rem;
   letter-spacing: 0.18em;
-  color: #2F7CF6;
+  color: #2f7cf6;
 }
 
 .avatar-shub {
-  background: linear-gradient(135deg, #2F7CF6 0%, #1F5FD0 100%) !important;
+  background: linear-gradient(135deg, #2f7cf6 0%, #1f5fd0 100%) !important;
   box-shadow: 0 3px 8px rgba(47, 124, 246, 0.3);
 }
 
 .user-name {
   font-size: 0.88rem;
-  color: #1D2939;
+  color: #1d2939;
   line-height: 1.2;
 }
 </style>
-

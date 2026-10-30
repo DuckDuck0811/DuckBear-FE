@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
 
 /**
  * Hàm gọi API dùng native fetch
@@ -30,7 +30,7 @@ export async function api(path, { method = 'GET', body, headers = {} } = {}) {
 
   const url = path.startsWith('http')
     ? path
-    : `${BASE_URL}${path.startsWith('/') ? path : `/${path}`}`
+    : `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`
 
   let response
   try {

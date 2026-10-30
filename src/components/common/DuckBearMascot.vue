@@ -1,18 +1,7 @@
-<script setup>
-defineProps({
-  size: {
-    type: [Number, String],
-    default: 84,
-  },
-  mood: {
-    type: String,
-    default: 'greeting', // 'greeting' | 'reading' | 'empty' | 'celebrate'
-  },
-})
-</script>
-
 <template>
-  <div class="duckbear-mascot-wrapper d-inline-flex align-center justify-center">
+  <div
+    class="duckbear-mascot-wrapper d-inline-flex align-center justify-center"
+  >
     <svg
       :width="size"
       :height="size"
@@ -47,10 +36,7 @@ defineProps({
       <ellipse cx="68" cy="54" rx="4.5" ry="2.5" fill="#FF6B9A" opacity="0.6" />
 
       <!-- Mỏ vịt cam đặc trưng của DuckBear -->
-      <path
-        d="M40 54 C40 50 60 50 60 54 C60 62 40 62 40 54 Z"
-        fill="#FF9F43"
-      />
+      <path d="M40 54 C40 50 60 50 60 54 C60 62 40 62 40 54 Z" fill="#FF9F43" />
       <!-- Miệng cười mỉm nhỏ -->
       <path
         d="M46 58 C48 60 52 60 54 58"
@@ -65,15 +51,41 @@ defineProps({
         <rect x="42" y="27" width="16" height="8" rx="2" fill="#1F5FD0" />
         <!-- Tua rua vàng -->
         <circle cx="50" cy="23" r="2" fill="#FFC83D" />
-        <path d="M50 23 Q60 26 62 33" stroke="#FF9F43" stroke-width="1.8" stroke-linecap="round" />
+        <path
+          d="M50 23 Q60 26 62 33"
+          stroke="#FF9F43"
+          stroke-width="1.8"
+          stroke-linecap="round"
+        />
         <circle cx="62" cy="34" r="1.5" fill="#FF9F43" />
       </g>
 
       <!-- Phụ kiện: Kính tròn học sinh trí thức khi reading -->
       <g v-if="mood === 'reading'">
-        <circle cx="39" cy="46" r="8" stroke="#2F7CF6" stroke-width="2" fill="none" />
-        <circle cx="61" cy="46" r="8" stroke="#2F7CF6" stroke-width="2" fill="none" />
-        <line x1="47" y1="46" x2="53" y2="46" stroke="#2F7CF6" stroke-width="2" />
+        <circle
+          cx="39"
+          cy="46"
+          r="8"
+          stroke="#2F7CF6"
+          stroke-width="2"
+          fill="none"
+        />
+        <circle
+          cx="61"
+          cy="46"
+          r="8"
+          stroke="#2F7CF6"
+          stroke-width="2"
+          fill="none"
+        />
+        <line
+          x1="47"
+          y1="46"
+          x2="53"
+          y2="46"
+          stroke="#2F7CF6"
+          stroke-width="2"
+        />
       </g>
 
       <!-- Hai tay cầm sách phía trước -->
@@ -91,18 +103,46 @@ defineProps({
       <g v-if="mood === 'empty'">
         <!-- Biểu tượng dấu hỏi chấm tròn bay lơ lửng -->
         <circle cx="74" cy="22" r="9" fill="#FF6B9A" />
-        <text x="74" y="27" font-size="12" font-weight="bold" fill="#FFFFFF" text-anchor="middle">?</text>
+        <text
+          x="74"
+          y="27"
+          font-size="12"
+          font-weight="bold"
+          fill="#FFFFFF"
+          text-anchor="middle"
+        >
+          ?
+        </text>
       </g>
 
       <!-- Cảm xúc vui mừng celebrate -->
       <g v-if="mood === 'celebrate'">
         <!-- Ngôi sao nhỏ lấp lánh -->
-        <polygon points="18,18 20,23 25,24 21,27 22,32 18,29 14,32 15,27 11,24 16,23" fill="#FFC83D" />
-        <polygon points="82,24 83,27 86,28 84,30 84,33 82,31 80,33 80,30 78,28 81,27" fill="#FF6B9A" />
+        <polygon
+          points="18,18 20,23 25,24 21,27 22,32 18,29 14,32 15,27 11,24 16,23"
+          fill="#FFC83D"
+        />
+        <polygon
+          points="82,24 83,27 86,28 84,30 84,33 82,31 80,33 80,30 78,28 81,27"
+          fill="#FF6B9A"
+        />
       </g>
     </svg>
   </div>
 </template>
+
+<script setup>
+defineProps({
+  size: {
+    type: [Number, String],
+    default: 84,
+  },
+  mood: {
+    type: String,
+    default: "greeting", // 'greeting' | 'reading' | 'empty' | 'celebrate'
+  },
+});
+</script>
 
 <style scoped>
 .duckbear-mascot-wrapper {
@@ -112,4 +152,3 @@ defineProps({
   display: block;
 }
 </style>
-

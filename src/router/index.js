@@ -7,9 +7,24 @@ const routes = [
     component: () => import("../views/LoginView.vue"),
   },
   {
+    path: "/register",
+    name: "register",
+    component: () => import("../views/RegisterRoleView.vue"),
+  },
+  {
+    path: "/register/:role(student|teacher)",
+    name: "register-form",
+    component: () => import("../views/LoginView.vue"),
+  },
+  {
     path: "/",
     name: "books",
     component: () => import("../views/BooksView.vue"),
+  },
+  {
+    path: "/classes",
+    name: "classes",
+    component: () => import("../views/ClassesView.vue"),
   },
   {
     path: "/books/:id",
@@ -37,9 +52,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem("accessToken");
 
-  if (to.path !== "/login" && !token) {
+  if (to.path !== "/login" && !to.path.startsWith("/register") && !token) {
     next("/login");
-  } else if (to.path === "/login" && token) {
+  } else if ((to.path === "/login" || to.path.startsWith("/register")) && token) {
     next("/");
   } else {
     next();
