@@ -1,0 +1,128 @@
+/* ==========================================================================
+   DuckBear Theme: SHub Classroom Style (Sáng – Tươi – Thân thiện – Hiện đại)
+   ========================================================================== */
+
+:root {
+  --font-main: 'Nunito', 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Nunito', 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Bóng đổ mềm ánh xanh đặc trưng SHub Classroom */
+  --shadow-shub-sm: 0 2px 8px rgba(47, 124, 246, 0.06);
+  --shadow-shub-card: 0 8px 24px rgba(47, 124, 246, 0.07), 0 2px 6px rgba(47, 124, 246, 0.03);
+  --shadow-shub-hover: 0 16px 32px rgba(47, 124, 246, 0.14), 0 4px 10px rgba(47, 124, 246, 0.06);
+  --shadow-primary-btn: 0 6px 18px rgba(47, 124, 246, 0.32);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-main);
+  background-color: #F4F8FF !important;
+  color: #1D2939;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  background-color: #F4F8FF;
+}
+
+.v-application {
+  font-family: var(--font-main) !important;
+  background-color: #F4F8FF !important;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6,
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
+  font-family: var(--font-heading) !important;
+  font-weight: 800 !important;
+  color: #1D2939;
+  letter-spacing: -0.015em;
+}
+
+/* Thẻ Card SHub Classroom */
+.shub-card {
+  background: #FFFFFF !important;
+  border-radius: 20px !important;
+  border: 1px solid #E4ECF7 !important;
+  box-shadow: var(--shadow-shub-card) !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.shub-card-hover:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: var(--shadow-shub-hover) !important;
+}
+
+/* Nút bấm SHub Style */
+.btn-shub-primary {
+  background: linear-gradient(135deg, #2F7CF6 0%, #1F5FD0 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: var(--shadow-primary-btn) !important;
+  transition: all 0.22s ease !important;
+}
+
+.btn-shub-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 22px rgba(47, 124, 246, 0.42) !important;
+}
+
+/* Animations */
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float {
+  animation: floatGentle 3.5s ease-in-out infinite;
+}
+
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Cuộn trang mượt mà */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F4F8FF;
+}
+::-webkit-scrollbar-thumb {
+  background: #C4D7F5;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2F7CF6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
