@@ -1,7 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { useAuthStore } from "../stores/auth";
-import { useUserStore } from "../stores/user";
-import { useBookStore } from "../stores/book";
 
 const routes = [
   {
