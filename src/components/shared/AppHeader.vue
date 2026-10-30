@@ -26,7 +26,41 @@
       </div>
     </div>
 
+    <v-btn
+      v-if="['TEACHER', 'STUDENT'].includes(user?.role)"
+      class="d-md-none ml-2"
+      icon="mdi-menu"
+      variant="text"
+      color="primary"
+      :aria-label="t(user?.role === 'STUDENT' ? 'studentMenu' : 'teacherMenu')"
+      @click="toggleTeacherSidebar"
+    />
+
     <v-spacer />
+
+    <v-menu location="bottom end">
+      <template #activator="{ props }">
+        <v-btn
+          v-bind="props"
+          variant="tonal"
+          color="primary"
+          prepend-icon="mdi-translate"
+          class="language-switch mr-2"
+          :aria-label="t('language')"
+        >
+          {{ locale.toUpperCase() }}
+        </v-btn>
+      </template>
+      <v-list density="compact" min-width="150">
+        <v-list-item
+          v-for="option in languageOptions"
+          :key="option.value"
+          :title="option.title"
+          :active="locale === option.value"
+          @click="setLocale(option.value)"
+        />
+      </v-list>
+    </v-menu>
 
     <v-btn
       v-if="user"
@@ -36,7 +70,7 @@
       class="mr-3"
       @click="router.push('/classes')"
     >
-      Lớp học
+      {{ t('classes') }}
     </v-btn>
 
     <!-- Khu vực Người dùng & Đăng xuất -->
@@ -86,7 +120,7 @@
         class="text-none font-weight-bold px-3 ml-1"
         @click="handleLogout"
       >
-        <span class="d-none d-sm-inline">Đăng xuất</span>
+        <span class="d-none d-sm-inline">{{ t('logout') }}</span>
       </v-btn>
     </div>
   </v-app-bar>
@@ -94,12 +128,18 @@
 
 <script setup>
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
 import DuckBearMascot from "./DuckBearMascot.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { t, locale } = useI18n();
+const languageOptions = [
+  { title: "Tiếng Việt", value: "vi" },
+  { title: "English", value: "en" },
+];
 
 const user = computed(() => authStore.user);
 
@@ -123,6 +163,18 @@ const roleColor = computed(() => {
   if (role === "ADMIN") return "purple";
   return "info";
 });
+
+function toggleTeacherSidebar() {
+  const eventName = user.value?.role === "STUDENT"
+    ? "student-sidebar:toggle"
+    : "teacher-sidebar:toggle";
+  window.dispatchEvent(new Event(eventName));
+}
+
+function setLocale(value) {
+  locale.value = value;
+  localStorage.setItem("locale", value);
+}
 
 function handleLogout() {
   authStore.logout();
@@ -168,5 +220,12 @@ function goHome() {
   font-size: 0.88rem;
   color: #1d2939;
   line-height: 1.2;
+}
+
+@media (max-width: 600px) {
+  .language-switch {
+    min-width: 44px;
+    padding: 0 8px;
+  }
 }
 </style>

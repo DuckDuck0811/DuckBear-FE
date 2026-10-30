@@ -1,6 +1,8 @@
 <template>
   <v-layout class="min-vh-100" style="background-color: #f4f8ff">
     <AppHeader />
+    <TeacherSidebar />
+    <StudentSidebar />
 
     <v-main class="pb-16" style="background-color: #f4f8ff">
       <!-- Loading bar nhẹ nhàng -->
@@ -238,6 +240,8 @@ import { useRouter } from "vue-router";
 import { api } from "../../services/api";
 import { useAuthStore } from "../../stores/auth";
 import AppHeader from "../../components/shared/AppHeader.vue";
+import TeacherSidebar from "../../components/shared/TeacherSidebar.vue";
+import StudentSidebar from "../../components/shared/StudentSidebar.vue";
 import PageHeader from "../../components/shared/PageHeader.vue";
 import FilterChips from "../../components/shared/FilterChips.vue";
 import BookCard from "../../components/shared/BookCard.vue";

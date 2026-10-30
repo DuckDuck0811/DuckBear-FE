@@ -17,6 +17,12 @@ const routes = [
     component: () => import("../views/auth/LoginView.vue"),
   },
   {
+    path: "/student",
+    name: "student-dashboard",
+    component: () => import("../views/student/StudentDashboardView.vue"),
+    meta: { roles: ["STUDENT"] },
+  },
+  {
     path: "/",
     name: "books",
     component: () => import("../views/books/BooksView.vue"),
@@ -27,9 +33,21 @@ const routes = [
     component: () => import("../views/classes/ClassesView.vue"),
   },
   {
+    path: "/classes/:id",
+    name: "class-detail",
+    component: () => import("../views/classes/ClassSeatMapView.vue"),
+    meta: { roles: ["TEACHER", "ADMIN"] },
+  },
+  {
     path: "/books/:id",
     name: "book-detail",
     component: () => import("../views/books/BookDetailView.vue"),
+  },
+  {
+    path: "/question-bank",
+    name: "question-bank",
+    component: () => import("../views/books/QuestionBankView.vue"),
+    meta: { roles: ["TEACHER", "ADMIN"] },
   },
   {
     path: "/lessons/:id",
@@ -51,11 +69,20 @@ const router = createRouter({
 // Navigation Guard
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem("accessToken");
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    user = null;
+  }
+  const landingPath = user?.role === "STUDENT" ? "/student" : "/";
 
   if (to.path !== "/login" && !to.path.startsWith("/register") && !token) {
     next("/login");
   } else if ((to.path === "/login" || to.path.startsWith("/register")) && token) {
-    next("/");
+    next(landingPath);
+  } else if (to.meta.roles && !to.meta.roles.includes(user?.role)) {
+    next(landingPath);
   } else {
     next();
   }

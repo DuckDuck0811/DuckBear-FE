@@ -723,7 +723,7 @@ async function submit() {
         role: role.value,
       });
     }
-    await router.push("/");
+    await router.push(auth.user?.role === "STUDENT" ? "/student" : "/");
   } catch (error) {
     errorMessage.value =
       error.message || "Không thể đăng nhập. Vui lòng thử lại.";

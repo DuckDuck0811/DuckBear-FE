@@ -1,23 +1,15 @@
 import { createI18n } from 'vue-i18n'
+import vi from '../locales/vi.json'
+import en from '../locales/en.json'
+
+const savedLocale = localStorage.getItem('locale')
+const locale = ['vi', 'en'].includes(savedLocale) ? savedLocale : 'vi'
 
 const i18n = createI18n({
   legacy: false,
-  locale: 'vi',
+  locale,
   fallbackLocale: 'en',
-  messages: {
-    vi: {
-      appName: 'DuckBear',
-      welcome: 'Chào mừng đến với DuckBear',
-      description: 'Nền tảng học tập và quản lý chương trình học.',
-      language: 'Ngôn ngữ',
-    },
-    en: {
-      appName: 'DuckBear',
-      welcome: 'Welcome to DuckBear',
-      description: 'A learning and curriculum management platform.',
-      language: 'Language',
-    },
-  },
+  messages: { vi, en },
 })
 
 export default i18n

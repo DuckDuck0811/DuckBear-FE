@@ -1,6 +1,8 @@
 <template>
   <v-layout class="min-vh-100" style="background-color: #F4F8FF;">
     <AppHeader />
+    <TeacherSidebar />
+    <StudentSidebar />
 
     <v-main class="pb-16" style="background-color: #F4F8FF;">
       <v-progress-linear
@@ -229,6 +231,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth'
 import AppHeader from '../../components/shared/AppHeader.vue'
+import TeacherSidebar from '../../components/shared/TeacherSidebar.vue'
+import StudentSidebar from '../../components/shared/StudentSidebar.vue'
 import DuckBearMascot from '../../components/shared/DuckBearMascot.vue'
 
 const route = useRoute()
