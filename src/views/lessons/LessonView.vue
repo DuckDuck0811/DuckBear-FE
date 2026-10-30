@@ -226,10 +226,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '../services/api'
-import { useAuthStore } from '../stores/auth'
-import AppHeader from '../components/common/AppHeader.vue'
-import DuckBearMascot from '../components/common/DuckBearMascot.vue'
+import { api } from '../../services/api'
+import { useAuthStore } from '../../stores/auth'
+import AppHeader from '../../components/shared/AppHeader.vue'
+import DuckBearMascot from '../../components/shared/DuckBearMascot.vue'
 
 const route = useRoute()
 const router = useRouter()

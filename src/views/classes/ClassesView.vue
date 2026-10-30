@@ -405,10 +405,10 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { api } from "../services/api";
-import { useAuthStore } from "../stores/auth";
-import AppHeader from "../components/common/AppHeader.vue";
-import PageHeader from "../components/common/PageHeader.vue";
+import { api } from "../../services/api";
+import { useAuthStore } from "../../stores/auth";
+import AppHeader from "../../components/shared/AppHeader.vue";
+import PageHeader from "../../components/shared/PageHeader.vue";
 
 const authStore = useAuthStore();
 const isTeacher = computed(() => authStore.isTeacher);

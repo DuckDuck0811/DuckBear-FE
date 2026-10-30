@@ -602,7 +602,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useAuthStore } from "../stores/auth";
+import { useAuthStore } from "../../stores/auth";
 
 const router = useRouter();
 const route = useRoute();

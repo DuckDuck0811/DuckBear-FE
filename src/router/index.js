@@ -4,37 +4,37 @@ const routes = [
   {
     path: "/login",
     name: "login",
-    component: () => import("../views/LoginView.vue"),
+    component: () => import("../views/auth/LoginView.vue"),
   },
   {
     path: "/register",
     name: "register",
-    component: () => import("../views/RegisterRoleView.vue"),
+    component: () => import("../views/auth/RegisterRoleView.vue"),
   },
   {
     path: "/register/:role(student|teacher)",
     name: "register-form",
-    component: () => import("../views/LoginView.vue"),
+    component: () => import("../views/auth/LoginView.vue"),
   },
   {
     path: "/",
     name: "books",
-    component: () => import("../views/BooksView.vue"),
+    component: () => import("../views/books/BooksView.vue"),
   },
   {
     path: "/classes",
     name: "classes",
-    component: () => import("../views/ClassesView.vue"),
+    component: () => import("../views/classes/ClassesView.vue"),
   },
   {
     path: "/books/:id",
     name: "book-detail",
-    component: () => import("../views/BookDetailView.vue"),
+    component: () => import("../views/books/BookDetailView.vue"),
   },
   {
     path: "/lessons/:id",
     name: "lesson-detail",
-    component: () => import("../views/LessonView.vue"),
+    component: () => import("../views/lessons/LessonView.vue"),
   },
   {
     path: "/:pathMatch(.*)*",
