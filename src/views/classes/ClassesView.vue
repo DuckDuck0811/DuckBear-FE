@@ -1,6 +1,8 @@
 <template>
   <v-layout class="min-vh-100" style="background-color: #f4f8ff">
     <AppHeader />
+    <TeacherSidebar />
+    <StudentSidebar />
     <v-main class="pb-16" style="background-color: #f4f8ff">
       <v-container class="py-8 px-4 px-md-8" style="max-width: 1180px">
         <PageHeader
@@ -146,7 +148,15 @@
               sm="6"
               lg="4"
             >
-              <v-card class="pa-5 h-100 shub-card">
+              <v-card
+                class="pa-5 h-100 shub-card class-card-link"
+                role="link"
+                tabindex="0"
+                :aria-label="`Xem sơ đồ lớp ${schoolClass.name}`"
+                @click="openClass(schoolClass)"
+                @keydown.enter="openClass(schoolClass)"
+                @keydown.space.prevent="openClass(schoolClass)"
+              >
                 <div class="d-flex align-center justify-space-between mb-3">
                   <v-avatar color="primary" variant="tonal"
                     ><v-icon icon="mdi-google-classroom"
@@ -177,7 +187,7 @@
                     variant="tonal"
                     color="primary"
                     aria-label="Sao chép mã lớp"
-                    @click="copyJoinCode(schoolClass.joinCode)"
+                    @click.stop="copyJoinCode(schoolClass.joinCode)"
                   />
                 </div>
               </v-card>
@@ -405,12 +415,16 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { api } from "../services/api";
-import { useAuthStore } from "../stores/auth";
-import AppHeader from "../components/common/AppHeader.vue";
-import PageHeader from "../components/common/PageHeader.vue";
+import { useRouter } from "vue-router";
+import { api } from "../../services/api";
+import { useAuthStore } from "../../stores/auth";
+import AppHeader from "../../components/shared/AppHeader.vue";
+import TeacherSidebar from "../../components/shared/TeacherSidebar.vue";
+import StudentSidebar from "../../components/shared/StudentSidebar.vue";
+import PageHeader from "../../components/shared/PageHeader.vue";
 
 const authStore = useAuthStore();
+const router = useRouter();
 const isTeacher = computed(() => authStore.isTeacher);
 const isLoading = ref(false);
 const isSubmitting = ref(false);
@@ -535,6 +549,10 @@ async function copyJoinCode(code) {
   }
 }
 
+function openClass(schoolClass) {
+  router.push(`/classes/${schoolClass.id}`);
+}
+
 onMounted(() => {
   fetchClasses();
   window.addEventListener("classes:refresh", fetchClasses);
@@ -548,6 +566,13 @@ onBeforeUnmount(() =>
 <style scoped>
 .class-preview {
   border: 1px solid rgba(47, 124, 246, 0.18);
+}
+.class-card-link {
+  cursor: pointer;
+}
+.class-card-link:focus-visible {
+  outline: 3px solid rgba(47, 124, 246, 0.5);
+  outline-offset: 2px;
 }
 code {
   letter-spacing: 0.12em;

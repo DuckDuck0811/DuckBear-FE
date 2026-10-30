@@ -41,8 +41,8 @@
 
 <script setup>
 import { useRouter } from "vue-router";
-import AppHeader from "../components/common/AppHeader.vue";
-import DuckBearMascot from "../components/common/DuckBearMascot.vue";
+import AppHeader from "../components/shared/AppHeader.vue";
+import DuckBearMascot from "../components/shared/DuckBearMascot.vue";
 
 const router = useRouter();
 

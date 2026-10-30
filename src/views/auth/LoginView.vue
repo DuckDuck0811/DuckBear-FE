@@ -602,7 +602,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useAuthStore } from "../stores/auth";
+import { useAuthStore } from "../../stores/auth";
 
 const router = useRouter();
 const route = useRoute();
@@ -723,7 +723,7 @@ async function submit() {
         role: role.value,
       });
     }
-    await router.push("/");
+    await router.push(auth.user?.role === "STUDENT" ? "/student" : "/");
   } catch (error) {
     errorMessage.value =
       error.message || "Không thể đăng nhập. Vui lòng thử lại.";

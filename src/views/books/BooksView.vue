@@ -1,6 +1,8 @@
 <template>
   <v-layout class="min-vh-100" style="background-color: #f4f8ff">
     <AppHeader />
+    <TeacherSidebar />
+    <StudentSidebar />
 
     <v-main class="pb-16" style="background-color: #f4f8ff">
       <!-- Loading bar nhẹ nhàng -->
@@ -235,14 +237,16 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { api } from "../services/api";
-import { useAuthStore } from "../stores/auth";
-import AppHeader from "../components/common/AppHeader.vue";
-import PageHeader from "../components/common/PageHeader.vue";
-import FilterChips from "../components/common/FilterChips.vue";
-import BookCard from "../components/common/BookCard.vue";
-import EmptyState from "../components/common/EmptyState.vue";
-import ConfirmDialog from "../components/common/ConfirmDialog.vue";
+import { api } from "../../services/api";
+import { useAuthStore } from "../../stores/auth";
+import AppHeader from "../../components/shared/AppHeader.vue";
+import TeacherSidebar from "../../components/shared/TeacherSidebar.vue";
+import StudentSidebar from "../../components/shared/StudentSidebar.vue";
+import PageHeader from "../../components/shared/PageHeader.vue";
+import FilterChips from "../../components/shared/FilterChips.vue";
+import BookCard from "../../components/shared/BookCard.vue";
+import EmptyState from "../../components/shared/EmptyState.vue";
+import ConfirmDialog from "../../components/shared/ConfirmDialog.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();

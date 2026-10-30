@@ -1,6 +1,8 @@
 <template>
   <v-layout class="min-vh-100" style="background-color: #F4F8FF;">
     <AppHeader />
+    <TeacherSidebar />
+    <StudentSidebar />
 
     <v-main class="pb-16" style="background-color: #F4F8FF;">
       <v-progress-linear
@@ -197,6 +199,11 @@
                       </v-chip>
 
                       <!-- Nút Sửa / Xóa Bài học cho Teacher -->
+                      <QuestionBankSection
+                        v-if="authStore.isTeacher"
+                        :lesson-id="lesson.id"
+                        :lesson-title="lesson.title"
+                      />
                       <div v-if="authStore.isTeacher" class="d-flex align-center ga-1" @click.stop>
                         <v-btn
                           icon="mdi-pencil-outline"
@@ -418,11 +425,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { api } from '../services/api'
-import { useAuthStore } from '../stores/auth'
-import AppHeader from '../components/common/AppHeader.vue'
-import EmptyState from '../components/common/EmptyState.vue'
-import ConfirmDialog from '../components/common/ConfirmDialog.vue'
+import { api } from '../../services/api'
+import { useAuthStore } from '../../stores/auth'
+import AppHeader from '../../components/shared/AppHeader.vue'
+import TeacherSidebar from '../../components/shared/TeacherSidebar.vue'
+import StudentSidebar from '../../components/shared/StudentSidebar.vue'
+import EmptyState from '../../components/shared/EmptyState.vue'
+import ConfirmDialog from '../../components/shared/ConfirmDialog.vue'
+import QuestionBankSection from '../../components/QuestionBankSection.vue'
 
 const route = useRoute()
 const router = useRouter()
