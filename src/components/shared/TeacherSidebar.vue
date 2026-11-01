@@ -71,7 +71,7 @@ const groups = computed(() => [
   {
     title: "sidebar.assignments",
     items: [
-      { label: "sidebar.createAssignment", icon: "mdi-file-edit-outline" },
+      { label: "sidebar.createAssignment", icon: "mdi-file-edit-outline", to: "/assignments", match: ["assignments"] },
       { label: "sidebar.examBank", icon: "mdi-folder-text-outline" },
     ],
   },

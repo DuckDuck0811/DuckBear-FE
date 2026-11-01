@@ -96,17 +96,17 @@
                 </v-col>
               </v-row>
 
-              <div v-if="['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING'].includes(form.type)" class="options-editor mb-4">
+              <div v-if="['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING', 'DRAG_DROP'].includes(form.type)" class="options-editor mb-4">
                 <div class="d-flex align-center justify-space-between mb-2">
                   <div>
                     <h4 class="text-body-1 font-weight-bold">
                       {{ t('questionBank.options') }}
                     </h4>
                     <p class="text-caption text-secondary mb-0">
-                      {{ form.type === 'MULTI_MCQ' ? t('questionBank.chooseCorrectMany') : form.type === 'MATCHING' ? t('questionBank.matchPairs') : t('questionBank.chooseCorrect') }}
+                      {{ form.type === 'MULTI_MCQ' ? t('questionBank.chooseCorrectMany') : form.type === 'MATCHING' ? t('questionBank.matchPairs') : form.type === 'DRAG_DROP' ? t('questionBank.dragDropPairs') : t('questionBank.chooseCorrect') }}
                     </p>
                   </div>
-                <v-btn v-if="form.type !== 'TRUE_FALSE'"
+                <v-btn v-if="form.type !== 'TRUE_FALSE' && form.type !== 'DRAG_DROP'"
                     size="small"
                     variant="tonal"
                     prepend-icon="mdi-plus"
@@ -116,13 +116,13 @@
                   </v-btn>
                 </div>
 
-                <v-radio-group v-if="form.type === 'MCQ' || form.type === 'TRUE_FALSE'" v-model="correctOptionIndex" hide-details>
-                  <div
+                <v-radio-group v-model="correctOptionIndex" hide-details class="question-options-editor">
+                <div
                     v-for="(option, index) in form.options"
                     :key="index"
                     class="option-row"
                   >
-                    <v-radio
+                    <v-radio v-if="['MCQ', 'TRUE_FALSE', 'DRAG_DROP'].includes(form.type)"
                       :value="index"
                       :aria-label="
                         t('questionBank.correctOption', { number: index + 1 })
@@ -130,9 +130,7 @@
                     />
                     <v-text-field
                       v-model="option.content"
-                      :label="
-                        t('questionBank.optionLabel', { number: index + 1 })
-                      "
+                      :label="t('questionBank.optionLabel', { number: index + 1 })"
                       :rules="requiredRules"
                       variant="outlined"
                       density="compact"
@@ -145,7 +143,7 @@
                       size="small"
                       variant="text"
                       color="error"
-                      :disabled="form.options.length <= 2 || form.type === 'TRUE_FALSE'"
+                      :disabled="form.options.length <= (form.type === 'DRAG_DROP' ? 4 : 2) || form.type === 'TRUE_FALSE'"
                       :aria-label="
                         t('questionBank.removeOption', { number: index + 1 })
                       "
@@ -260,7 +258,7 @@
                     <ul v-if="draft.options?.length" class="question-options">
                       <li v-for="(option, optionIndex) in draft.options" :key="optionIndex">
                         <v-icon :icon="option.isCorrect ? 'mdi-check-circle' : 'mdi-circle-outline'" :color="option.isCorrect ? 'success' : 'secondary'" size="16" />
-                        <span>{{ option.content }}<template v-if="draft.type === 'MATCHING'"> ↔ {{ option.matchContent }}</template></span>
+                        <span>{{ displayOptionContent(draft.type, option.content) }}<template v-if="['MATCHING', 'DRAG_DROP'].includes(draft.type)"> ↔ {{ option.matchContent }}</template></span>
                       </li>
                     </ul>
                     <p v-if="draft.answerText" class="text-body-2 text-secondary mt-2 mb-0"><strong>{{ t('questionBank.answerText') }}:</strong> {{ draft.answerText }}</p>
@@ -322,7 +320,7 @@
                           :color="option.isCorrect ? 'success' : 'secondary'"
                           size="16"
                         />
-                        <span>{{ option.content }}<template v-if="question.type === 'MATCHING'"> ↔ {{ option.matchContent }}</template></span>
+                        <span>{{ displayOptionContent(question.type, option.content) }}<template v-if="['MATCHING', 'DRAG_DROP'].includes(question.type)"> ↔ {{ option.matchContent }}</template></span>
                       </li>
                     </ul>
                     <p
@@ -403,6 +401,13 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+
+function displayOptionContent(type, content) {
+  if (type !== 'TRUE_FALSE') return content;
+  if (/^(true|đúng)$/i.test(String(content || '').trim())) return t('questionBank.true');
+  if (/^(false|sai)$/i.test(String(content || '').trim())) return t('questionBank.false');
+  return content;
+}
 const showDialog = ref(false);
 const showEditor = ref(false);
 const showGenerator = ref(false);
@@ -500,17 +505,19 @@ function openCreate() {
 }
 
 function openEdit(question) {
+  const options = (question.options || []).map(({ content, isCorrect, matchContent }) => ({ content: displayOptionContent(question.type, content), isCorrect, matchContent: matchContent || '' }))
+  if (question.type === 'DRAG_DROP') {
+    while (options.length < 4) options.push({ content: '', isCorrect: false, matchContent: '' })
+    options.splice(4)
+    if (!options.some((option) => option.isCorrect)) options[0].isCorrect = true
+  }
   resetForm({
     type: question.type,
     difficulty: question.difficulty,
     content: question.content,
     answerText: question.answerText || '',
     explanation: question.explanation || '',
-    options: (question.options || []).map(({ content, isCorrect, matchContent }) => ({
-      content,
-      isCorrect,
-      matchContent: matchContent || '',
-    })),
+    options,
   });
   editingQuestion.value = question;
   showEditor.value = true;
@@ -519,13 +526,19 @@ function openEdit(question) {
 function editDraft(index) {
   const draft = generatedQuestions.value[index];
   if (!draft) return;
+  const options = (draft.options || []).map(({ content, isCorrect, matchContent }) => ({ content: displayOptionContent(draft.type, content), isCorrect, matchContent: matchContent || '' }))
+  if (['MCQ', 'MULTI_MCQ'].includes(draft.type)) {
+    while (options.length < 4) options.push({ content: '', isCorrect: false, matchContent: '' })
+    options.splice(4)
+    if (draft.type === 'MCQ' && !options.some((option) => option.isCorrect)) options[0].isCorrect = true
+  }
   resetForm({
     type: draft.type,
     difficulty: draft.difficulty,
     content: draft.content,
     answerText: draft.answerText || '',
     explanation: draft.explanation || '',
-    options: (draft.options || []).map(({ content, isCorrect, matchContent }) => ({ content, isCorrect, matchContent: matchContent || '' })),
+    options,
   });
   draftEditingIndex.value = index;
   showEditor.value = true;
@@ -534,7 +547,11 @@ function editDraft(index) {
 function handleTypeChange(type) {
   if (type === 'TRUE_FALSE') {
     form.options = [{ content: t('questionBank.true'), isCorrect: true }, { content: t('questionBank.false'), isCorrect: false }];
-  } else if (['MCQ', 'MULTI_MCQ', 'MATCHING'].includes(type) && !form.options.length) {
+  } else if (type === 'MCQ' || type === 'MULTI_MCQ') {
+    form.options = Array.from({ length: 4 }, (_, index) => ({ content: '', isCorrect: type === 'MCQ' && index === 0, matchContent: '' }));
+  } else if (type === 'DRAG_DROP') {
+    form.options = Array.from({ length: 4 }, (_, index) => ({ content: '', isCorrect: index === 0 }));
+  } else if (['MCQ', 'MULTI_MCQ', 'MATCHING', 'DRAG_DROP'].includes(type) && !form.options.length) {
     form.options = [
       { content: '', isCorrect: true, matchContent: '' },
       { content: '', isCorrect: false, matchContent: '' },
@@ -543,6 +560,7 @@ function handleTypeChange(type) {
 }
 
 function addOption() {
+  if (form.type === 'DRAG_DROP' && form.options.length >= 4) return;
   form.options.push({ content: '', isCorrect: false, matchContent: '' });
 }
 
@@ -561,9 +579,9 @@ function buildPayload() {
     explanation: form.explanation.trim() || null,
   };
 
-  if (!editingQuestion.value || ['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING'].includes(form.type)) {
+  if (!editingQuestion.value || ['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING', 'DRAG_DROP'].includes(form.type)) {
     payload.options =
-      ['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING'].includes(form.type)
+      ['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING', 'DRAG_DROP'].includes(form.type)
         ? form.options.map((option) => ({
             ...option,
             content: option.content.trim(),
@@ -578,9 +596,14 @@ function buildPayload() {
 async function saveQuestion() {
   const { valid } = await formRef.value.validate();
   if (!valid) return;
+  if (form.type === 'DRAG_DROP' && form.options.length !== 4) {
+    errorMessage.value = t('questionBank.dragFourChoices');
+    return;
+  }
   if (
     ((form.type === 'MCQ' || form.type === 'TRUE_FALSE') && form.options.filter((option) => option.isCorrect).length !== 1) ||
-    (form.type === 'MULTI_MCQ' && !form.options.some((option) => option.isCorrect))
+    (form.type === 'MULTI_MCQ' && !form.options.some((option) => option.isCorrect)) ||
+    (form.type === 'DRAG_DROP' && (form.options.length !== 4 || form.options.filter((option) => option.isCorrect).length !== 1))
   ) {
     errorMessage.value = t('questionBank.oneCorrectRequired');
     return;
@@ -648,7 +671,7 @@ function draftPayload(draft) {
     content: draft.content.trim(),
     answerText: draft.answerText?.trim() || undefined,
     explanation: draft.explanation?.trim() || undefined,
-    ...(['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING'].includes(draft.type) ? { options: draft.options } : {}),
+    ...(['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING', 'DRAG_DROP'].includes(draft.type) ? { options: draft.options } : {}),
   };
 }
 
@@ -701,7 +724,7 @@ function printDrafts() {
     const options = (draft.options || []).map((option, optionIndex) => `<li>${String.fromCharCode(65 + optionIndex)}. ${escapeHtml(option.content)}</li>`).join('');
     const answer = ['MCQ', 'MULTI_MCQ', 'TRUE_FALSE'].includes(draft.type)
       ? (draft.options || []).map((option, optionIndex) => option.isCorrect ? String.fromCharCode(65 + optionIndex) : '').filter(Boolean).join(', ')
-      : draft.type === 'MATCHING'
+      : ['MATCHING', 'DRAG_DROP'].includes(draft.type)
         ? (draft.options || []).map((option) => `${escapeHtml(option.content)} ↔ ${escapeHtml(option.matchContent)}`).join('; ')
         : escapeHtml(draft.answerText);
     return `<article><h2>Câu ${index + 1}. ${escapeHtml(draft.content)}</h2><ul>${options}</ul></article><p class="answer">Đáp án ${index + 1}: ${answer || '—'}${draft.explanation ? ` · ${escapeHtml(draft.explanation)}` : ''}</p>`;
