@@ -2,7 +2,7 @@
   <v-app-bar
     color="white"
     flat
-    class="border-b px-2 px-md-6"
+    class="app-header border-b px-2 px-md-6"
     height="70"
     style="border-color: #e4ecf7 !important; z-index: 100"
   >
@@ -187,6 +187,14 @@ function goHome() {
 </script>
 
 <style scoped>
+.app-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
