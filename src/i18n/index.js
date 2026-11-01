@@ -1,6 +1,6 @@
 import { createI18n } from 'vue-i18n'
-import vi from '../locales/vi.json'
-import en from '../locales/en.json'
+import vi from './locales/vi.json'
+import en from './locales/en.json'
 
 const savedLocale = localStorage.getItem('locale')
 const locale = ['vi', 'en'].includes(savedLocale) ? savedLocale : 'vi'
