@@ -138,15 +138,18 @@
                 class="text-caption font-weight-bold text-secondary mb-1 d-block"
                 >MÔN HỌC</label
               >
-              <v-text-field
+              <v-select
                 v-model="bookForm.subject"
-                placeholder="Ví dụ: Toán, Ngữ Văn, Tiếng Anh, Tin học..."
+                :items="subjectOptions"
+                placeholder="Chọn môn học"
+                no-data-text="Chưa có môn học phù hợp"
                 variant="outlined"
                 rounded="lg"
                 density="comfortable"
                 color="primary"
                 :rules="requiredRule"
                 hide-details="auto"
+                clearable
               />
             </div>
 
@@ -235,7 +238,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { api } from "../../services/api";
 import { useAuthStore } from "../../stores/auth";
@@ -255,6 +258,41 @@ const authStore = useAuthStore();
 const books = ref([]);
 const isLoading = ref(false);
 const selectedGrade = ref(null);
+const baseSubjects = [
+  "Toán",
+  "Tiếng Việt",
+  "Ngữ Văn",
+  "Tiếng Anh",
+  "Đạo đức",
+  "Tự nhiên và Xã hội",
+  "Khoa học",
+  "Lịch sử",
+  "Địa lí",
+  "Lịch sử và Địa lí",
+  "Vật lí",
+  "Hóa học",
+  "Sinh học",
+  "Tin học",
+  "Công nghệ",
+  "Giáo dục công dân",
+  "Giáo dục kinh tế và pháp luật",
+  "Âm nhạc",
+  "Mĩ thuật",
+  "Giáo dục thể chất",
+  "Hoạt động trải nghiệm",
+];
+// Danh mục môn lớp 9 được lấy từ các sheet môn học trong workbook người dùng cung cấp.
+const workbookSubjectsByGrade = {
+  9: ["Toán", "Ngữ văn", "Địa lí", "Lịch sử", "Tiếng Anh"],
+};
+const subjectOptions = computed(() =>
+  [...new Set([
+    ...(workbookSubjectsByGrade[bookForm.value.gradeLevel] || baseSubjects),
+    ...books.value.map((book) => book.subject?.trim()).filter(Boolean),
+  ])]
+    .sort((a, b) => a.localeCompare(b, "vi"))
+    .map((title) => ({ title, value: title })),
+);
 
 // Danh sách các lớp lọc
 const gradeOptions = [

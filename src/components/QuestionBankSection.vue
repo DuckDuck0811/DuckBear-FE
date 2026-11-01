@@ -96,17 +96,17 @@
                 </v-col>
               </v-row>
 
-              <div v-if="form.type === 'MCQ'" class="options-editor mb-4">
+              <div v-if="['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING'].includes(form.type)" class="options-editor mb-4">
                 <div class="d-flex align-center justify-space-between mb-2">
                   <div>
                     <h4 class="text-body-1 font-weight-bold">
                       {{ t('questionBank.options') }}
                     </h4>
                     <p class="text-caption text-secondary mb-0">
-                      {{ t('questionBank.chooseCorrect') }}
+                      {{ form.type === 'MULTI_MCQ' ? t('questionBank.chooseCorrectMany') : form.type === 'MATCHING' ? t('questionBank.matchPairs') : t('questionBank.chooseCorrect') }}
                     </p>
                   </div>
-                  <v-btn
+                <v-btn v-if="form.type !== 'TRUE_FALSE'"
                     size="small"
                     variant="tonal"
                     prepend-icon="mdi-plus"
@@ -116,7 +116,7 @@
                   </v-btn>
                 </div>
 
-                <v-radio-group v-model="correctOptionIndex" hide-details>
+                <v-radio-group v-if="form.type === 'MCQ' || form.type === 'TRUE_FALSE'" v-model="correctOptionIndex" hide-details>
                   <div
                     v-for="(option, index) in form.options"
                     :key="index"
@@ -138,12 +138,14 @@
                       density="compact"
                       hide-details="auto"
                     />
+                    <v-text-field v-if="form.type === 'MATCHING'" v-model="option.matchContent" :label="t('questionBank.matchWith', { number: index + 1 })" :rules="requiredRules" variant="outlined" density="compact" hide-details="auto" />
+                    <v-checkbox v-else-if="form.type === 'MULTI_MCQ'" v-model="option.isCorrect" :aria-label="t('questionBank.correctOption', { number: index + 1 })" hide-details density="compact" />
                     <v-btn
                       icon="mdi-close"
                       size="small"
                       variant="text"
                       color="error"
-                      :disabled="form.options.length <= 2"
+                      :disabled="form.options.length <= 2 || form.type === 'TRUE_FALSE'"
                       :aria-label="
                         t('questionBank.removeOption', { number: index + 1 })
                       "
@@ -258,7 +260,7 @@
                     <ul v-if="draft.options?.length" class="question-options">
                       <li v-for="(option, optionIndex) in draft.options" :key="optionIndex">
                         <v-icon :icon="option.isCorrect ? 'mdi-check-circle' : 'mdi-circle-outline'" :color="option.isCorrect ? 'success' : 'secondary'" size="16" />
-                        <span>{{ option.content }}</span>
+                        <span>{{ option.content }}<template v-if="draft.type === 'MATCHING'"> ↔ {{ option.matchContent }}</template></span>
                       </li>
                     </ul>
                     <p v-if="draft.answerText" class="text-body-2 text-secondary mt-2 mb-0"><strong>{{ t('questionBank.answerText') }}:</strong> {{ draft.answerText }}</p>
@@ -320,7 +322,7 @@
                           :color="option.isCorrect ? 'success' : 'secondary'"
                           size="16"
                         />
-                        <span>{{ option.content }}</span>
+                        <span>{{ option.content }}<template v-if="question.type === 'MATCHING'"> ↔ {{ option.matchContent }}</template></span>
                       </li>
                     </ul>
                     <p
@@ -430,16 +432,16 @@ const emptyForm = () => ({
   answerText: '',
   explanation: '',
   options: [
-    { content: '', isCorrect: true },
-    { content: '', isCorrect: false },
-    { content: '', isCorrect: false },
-    { content: '', isCorrect: false },
+    { content: '', isCorrect: true, matchContent: '' },
+    { content: '', isCorrect: false, matchContent: '' },
+    { content: '', isCorrect: false, matchContent: '' },
+    { content: '', isCorrect: false, matchContent: '' },
   ],
 });
 
 const form = reactive(emptyForm());
 const questionTypes = computed(() =>
-  ['MCQ', 'FILL', 'ESSAY', 'DRAG_DROP'].map((value) => ({
+  ['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING', 'FILL', 'ESSAY', 'DRAG_DROP'].map((value) => ({
     title: t(`questionBank.types.${value}`),
     value,
   })),
@@ -504,9 +506,10 @@ function openEdit(question) {
     content: question.content,
     answerText: question.answerText || '',
     explanation: question.explanation || '',
-    options: (question.options || []).map(({ content, isCorrect }) => ({
+    options: (question.options || []).map(({ content, isCorrect, matchContent }) => ({
       content,
       isCorrect,
+      matchContent: matchContent || '',
     })),
   });
   editingQuestion.value = question;
@@ -522,23 +525,25 @@ function editDraft(index) {
     content: draft.content,
     answerText: draft.answerText || '',
     explanation: draft.explanation || '',
-    options: (draft.options || []).map(({ content, isCorrect }) => ({ content, isCorrect })),
+    options: (draft.options || []).map(({ content, isCorrect, matchContent }) => ({ content, isCorrect, matchContent: matchContent || '' })),
   });
   draftEditingIndex.value = index;
   showEditor.value = true;
 }
 
 function handleTypeChange(type) {
-  if (type === 'MCQ' && !form.options.length) {
+  if (type === 'TRUE_FALSE') {
+    form.options = [{ content: t('questionBank.true'), isCorrect: true }, { content: t('questionBank.false'), isCorrect: false }];
+  } else if (['MCQ', 'MULTI_MCQ', 'MATCHING'].includes(type) && !form.options.length) {
     form.options = [
-      { content: '', isCorrect: true },
-      { content: '', isCorrect: false },
+      { content: '', isCorrect: true, matchContent: '' },
+      { content: '', isCorrect: false, matchContent: '' },
     ];
   }
 }
 
 function addOption() {
-  form.options.push({ content: '', isCorrect: false });
+  form.options.push({ content: '', isCorrect: false, matchContent: '' });
 }
 
 function removeOption(index) {
@@ -556,12 +561,13 @@ function buildPayload() {
     explanation: form.explanation.trim() || null,
   };
 
-  if (!editingQuestion.value || form.type === 'MCQ') {
+  if (!editingQuestion.value || ['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING'].includes(form.type)) {
     payload.options =
-      form.type === 'MCQ'
+      ['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING'].includes(form.type)
         ? form.options.map((option) => ({
             ...option,
             content: option.content.trim(),
+            matchContent: option.matchContent?.trim() || null,
           }))
         : undefined;
   }
@@ -573,8 +579,8 @@ async function saveQuestion() {
   const { valid } = await formRef.value.validate();
   if (!valid) return;
   if (
-    form.type === 'MCQ' &&
-    form.options.filter((option) => option.isCorrect).length !== 1
+    ((form.type === 'MCQ' || form.type === 'TRUE_FALSE') && form.options.filter((option) => option.isCorrect).length !== 1) ||
+    (form.type === 'MULTI_MCQ' && !form.options.some((option) => option.isCorrect))
   ) {
     errorMessage.value = t('questionBank.oneCorrectRequired');
     return;
@@ -642,7 +648,7 @@ function draftPayload(draft) {
     content: draft.content.trim(),
     answerText: draft.answerText?.trim() || undefined,
     explanation: draft.explanation?.trim() || undefined,
-    ...(draft.type === 'MCQ' ? { options: draft.options } : {}),
+    ...(['MCQ', 'MULTI_MCQ', 'TRUE_FALSE', 'MATCHING'].includes(draft.type) ? { options: draft.options } : {}),
   };
 }
 
@@ -693,9 +699,11 @@ function printDrafts() {
   }
   const rows = generatedQuestions.value.map((draft, index) => {
     const options = (draft.options || []).map((option, optionIndex) => `<li>${String.fromCharCode(65 + optionIndex)}. ${escapeHtml(option.content)}</li>`).join('');
-    const answer = draft.type === 'MCQ'
+    const answer = ['MCQ', 'MULTI_MCQ', 'TRUE_FALSE'].includes(draft.type)
       ? (draft.options || []).map((option, optionIndex) => option.isCorrect ? String.fromCharCode(65 + optionIndex) : '').filter(Boolean).join(', ')
-      : escapeHtml(draft.answerText);
+      : draft.type === 'MATCHING'
+        ? (draft.options || []).map((option) => `${escapeHtml(option.content)} ↔ ${escapeHtml(option.matchContent)}`).join('; ')
+        : escapeHtml(draft.answerText);
     return `<article><h2>Câu ${index + 1}. ${escapeHtml(draft.content)}</h2><ul>${options}</ul></article><p class="answer">Đáp án ${index + 1}: ${answer || '—'}${draft.explanation ? ` · ${escapeHtml(draft.explanation)}` : ''}</p>`;
   }).join('');
   printWindow.document.write(`<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>${escapeHtml(props.lessonTitle)} - ${t('questionBank.printTitle')}</title><style>body{font:15px/1.65 Arial,sans-serif;color:#182b49;max-width:820px;margin:40px auto;padding:0 24px}h1{font-size:24px;margin-bottom:4px}header{border-bottom:2px solid #347af0;padding-bottom:16px;margin-bottom:24px;color:#667085}article{break-inside:avoid;margin:0 0 14px}article h2{font-size:16px;font-weight:600}ul{list-style:none;padding-left:22px;margin:6px 0}.answer{font-size:12px;color:#667085;margin:0 0 22px 22px;border-bottom:1px dashed #d7dfeb;padding-bottom:12px}@media print{body{margin:0 auto;padding:0 10px}}</style></head><body><header><h1>${escapeHtml(t('questionBank.printTitle'))}</h1>${escapeHtml(props.lessonTitle)}<br>${t('questionBank.printDate')} ${new Date().toLocaleDateString()}</header>${rows}<script>window.onload=()=>window.print()<\/script></body></html>`);
