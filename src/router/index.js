@@ -56,6 +56,12 @@ const routes = [
     meta: { roles: ["TEACHER", "ADMIN", "STUDENT"] },
   },
   {
+    path: "/schedule",
+    name: "schedule",
+    component: () => import("../views/schedule/ScheduleView.vue"),
+    meta: { roles: ["TEACHER", "STUDENT"] },
+  },
+  {
     path: "/assignments/:id/do",
     name: "assignment-take",
     component: () => import("../views/assignments/AssignmentTakeView.vue"),

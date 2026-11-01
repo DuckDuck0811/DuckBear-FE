@@ -1,131 +1,65 @@
 <template>
-  <div
-    class="duckbear-mascot-wrapper d-inline-flex align-center justify-center"
-  >
+  <div class="polar-mascot-wrapper d-inline-flex align-center justify-center" aria-hidden="true">
     <svg
       :width="size"
       :height="size"
       viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      class="mascot-svg"
+      class="polar-mascot-svg"
     >
-      <!-- Hào quang tròn sau lưng -->
-      <circle cx="50" cy="50" r="44" fill="#EBF3FF" />
+      <circle cx="50" cy="50" r="46" fill="#EAF6FF" />
+      <path d="M18 83c3-13 15-20 32-20s29 7 32 20v8H18v-8Z" fill="#D8F0FA" />
+      <path d="M25 82c4-9 13-14 25-14s21 5 25 14v9H25v-9Z" fill="#2F7CF6" />
 
-      <!-- Tai gấu bên trái -->
-      <circle cx="28" cy="28" r="12" fill="#FFC83D" />
-      <circle cx="28" cy="28" r="7" fill="#FF9F43" />
+      <!-- Polar bear ears and snow-white face -->
+      <circle cx="28" cy="31" r="13" fill="#fff" stroke="#B8D9EA" stroke-width="2" />
+      <circle cx="72" cy="31" r="13" fill="#fff" stroke="#B8D9EA" stroke-width="2" />
+      <circle cx="28" cy="31" r="6" fill="#E8B9C5" />
+      <circle cx="72" cy="31" r="6" fill="#E8B9C5" />
+      <path d="M50 17c-21 0-34 14-34 35 0 19 13 32 34 32s34-13 34-32c0-21-13-35-34-35Z" fill="#fff" stroke="#B8D9EA" stroke-width="2" />
 
-      <!-- Tai gấu bên phải -->
-      <circle cx="72" cy="28" r="12" fill="#FFC83D" />
-      <circle cx="72" cy="28" r="7" fill="#FF9F43" />
+      <!-- Confident expression -->
+      <path d="m31 41 10-3m18 0 10 3" stroke="#34495E" stroke-width="3" stroke-linecap="round" />
+      <circle cx="38" cy="48" r="4" fill="#203748" />
+      <circle cx="62" cy="48" r="4" fill="#203748" />
+      <circle cx="39.5" cy="46.5" r="1.2" fill="#fff" />
+      <circle cx="63.5" cy="46.5" r="1.2" fill="#fff" />
 
-      <!-- Đầu tròn của DuckBear -->
-      <circle cx="50" cy="52" r="32" fill="#FFC83D" />
+      <!-- Muzzle, nose, and smile -->
+      <ellipse cx="50" cy="59" rx="15" ry="11" fill="#F1F8FC" />
+      <path d="M45 55c2-3 8-3 10 0-.3 4-2.6 6-5 6s-4.7-2-5-6Z" fill="#263C4A" />
+      <path d="M50 61v3m-5 0c2.5 3 7.5 3 10 0" stroke="#263C4A" stroke-width="1.8" stroke-linecap="round" />
 
-      <!-- Đôi mắt to tròn long lanh -->
-      <circle cx="39" cy="46" r="4.5" fill="#1D2939" />
-      <circle cx="40.5" cy="44.5" r="1.5" fill="#FFFFFF" />
-
-      <circle cx="61" cy="46" r="4.5" fill="#1D2939" />
-      <circle cx="62.5" cy="44.5" r="1.5" fill="#FFFFFF" />
-
-      <!-- Đôi má hồng đào dễ thương -->
-      <ellipse cx="32" cy="54" rx="4.5" ry="2.5" fill="#FF6B9A" opacity="0.6" />
-      <ellipse cx="68" cy="54" rx="4.5" ry="2.5" fill="#FF6B9A" opacity="0.6" />
-
-      <!-- Mỏ vịt cam đặc trưng của DuckBear -->
-      <path d="M40 54 C40 50 60 50 60 54 C60 62 40 62 40 54 Z" fill="#FF9F43" />
-      <!-- Miệng cười mỉm nhỏ -->
-      <path
-        d="M46 58 C48 60 52 60 54 58"
-        stroke="#E07A18"
-        stroke-width="1.5"
-        stroke-linecap="round"
-      />
-
-      <!-- Phụ kiện: Mũ cử nhân học thuật màu xanh SHub -->
+      <!-- Graduation cap -->
       <g v-if="mood === 'greeting' || mood === 'celebrate'">
-        <polygon points="50,14 74,23 50,32 26,23" fill="#2F7CF6" />
-        <rect x="42" y="27" width="16" height="8" rx="2" fill="#1F5FD0" />
-        <!-- Tua rua vàng -->
-        <circle cx="50" cy="23" r="2" fill="#FFC83D" />
-        <path
-          d="M50 23 Q60 26 62 33"
-          stroke="#FF9F43"
-          stroke-width="1.8"
-          stroke-linecap="round"
-        />
-        <circle cx="62" cy="34" r="1.5" fill="#FF9F43" />
+        <path d="m50 8 27 10-27 11-27-11L50 8Z" fill="#1F5FD0" stroke="#174CA8" stroke-width="1.5" />
+        <path d="M38 23v8c7 5 17 5 24 0v-8" fill="#2F7CF6" />
+        <path d="M77 18v12" stroke="#FFCA5C" stroke-width="2" />
+        <circle cx="77" cy="32" r="2.5" fill="#FFCA5C" />
       </g>
 
-      <!-- Phụ kiện: Kính tròn học sinh trí thức khi reading -->
+      <!-- Reading glasses -->
       <g v-if="mood === 'reading'">
-        <circle
-          cx="39"
-          cy="46"
-          r="8"
-          stroke="#2F7CF6"
-          stroke-width="2"
-          fill="none"
-        />
-        <circle
-          cx="61"
-          cy="46"
-          r="8"
-          stroke="#2F7CF6"
-          stroke-width="2"
-          fill="none"
-        />
-        <line
-          x1="47"
-          y1="46"
-          x2="53"
-          y2="46"
-          stroke="#2F7CF6"
-          stroke-width="2"
-        />
+        <circle cx="38" cy="48" r="8" stroke="#2F7CF6" stroke-width="2.5" />
+        <circle cx="62" cy="48" r="8" stroke="#2F7CF6" stroke-width="2.5" />
+        <path d="M46 48h8" stroke="#2F7CF6" stroke-width="2.5" />
       </g>
 
-      <!-- Hai tay cầm sách phía trước -->
+      <!-- Open book -->
       <g v-if="mood === 'reading' || mood === 'greeting'">
-        <!-- Quyển sách mở màu xanh mint & xanh dương -->
-        <path d="M34 76 L50 72 L66 76 L66 88 L50 84 L34 88 Z" fill="#2BC48A" />
-        <path d="M35 77 L49 73 L49 84 L35 87 Z" fill="#FFFFFF" />
-        <path d="M65 77 L51 73 L51 84 L65 87 Z" fill="#F4F8FF" />
-        <!-- Tay gấu ôm sách -->
-        <circle cx="32" cy="80" r="5" fill="#FFC83D" />
-        <circle cx="68" cy="80" r="5" fill="#FFC83D" />
+        <path d="m31 75 18-4v17l-18 4V75Zm38 0-18-4v17l18 4V75Z" fill="#fff" stroke="#1F5FD0" stroke-width="1.5" stroke-linejoin="round" />
+        <path d="M50 72v17" stroke="#9FC9F5" stroke-width="1.5" />
       </g>
 
-      <!-- Cảm xúc ngơ ngác khi empty -->
-      <g v-if="mood === 'empty'">
-        <!-- Biểu tượng dấu hỏi chấm tròn bay lơ lửng -->
-        <circle cx="74" cy="22" r="9" fill="#FF6B9A" />
-        <text
-          x="74"
-          y="27"
-          font-size="12"
-          font-weight="bold"
-          fill="#FFFFFF"
-          text-anchor="middle"
-        >
-          ?
-        </text>
+      <!-- Snowflake for empty states -->
+      <g v-if="mood === 'empty'" stroke="#54A9E8" stroke-width="2" stroke-linecap="round">
+        <path d="M78 15v16m-7-12 14 8m0-8-14 8m7-11-3 3m3 9-3-3m3 3 3-3m-3-9 3 3" />
       </g>
 
-      <!-- Cảm xúc vui mừng celebrate -->
-      <g v-if="mood === 'celebrate'">
-        <!-- Ngôi sao nhỏ lấp lánh -->
-        <polygon
-          points="18,18 20,23 25,24 21,27 22,32 18,29 14,32 15,27 11,24 16,23"
-          fill="#FFC83D"
-        />
-        <polygon
-          points="82,24 83,27 86,28 84,30 84,33 82,31 80,33 80,30 78,28 81,27"
-          fill="#FF6B9A"
-        />
+      <!-- Celebration stars -->
+      <g v-if="mood === 'celebrate'" fill="#FFCA5C">
+        <path d="m19 25 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Zm63 4 1.5 3.5L87 34l-3.5 1.5L82 39l-1.5-3.5L77 34l3.5-1.5L82 29Z" />
       </g>
     </svg>
   </div>
@@ -139,16 +73,17 @@ defineProps({
   },
   mood: {
     type: String,
-    default: "greeting", // 'greeting' | 'reading' | 'empty' | 'celebrate'
+    default: "greeting",
   },
 });
 </script>
 
 <style scoped>
-.duckbear-mascot-wrapper {
+.polar-mascot-wrapper {
   user-select: none;
 }
-.mascot-svg {
+
+.polar-mascot-svg {
   display: block;
 }
 </style>

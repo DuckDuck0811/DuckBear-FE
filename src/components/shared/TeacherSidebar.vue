@@ -8,12 +8,7 @@
     class="teacher-sidebar"
     :aria-label="t('sidebar.aria')"
   >
-    <div class="sidebar-brand px-5 py-5">
-      <div class="text-overline text-primary font-weight-bold">DUCKBEAR CLASSROOM</div>
-      <div class="text-body-2 text-medium-emphasis">{{ t('sidebar.workspace') }}</div>
-    </div>
-
-    <nav class="px-3 pb-5" :aria-label="t('sidebar.menu')">
+    <nav class="px-3 pt-5 pb-5" :aria-label="t('sidebar.menu')">
       <section v-for="group in groups" :key="group.title" class="mb-4">
         <h2 class="sidebar-group-title px-3 mb-2">{{ t(group.title) }}</h2>
         <template v-for="item in group.items" :key="item.label">
@@ -72,6 +67,7 @@ const groups = computed(() => [
     title: "sidebar.assignments",
     items: [
       { label: "sidebar.createAssignment", icon: "mdi-file-edit-outline", to: "/assignments", match: ["assignments"] },
+      { label: "sidebar.schedule", icon: "mdi-calendar-week-outline", to: "/schedule", match: ["schedule"] },
       { label: "sidebar.examBank", icon: "mdi-folder-text-outline" },
     ],
   },
@@ -117,11 +113,6 @@ onBeforeUnmount(() => window.removeEventListener("teacher-sidebar:toggle", toggl
   height: calc(100dvh - 70px) !important;
   border-right: 1px solid #e4ecf7;
   background: #fff;
-}
-
-.sidebar-brand {
-  border-bottom: 1px solid #edf2fa;
-  margin-bottom: 16px;
 }
 
 .sidebar-group-title {
