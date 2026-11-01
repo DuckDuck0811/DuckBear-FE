@@ -111,6 +111,10 @@ onBeforeUnmount(() => window.removeEventListener("teacher-sidebar:toggle", toggl
 
 <style scoped>
 .teacher-sidebar {
+  position: fixed !important;
+  top: 70px !important;
+  height: calc(100vh - 70px) !important;
+  height: calc(100dvh - 70px) !important;
   border-right: 1px solid #e4ecf7;
   background: #fff;
 }
