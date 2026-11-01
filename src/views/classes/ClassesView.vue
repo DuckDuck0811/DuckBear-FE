@@ -6,13 +6,9 @@
     <v-main class="pb-16" style="background-color: #f4f8ff">
       <v-container class="py-8 px-4 px-md-8" style="max-width: 1180px">
         <PageHeader
-          tag="KHÔNG GIAN LỚP HỌC"
-          :title="isTeacher ? 'Quản lý lớp học' : 'Lớp học của tôi'"
-          :subtitle="
-            isTeacher
-              ? 'Tạo lớp, chia sẻ mã mời và duyệt yêu cầu tham gia của học sinh.'
-              : 'Nhập mã lớp để gửi yêu cầu tham gia và theo dõi các lớp học của bạn.'
-          "
+          :tag="t('classesPage.tag')"
+          :title="t(isTeacher ? 'classesPage.teacherTitle' : 'classesPage.studentTitle')"
+          :subtitle="t(isTeacher ? 'classesPage.teacherSubtitle' : 'classesPage.studentSubtitle')"
           icon="mdi-account-group-outline"
         >
           <template #actions>
@@ -24,7 +20,7 @@
               prepend-icon="mdi-plus"
               @click="showCreateDialog = true"
             >
-              Tạo lớp mới
+              {{ t('classesPage.createClass') }}
             </v-btn>
           </template>
         </PageHeader>
@@ -37,10 +33,9 @@
                   ><v-icon icon="mdi-key-outline"
                 /></v-avatar>
                 <div>
-                  <h2 class="text-h6 font-weight-black">Tìm lớp bằng mã mời</h2>
+                  <h2 class="text-h6 font-weight-black">{{ t('classesPage.findClass') }}</h2>
                   <p class="text-body-2 text-secondary mb-0">
-                    Nhập mã giáo viên chia sẻ với bạn. Giáo viên sẽ duyệt yêu
-                    cầu trước khi bạn vào lớp.
+                    {{ t('classesPage.findClassHint') }}
                   </p>
                 </div>
               </div>
@@ -50,8 +45,8 @@
               >
                 <v-text-field
                   v-model="joinCode"
-                  label="Mã lớp"
-                  placeholder="Ví dụ: A1B2C3D4"
+                  :label="t('classesPage.classCode')"
+                  :placeholder="t('classesPage.classCodePlaceholder')"
                   prepend-inner-icon="mdi-pound"
                   class="flex-grow-1 w-100"
                   hide-details
@@ -65,7 +60,7 @@
                   class="btn-shub-primary px-7"
                   :loading="isSubmitting"
                 >
-                  Tìm lớp
+                  {{ t('classesPage.search') }}
                 </v-btn>
               </v-form>
               <v-alert
@@ -87,33 +82,30 @@
                   class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-4"
                 >
                   <div>
-                    <div class="text-overline">LỚP HỌC TÌM THẤY</div>
+                    <div class="text-overline">{{ t('classesPage.classFound') }}</div>
                     <h3 class="text-h6 font-weight-black">
                       {{ classPreview.name }}
                     </h3>
                     <div class="text-body-2 mt-1">
-                      Lớp {{ classPreview.gradeLevel }} ·
-                      {{ classPreview.schoolYear }} · Giáo viên:
-                      {{
-                        classPreview.homeroomTeacher?.fullName ||
-                        "Chưa phân công"
-                      }}
+                      {{ t('classesPage.gradeAndYear', { grade: classPreview.gradeLevel, year: classPreview.schoolYear }) }} ·
+                      {{ t('classesPage.teacher') }}:
+                      {{ classPreview.homeroomTeacher?.fullName || t('classesPage.unassigned') }}
                     </div>
                     <div class="text-caption mt-1">
-                      {{ classPreview._count?.students || 0 }} học sinh
+                      {{ t('classesPage.studentCount', { count: classPreview._count?.students || 0 }) }}
                     </div>
                   </div>
                   <v-chip
                     v-if="classPreview.isMember"
                     color="success"
                     variant="tonal"
-                    >Đã tham gia</v-chip
+                    >{{ t('classesPage.joined') }}</v-chip
                   >
                   <v-chip
                     v-else-if="classPreview.myRequestStatus === 'PENDING'"
                     color="warning"
                     variant="tonal"
-                    >Đang chờ duyệt</v-chip
+                    >{{ t('classesPage.pending') }}</v-chip
                   >
                   <v-btn
                     v-else
@@ -122,7 +114,7 @@
                     :loading="isSubmitting"
                     @click="requestToJoin"
                   >
-                    Gửi yêu cầu tham gia
+                    {{ t('classesPage.requestJoin') }}
                   </v-btn>
                 </div>
               </v-card>
@@ -139,7 +131,7 @@
         />
 
         <template v-if="isTeacher">
-          <h2 class="text-h6 font-weight-black mb-4">Lớp bạn quản lý</h2>
+          <h2 class="text-h6 font-weight-black mb-4">{{ t('classesPage.managedClasses') }}</h2>
           <v-row v-if="classes.length">
             <v-col
               v-for="schoolClass in classes"
@@ -152,7 +144,7 @@
                 class="pa-5 h-100 shub-card class-card-link"
                 role="link"
                 tabindex="0"
-                :aria-label="`Xem sơ đồ lớp ${schoolClass.name}`"
+                :aria-label="t('classesPage.viewClassMap', { name: schoolClass.name })"
                 @click="openClass(schoolClass)"
                 @keydown.enter="openClass(schoolClass)"
                 @keydown.space.prevent="openClass(schoolClass)"
@@ -162,20 +154,19 @@
                     ><v-icon icon="mdi-google-classroom"
                   /></v-avatar>
                   <v-chip color="primary" variant="tonal" size="small"
-                    >{{ schoolClass._count?.students || 0 }} học sinh</v-chip
+                    >{{ t('classesPage.studentCount', { count: schoolClass._count?.students || 0 }) }}</v-chip
                   >
                 </div>
                 <h3 class="text-h6 font-weight-black">
                   {{ schoolClass.name }}
                 </h3>
                 <p class="text-body-2 text-secondary">
-                  Lớp {{ schoolClass.gradeLevel }} ·
-                  {{ schoolClass.schoolYear }}
+                  {{ t('classesPage.gradeAndYear', { grade: schoolClass.gradeLevel, year: schoolClass.schoolYear }) }}
                 </p>
                 <v-divider class="my-4" />
                 <div class="d-flex align-center justify-space-between ga-2">
                   <div>
-                    <div class="text-caption text-secondary">MÃ MỜI</div>
+                    <div class="text-caption text-secondary">{{ t('classesPage.inviteCode') }}</div>
                     <code
                       class="text-subtitle-1 font-weight-black text-primary"
                       >{{ schoolClass.joinCode }}</code
@@ -186,7 +177,7 @@
                     size="small"
                     variant="tonal"
                     color="primary"
-                    aria-label="Sao chép mã lớp"
+                    :aria-label="t('classesPage.copyCode')"
                     @click.stop="copyJoinCode(schoolClass.joinCode)"
                   />
                 </div>
@@ -203,26 +194,26 @@
               color="primary"
               class="mb-3"
             />
-            <h3 class="text-h6 font-weight-black">Bạn chưa tạo lớp nào</h3>
+            <h3 class="text-h6 font-weight-black">{{ t('classesPage.noManagedClasses') }}</h3>
             <p class="text-body-2 text-secondary mb-4">
-              Tạo lớp đầu tiên để chia sẻ mã mời với học sinh.
+              {{ t('classesPage.noManagedClassesHint') }}
             </p>
             <v-btn
               color="primary"
               class="btn-shub-primary"
               @click="showCreateDialog = true"
-              >Tạo lớp mới</v-btn
+              >{{ t('classesPage.createClass') }}</v-btn
             >
           </v-card>
 
           <h2 class="text-h6 font-weight-black mt-8 mb-4">
-            Yêu cầu tham gia
+            {{ t('classesPage.joinRequests') }}
             <v-chip
               v-if="requests.length"
               color="warning"
               size="small"
               class="ml-2"
-              >{{ requests.length }} chờ duyệt</v-chip
+              >{{ t('classesPage.pendingCount', { count: requests.length }) }}</v-chip
             >
           </h2>
           <v-card v-if="requests.length" class="shub-card overflow-hidden">
@@ -242,7 +233,7 @@
                       size="small"
                       :loading="isReviewing === request.id"
                       @click="reviewRequest(request, 'APPROVED')"
-                      >Duyệt</v-btn
+                      >{{ t('classesPage.approve') }}</v-btn
                     >
                     <v-btn
                       color="error"
@@ -250,7 +241,7 @@
                       size="small"
                       :loading="isReviewing === request.id"
                       @click="reviewRequest(request, 'REJECTED')"
-                      >Từ chối</v-btn
+                      >{{ t('classesPage.reject') }}</v-btn
                     >
                   </div>
                 </template>
@@ -260,12 +251,12 @@
           <v-card
             v-else-if="!isLoading"
             class="pa-5 text-center shub-card text-secondary"
-            >Chưa có yêu cầu nào đang chờ duyệt.</v-card
+            >{{ t('classesPage.noJoinRequests') }}</v-card
           >
         </template>
 
         <template v-else>
-          <h2 class="text-h6 font-weight-black mt-6 mb-4">Lớp đã tham gia</h2>
+          <h2 class="text-h6 font-weight-black mt-6 mb-4">{{ t('classesPage.joinedClasses') }}</h2>
           <v-row v-if="classes.length">
             <v-col
               v-for="schoolClass in classes"
@@ -282,13 +273,12 @@
                   {{ schoolClass.name }}
                 </h3>
                 <p class="text-body-2 text-secondary mb-0">
-                  Lớp {{ schoolClass.gradeLevel }} ·
-                  {{ schoolClass.schoolYear }}
+                  {{ t('classesPage.gradeAndYear', { grade: schoolClass.gradeLevel, year: schoolClass.schoolYear }) }}
                 </p>
                 <div class="text-body-2 mt-2">
-                  Giáo viên:
+                  {{ t('classesPage.teacher') }}:
                   {{
-                    schoolClass.homeroomTeacher?.fullName || "Chưa phân công"
+                    schoolClass.homeroomTeacher?.fullName || t('classesPage.unassigned')
                   }}
                 </div>
               </v-card>
@@ -297,11 +287,11 @@
           <v-card
             v-else-if="!isLoading"
             class="pa-5 text-center shub-card text-secondary"
-            >Bạn chưa tham gia lớp nào.</v-card
+            >{{ t('classesPage.noJoinedClasses') }}</v-card
           >
 
           <template v-if="requests.length">
-            <h2 class="text-h6 font-weight-black mt-8 mb-4">Yêu cầu của tôi</h2>
+            <h2 class="text-h6 font-weight-black mt-8 mb-4">{{ t('classesPage.myRequests') }}</h2>
             <v-row>
               <v-col
                 v-for="request in requests"
@@ -316,8 +306,7 @@
                   <div>
                     <div class="font-weight-bold">{{ request.class.name }}</div>
                     <div class="text-caption text-secondary">
-                      Lớp {{ request.class.gradeLevel }} ·
-                      {{ request.class.schoolYear }}
+                      {{ t('classesPage.gradeAndYear', { grade: request.class.gradeLevel, year: request.class.schoolYear }) }}
                     </div>
                   </div>
                   <v-chip
@@ -333,10 +322,10 @@
                   >
                     {{
                       request.status === "PENDING"
-                        ? "Chờ duyệt"
+                        ? t('classesPage.pending')
                         : request.status === "APPROVED"
-                          ? "Đã duyệt"
-                          : "Bị từ chối"
+                          ? t('classesPage.approved')
+                          : t('classesPage.rejected')
                     }}
                   </v-chip>
                 </v-card>
@@ -350,24 +339,24 @@
     <v-dialog v-model="showCreateDialog" max-width="520">
       <v-card class="pa-5 pa-sm-7">
         <v-card-title class="text-h6 font-weight-black px-0"
-          >Tạo lớp học mới</v-card-title
+          >{{ t('classesPage.createClass') }}</v-card-title
         >
         <v-card-text class="px-0">
           <v-form @submit.prevent="createClass">
             <v-text-field
               v-model="createForm.name"
-              label="Tên lớp"
-              placeholder="Ví dụ: Toán 6A"
+              :label="t('classesPage.className')"
+              :placeholder="t('classesPage.classNamePlaceholder')"
               maxlength="100"
               required
               class="mb-3"
             />
             <v-select
               v-model="createForm.gradeLevel"
-              label="Khối lớp"
+              :label="t('classesPage.grade')"
               :items="
                 Array.from({ length: 12 }, (_, index) => ({
-                  title: `Lớp ${index + 1}`,
+                  title: t('classesPage.gradeOption', { grade: index + 1 }),
                   value: index + 1,
                 }))
               "
@@ -375,21 +364,21 @@
             />
             <v-text-field
               v-model="createForm.schoolYear"
-              label="Niên khóa"
-              placeholder="Ví dụ: 2026-2027"
+              :label="t('classesPage.schoolYear')"
+              :placeholder="t('classesPage.schoolYearPlaceholder')"
               maxlength="20"
               required
             />
             <div class="d-flex justify-end ga-2 mt-5">
               <v-btn variant="text" @click="showCreateDialog = false"
-                >Hủy</v-btn
+                >{{ t('classesPage.cancel') }}</v-btn
               >
               <v-btn
                 type="submit"
                 color="primary"
                 class="btn-shub-primary"
                 :loading="isSubmitting"
-                >Tạo lớp</v-btn
+                >{{ t('classesPage.create') }}</v-btn
               >
             </div>
           </v-form>
@@ -406,7 +395,7 @@
       {{ notice.message }}
       <template #actions
         ><v-btn variant="text" @click="notice.show = false"
-          >Đóng</v-btn
+          >{{ t('classesPage.close') }}</v-btn
         ></template
       >
     </v-snackbar>
@@ -416,6 +405,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { api } from "../../services/api";
 import { useAuthStore } from "../../stores/auth";
 import AppHeader from "../../components/shared/AppHeader.vue";
@@ -425,6 +415,7 @@ import PageHeader from "../../components/shared/PageHeader.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();
+const { t } = useI18n();
 const isTeacher = computed(() => authStore.isTeacher);
 const isLoading = ref(false);
 const isSubmitting = ref(false);
@@ -464,7 +455,7 @@ async function searchClass() {
   classPreview.value = null;
   searchError.value = "";
   if (!joinCode.value.trim()) {
-    searchError.value = "Bạn hãy nhập mã lớp để tìm kiếm.";
+    searchError.value = t('classesPage.enterCodeError');
     return;
   }
 
@@ -488,7 +479,7 @@ async function requestToJoin() {
     classPreview.value = null;
     joinCode.value = "";
     await fetchClasses();
-    showNotice("Đã gửi yêu cầu. Giáo viên sẽ duyệt yêu cầu tham gia của bạn.");
+    showNotice(t('classesPage.joinRequestSent'));
   } catch (error) {
     showNotice(error.message, "error");
   } finally {
@@ -510,9 +501,7 @@ async function createClass() {
     showCreateDialog.value = false;
     createForm.value = { name: "", gradeLevel: 1, schoolYear: "" };
     await fetchClasses();
-    showNotice(
-      `Đã tạo lớp ${schoolClass.name}. Mã mời: ${schoolClass.joinCode}`,
-    );
+    showNotice(t('classesPage.classCreated', { name: schoolClass.name, code: schoolClass.joinCode }));
   } catch (error) {
     showNotice(error.message, "error");
   } finally {
@@ -530,8 +519,8 @@ async function reviewRequest(request, status) {
     await fetchClasses();
     showNotice(
       status === "APPROVED"
-        ? "Đã duyệt học sinh vào lớp."
-        : "Đã từ chối yêu cầu tham gia.",
+        ? t('classesPage.requestApproved')
+        : t('classesPage.requestRejected'),
     );
   } catch (error) {
     showNotice(error.message, "error");
@@ -543,9 +532,9 @@ async function reviewRequest(request, status) {
 async function copyJoinCode(code) {
   try {
     await navigator.clipboard.writeText(code);
-    showNotice("Đã sao chép mã lớp.");
+    showNotice(t('classesPage.codeCopied'));
   } catch {
-    showNotice("Không thể sao chép mã lớp trên thiết bị này.", "error");
+    showNotice(t('classesPage.copyFailed'), "error");
   }
 }
 

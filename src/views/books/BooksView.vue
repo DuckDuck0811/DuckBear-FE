@@ -16,9 +16,9 @@
       <v-container class="py-8 px-4 px-md-8" style="max-width: 1360px">
         <!-- PageHeader SHub Classroom Style -->
         <PageHeader
-          tag="KHÔNG GIAN LỚP HỌC"
-          title="Thư viện Giáo trình"
-          subtitle="Khám phá, biên soạn và chuẩn hóa chương trình học tập cho học sinh từ Lớp 1 đến Lớp 12."
+          :tag="t('booksPage.tag')"
+          :title="t('booksPage.title')"
+          :subtitle="t('booksPage.subtitle')"
           icon="mdi-bookshelf"
         >
           <template #actions>
@@ -32,7 +32,7 @@
               prepend-icon="mdi-plus"
               @click="openCreateDialog"
             >
-              Thêm giáo trình mới
+              {{ t('booksPage.addBook') }}
             </v-btn>
           </template>
         </PageHeader>
@@ -42,6 +42,7 @@
           <FilterChips
             :model-value="selectedGrade"
             :items="gradeOptions"
+            :title="t('booksPage.gradeFilter')"
             @change="handleGradeChange"
           />
         </div>
@@ -63,15 +64,15 @@
           v-else-if="!isLoading && books.length === 0"
           :title="
             selectedGrade
-              ? `Chưa có giáo trình Lớp ${selectedGrade}`
-              : 'Chưa có giáo trình nào trong thư viện'
+              ? t('booksPage.noGradeBooks', { grade: selectedGrade })
+              : t('booksPage.noBooks')
           "
           :description="
             selectedGrade
-              ? `Lớp ${selectedGrade} hiện chưa có sách nào được tạo. Bạn hãy là người đầu tiên tạo giáo trình cho khối lớp này nhé!`
-              : 'Bắt đầu không gian học tập bằng việc tạo cuốn giáo trình đầu tiên ngay bây giờ.'
+              ? t('booksPage.noGradeBooksHint', { grade: selectedGrade })
+              : t('booksPage.noBooksHint')
           "
-          :action-text="authStore.isTeacher ? 'Tạo giáo trình ngay' : ''"
+          :action-text="authStore.isTeacher ? t('booksPage.createNow') : ''"
           action-icon="mdi-plus"
           @action="openCreateDialog"
         />
@@ -107,10 +108,10 @@
             </v-avatar>
             <div>
               <h2 class="text-h6 font-weight-black text-primary">
-                {{ isEditing ? "Chỉnh sửa giáo trình" : "Thêm giáo trình mới" }}
+                {{ t(isEditing ? 'booksPage.editBook' : 'booksPage.addBook') }}
               </h2>
               <span class="text-caption text-secondary"
-                >Quản lý sách học tập</span
+                >{{ t('booksPage.manageBooks') }}</span
               >
             </div>
           </div>
@@ -119,11 +120,11 @@
             <div class="mb-4">
               <label
                 class="text-caption font-weight-bold text-secondary mb-1 d-block"
-                >TIÊU ĐỀ SÁCH</label
+                >{{ t('booksPage.titleLabel') }}</label
               >
               <v-text-field
                 v-model="bookForm.title"
-                placeholder="Ví dụ: Toán lớp 6 — Tập 1"
+                :placeholder="t('booksPage.titlePlaceholder')"
                 variant="outlined"
                 rounded="lg"
                 density="comfortable"
@@ -136,13 +137,13 @@
             <div class="mb-4">
               <label
                 class="text-caption font-weight-bold text-secondary mb-1 d-block"
-                >MÔN HỌC</label
+                >{{ t('booksPage.subjectLabel') }}</label
               >
               <v-select
                 v-model="bookForm.subject"
                 :items="subjectOptions"
-                placeholder="Chọn môn học"
-                no-data-text="Chưa có môn học phù hợp"
+                :placeholder="t('booksPage.subjectPlaceholder')"
+                :no-data-text="t('booksPage.noSubject')"
                 variant="outlined"
                 rounded="lg"
                 density="comfortable"
@@ -156,13 +157,13 @@
             <div class="mb-6">
               <label
                 class="text-caption font-weight-bold text-secondary mb-1 d-block"
-                >KHỐI LỚP</label
+                >{{ t('booksPage.gradeLabel') }}</label
               >
               <v-select
                 v-model="bookForm.gradeLevel"
                 :items="
                   Array.from({ length: 12 }, (_, i) => ({
-                    title: `Lớp ${i + 1}`,
+                    title: t('booksPage.gradeOption', { grade: i + 1 }),
                     value: i + 1,
                   }))
                 "
@@ -183,7 +184,7 @@
                 :disabled="isSubmittingBook"
                 @click="showBookDialog = false"
               >
-                Hủy bỏ
+                {{ t('booksPage.cancel') }}
               </v-btn>
               <v-btn
                 color="primary"
@@ -192,7 +193,7 @@
                 :loading="isSubmittingBook"
                 @click="handleSaveBook"
               >
-                {{ isEditing ? "Lưu cập nhật" : "Tạo giáo trình" }}
+                {{ t(isEditing ? 'booksPage.saveChanges' : 'booksPage.createBook') }}
               </v-btn>
             </div>
           </v-form>
@@ -202,8 +203,8 @@
       <!-- Dialog Xác nhận xóa sách -->
       <ConfirmDialog
         v-model="showDeleteConfirm"
-        title="Xóa giáo trình"
-        :message="`Bạn có chắc chắn muốn xóa cuốn sách '${bookToDelete?.title}'? Toàn bộ chương mục và bài học bên trong sẽ bị xóa theo.`"
+        :title="t('booksPage.deleteBook')"
+        :message="t('booksPage.confirmDelete', { title: bookToDelete?.title })"
         :loading="isDeleting"
         @confirm="handleDeleteBook"
       />
@@ -229,7 +230,7 @@
         </div>
         <template #actions>
           <v-btn variant="text" size="small" @click="snackbar.show = false"
-            >Đóng</v-btn
+            >{{ t('booksPage.close') }}</v-btn
           >
         </template>
       </v-snackbar>
@@ -240,6 +241,7 @@
 <script setup>
 import { computed, ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { api } from "../../services/api";
 import { useAuthStore } from "../../stores/auth";
 import AppHeader from "../../components/shared/AppHeader.vue";
@@ -253,6 +255,7 @@ import ConfirmDialog from "../../components/shared/ConfirmDialog.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { t } = useI18n();
 
 // Danh sách sách & trạng thái tải
 const books = ref([]);
@@ -285,23 +288,52 @@ const baseSubjects = [
 const workbookSubjectsByGrade = {
   9: ["Toán", "Ngữ văn", "Địa lí", "Lịch sử", "Tiếng Anh"],
 };
+const subjectTranslationKeys = {
+  'Toán': 'math',
+  'Tiếng Việt': 'vietnamese',
+  'Ngữ Văn': 'literature',
+  'Ngữ văn': 'literature',
+  'Tiếng Anh': 'english',
+  'Đạo đức': 'ethics',
+  'Tự nhiên và Xã hội': 'natureSociety',
+  'Khoa học': 'science',
+  'Lịch sử': 'history',
+  'Địa lí': 'geography',
+  'Lịch sử và Địa lí': 'historyGeography',
+  'Vật lí': 'physics',
+  'Hóa học': 'chemistry',
+  'Sinh học': 'biology',
+  'Tin học': 'informatics',
+  'Công nghệ': 'technology',
+  'Giáo dục công dân': 'civicEducation',
+  'Giáo dục kinh tế và pháp luật': 'economicsLaw',
+  'Âm nhạc': 'music',
+  'Mĩ thuật': 'arts',
+  'Giáo dục thể chất': 'physicalEducation',
+  'Hoạt động trải nghiệm': 'experientialActivities',
+};
 const subjectOptions = computed(() =>
   [...new Set([
     ...(workbookSubjectsByGrade[bookForm.value.gradeLevel] || baseSubjects),
     ...books.value.map((book) => book.subject?.trim()).filter(Boolean),
   ])]
     .sort((a, b) => a.localeCompare(b, "vi"))
-    .map((title) => ({ title, value: title })),
+    .map((value) => ({
+      title: subjectTranslationKeys[value]
+        ? t(`booksPage.subjects.${subjectTranslationKeys[value]}`)
+        : value,
+      value,
+    })),
 );
 
 // Danh sách các lớp lọc
-const gradeOptions = [
-  { label: "Tất cả khối lớp", value: null },
+const gradeOptions = computed(() => [
+  { label: t('booksPage.allGrades'), value: null },
   ...Array.from({ length: 12 }, (_, i) => ({
-    label: `Lớp ${i + 1}`,
+    label: t('booksPage.gradeOption', { grade: i + 1 }),
     value: i + 1,
   })),
-];
+]);
 
 // Snackbar thông báo
 const snackbar = ref({
@@ -337,9 +369,9 @@ const bookToDelete = ref(null);
 const isDeleting = ref(false);
 
 // Validation rules
-const requiredRule = [(v) => !!v || "Trường này không được để trống"];
+const requiredRule = [(v) => !!v || t('booksPage.required')];
 const gradeRule = [
-  (v) => (Number(v) >= 1 && Number(v) <= 12) || "Khối lớp phải từ 1 đến 12",
+  (v) => (Number(v) >= 1 && Number(v) <= 12) || t('booksPage.invalidGrade'),
 ];
 
 // Lấy danh sách sách
@@ -405,13 +437,13 @@ async function handleSaveBook() {
         method: "PATCH",
         body: payload,
       });
-      showNotice("Cập nhật sách thành công!");
+      showNotice(t('booksPage.bookUpdated'));
     } else {
       await api("/books", {
         method: "POST",
         body: payload,
       });
-      showNotice("Thêm sách mới thành công!");
+      showNotice(t('booksPage.bookAdded'));
     }
     showBookDialog.value = false;
     await fetchBooks();
@@ -437,7 +469,7 @@ async function handleDeleteBook() {
     await api(`/books/${bookToDelete.value.id}`, {
       method: "DELETE",
     });
-    showNotice("Xóa sách thành công!");
+    showNotice(t('booksPage.bookDeleted'));
     showDeleteConfirm.value = false;
     bookToDelete.value = null;
     await fetchBooks();

@@ -14,13 +14,20 @@
 
       <v-container class="py-6 px-4 px-md-8" style="max-width: 960px;">
         <!-- Top Breadcrumbs & Điều hướng trên cùng -->
-        <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center ga-3 mb-4">
-          <v-breadcrumbs :items="breadcrumbItems" class="pa-0 text-caption font-weight-bold">
+        <div class="lesson-navigation d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center ga-3 mb-4">
+          <v-breadcrumbs :items="breadcrumbItems" class="lesson-breadcrumbs pa-0 text-caption font-weight-bold">
             <template #divider>
               <v-icon icon="mdi-chevron-right" size="14" color="secondary" />
             </template>
             <template #title="{ item }">
-              <span :class="{ 'text-primary font-weight-black': item.disabled, 'text-secondary hover-link': !item.disabled }">
+              <span
+                class="lesson-crumb-label"
+                :class="[
+                  item.kind ? `lesson-crumb-${item.kind}` : '',
+                  { 'text-primary font-weight-black': item.disabled, 'text-secondary hover-link': !item.disabled },
+                ]"
+                :title="item.title"
+              >
                 {{ item.title }}
               </span>
             </template>
@@ -39,12 +46,12 @@
                 append-icon="mdi-chevron-down"
                 class="font-weight-bold text-none"
               >
-                Mục lục chương ({{ currentLessonIndex + 1 }}/{{ chapterLessons.length }})
+                {{ t('lesson.chapterContents', { current: currentLessonIndex + 1, total: chapterLessons.length }) }}
               </v-btn>
             </template>
             <v-card class="rounded-xl pa-2" min-width="280" max-width="360" elevation="4">
               <div class="text-caption font-weight-black text-secondary px-3 py-2 border-b">
-                DANH SÁCH BÀI TRONG CHƯƠNG
+                {{ t('lesson.chapterLessonList') }}
               </div>
               <v-list density="compact" class="pa-1">
                 <v-list-item
@@ -78,9 +85,9 @@
           style="border: 1px solid #E4ECF7;"
         >
           <DuckBearMascot :size="90" mood="empty" class="mb-4" />
-          <h2 class="text-h5 font-weight-black text-primary mb-2">Không tìm thấy bài học</h2>
+          <h2 class="text-h5 font-weight-black text-primary mb-2">{{ t('lesson.notFoundTitle') }}</h2>
           <p class="text-body-2 text-secondary mb-6">
-            Bài giảng này có thể đã bị gỡ bỏ hoặc bạn không có quyền truy cập.
+            {{ t('lesson.notFoundBody') }}
           </p>
           <v-btn
             color="primary"
@@ -88,7 +95,7 @@
             class="btn-shub-primary px-6 font-weight-bold"
             @click="goBack"
           >
-            Quay lại
+            {{ t('lesson.back') }}
           </v-btn>
         </v-card>
 
@@ -101,7 +108,7 @@
               <div>
                 <div class="d-flex align-center ga-2 mb-2">
                   <v-chip color="primary" size="small" variant="flat" class="font-weight-black">
-                    BÀI HỌC {{ lesson.orderIndex ?? (currentLessonIndex + 1) }}
+                    {{ t('lesson.number', { number: lesson.orderIndex ?? (currentLessonIndex + 1) }) }}
                   </v-chip>
                   <span class="text-caption text-secondary font-weight-bold">
                     {{ bookTitle ? `${bookTitle.toUpperCase()} · ` : '' }}DUCKBEAR CLASSROOM
@@ -172,7 +179,7 @@
               <div class="d-flex align-center ga-2">
                 <!-- Bộ chỉnh cỡ chữ linh hoạt -->
                 <div class="font-size-control d-inline-flex align-center rounded-pill pa-1">
-                  <span class="text-caption font-weight-bold px-2 text-secondary">Cỡ chữ:</span>
+                  <span class="text-caption font-weight-bold px-2 text-secondary">{{ t('lesson.fontSize') }}</span>
                   <button
                     type="button"
                     class="font-size-btn"
@@ -254,6 +261,22 @@
                   <p v-if="block.type === 'text'" class="section-paragraph mb-2">
                     {{ block.content }}
                   </p>
+                  <h3 v-else-if="block.type === 'subheading'" class="lesson-subheading">
+                    {{ block.content }}
+                  </h3>
+                  <ul v-else-if="block.type === 'bullet-list'" class="lesson-list lesson-bullet-list">
+                    <li v-for="(item, itemIdx) in block.items" :key="itemIdx">{{ item }}</li>
+                  </ul>
+                  <div v-else-if="block.type === 'steps'" class="lesson-steps">
+                    <div v-for="(item, itemIdx) in block.items" :key="itemIdx" class="lesson-step">
+                      <span class="lesson-step-number">{{ itemIdx + 1 }}</span>
+                      <span class="lesson-step-text">{{ item }}</span>
+                    </div>
+                  </div>
+                  <aside v-else-if="block.type === 'callout'" class="lesson-callout">
+                    <span class="lesson-callout-label">{{ block.label }}</span>
+                    <span>{{ block.content }}</span>
+                  </aside>
                   <figure v-else class="lesson-image-block my-4">
                     <img :src="block.src" :alt="block.alt" loading="lazy" referrerpolicy="no-referrer" />
                     <figcaption v-if="block.alt">{{ block.alt }}</figcaption>
@@ -321,43 +344,38 @@
                   @click="goToLesson(prevLesson.id)"
                 >
                   <v-icon start icon="mdi-arrow-left" />
-                  <span class="text-truncate">Bài trước: {{ prevLesson.title }}</span>
+                  <span class="text-truncate">{{ t('lesson.previous', { title: prevLesson.title }) }}</span>
                 </v-btn>
                 <div v-else class="text-caption text-disabled px-4 py-2">
                   <v-icon icon="mdi-flag-outline" size="14" class="mr-1" />
-                  Đây là bài học mở đầu chương
+                  {{ t('lesson.firstInChapter') }}
                 </div>
               </div>
 
               <!-- Nút Bài tiếp theo -->
-              <div class="w-100 w-sm-50 text-right">
+              <div class="lesson-next-wrap w-100 w-sm-50">
                 <v-btn
                   v-if="nextLesson"
                   color="primary"
                   rounded="pill"
                   block
-                  class="btn-shub-primary font-weight-bold text-none justify-end px-4 text-truncate"
+                  class="btn-shub-primary lesson-next-btn font-weight-bold text-none px-5"
                   @click="goToLesson(nextLesson.id)"
                 >
-                  <span class="text-truncate">Bài tiếp theo: {{ nextLesson.title }}</span>
-                  <v-icon end icon="mdi-arrow-right" />
+                  <span class="lesson-next-copy">
+                    <span class="lesson-next-label">{{ t('lesson.next') }}</span>
+                    <span class="lesson-next-title">{{ nextLesson.title }}</span>
+                  </span>
+                  <v-icon class="lesson-next-icon" icon="mdi-arrow-right" />
                 </v-btn>
                 <div v-else class="text-caption text-success font-weight-bold px-4 py-2">
                   <v-icon icon="mdi-check-decagram" size="16" class="mr-1" />
-                  Bạn đã xem hết bài trong chương này! 🎉
+                  {{ t('lesson.chapterComplete') }}
                 </div>
               </div>
             </div>
           </v-card>
 
-          <!-- Footer xác thực bản quyền giáo dục -->
-          <div class="pt-6 mt-4 d-flex justify-space-between align-center text-caption text-secondary">
-            <div class="d-flex align-center">
-              <v-icon icon="mdi-shield-check" color="success" size="16" class="mr-1" />
-              <span>Nội dung đã được kiểm duyệt sư phạm</span>
-            </div>
-            <span>DuckBear Classroom Education</span>
-          </div>
         </div>
       </v-container>
 
@@ -369,19 +387,17 @@
               <v-icon icon="mdi-file-document-edit-outline" size="24" color="primary" />
             </v-avatar>
             <div>
-              <h2 class="text-h6 font-weight-black text-primary">
-                Chỉnh sửa bài học
-              </h2>
-              <span class="text-caption text-secondary">Cập nhật nội dung bài giảng & cấu trúc sư phạm</span>
+              <h2 class="text-h6 font-weight-black text-primary">{{ t('lesson.editTitle') }}</h2>
+              <span class="text-caption text-secondary">{{ t('lesson.editSubtitle') }}</span>
             </div>
           </div>
 
           <v-form ref="formRef" @submit.prevent="handleUpdateLesson">
             <div class="mb-4">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">TIÊU ĐỀ BÀI HỌC</label>
+              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('lesson.titleLabel') }}</label>
               <v-text-field
                 v-model="editForm.title"
-                placeholder="Ví dụ: Ở trên, ở dưới, ở trước, ở sau"
+                :placeholder="t('lesson.titlePlaceholder')"
                 variant="outlined"
                 rounded="lg"
                 density="comfortable"
@@ -392,7 +408,7 @@
             </div>
 
             <div class="mb-4">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">THỨ TỰ HIỂN THỊ</label>
+              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('lesson.orderLabel') }}</label>
               <v-text-field
                 v-model="editForm.orderIndex"
                 type="number"
@@ -408,8 +424,8 @@
             <!-- Thanh chèn mẫu sư phạm nhanh 1-Click -->
             <div class="mb-2">
               <div class="d-flex justify-space-between align-center mb-1">
-                <label class="text-caption font-weight-bold text-secondary">NỘI DUNG BÀI GIẢNG</label>
-                <span class="text-caption text-secondary">Bấm để chèn nhanh mẫu khối:</span>
+                <label class="text-caption font-weight-bold text-secondary">{{ t('lesson.contentLabel') }}</label>
+                <span class="text-caption text-secondary">{{ t('lesson.insertTemplateHint') }}</span>
               </div>
               <div class="d-flex flex-wrap ga-2 mb-2">
                 <v-btn
@@ -420,7 +436,7 @@
                   class="font-weight-bold text-none"
                   @click="insertTemplate('MỤC TIÊU\nEm nói được mục tiêu bài học...')"
                 >
-                  + Mục tiêu
+                  + {{ t('lesson.templateObjective') }}
                 </v-btn>
                 <v-btn
                   size="x-small"
@@ -430,7 +446,7 @@
                   class="font-weight-bold text-none"
                   @click="insertTemplate('CÙNG HỌC\nKiến thức trọng tâm bài học...')"
                 >
-                  + Cùng học
+                  + {{ t('lesson.templateLearn') }}
                 </v-btn>
                 <v-btn
                   size="x-small"
@@ -440,7 +456,7 @@
                   class="font-weight-bold text-none"
                   @click="insertTemplate('VÍ DỤ\nVí dụ minh họa cụ thể...')"
                 >
-                  + Ví dụ
+                  + {{ t('lesson.templateExample') }}
                 </v-btn>
                 <v-btn
                   size="x-small"
@@ -450,7 +466,7 @@
                   class="font-weight-bold text-none"
                   @click="insertTemplate('EM GHI NHỚ\nĐiều quan trọng cần ghi nhớ...')"
                 >
-                  + Ghi nhớ
+                  + {{ t('lesson.templateRemember') }}
                 </v-btn>
                 <v-btn
                   size="x-small"
@@ -460,18 +476,18 @@
                   class="font-weight-bold text-none"
                   @click="insertTemplate('TỰ THỬ\nThực hành bài tập tự thử...')"
                 >
-                  + Tự thử
+                  + {{ t('lesson.templatePractice') }}
                 </v-btn>
               </div>
               <div class="d-flex align-center ga-2 mb-2">
                 <v-btn size="small" variant="tonal" color="teal" prepend-icon="mdi-image-plus" @click="insertImage">
-                  Chèn ảnh minh họa
+                  {{ t('lesson.insertImage') }}
                 </v-btn>
-                <span class="text-caption text-secondary">Dán đường dẫn ảnh công khai (https://).</span>
+                <span class="text-caption text-secondary">{{ t('lesson.imageUrlHint') }}</span>
               </div>
               <v-textarea
                 v-model="editForm.content"
-                placeholder="Nhập nội dung bài giảng, chia theo MỤC TIÊU, CÙNG HỌC, VÍ DỤ, EM GHI NHỚ, TỰ THỬ để hiển thị thẻ màu đẹp mắt..."
+                :placeholder="t('lesson.contentPlaceholder')"
                 variant="outlined"
                 rounded="lg"
                 density="comfortable"
@@ -489,7 +505,7 @@
                 :disabled="isSubmitting"
                 @click="showEditDialog = false"
               >
-                Hủy bỏ
+                {{ t('lesson.cancel') }}
               </v-btn>
               <v-btn
                 color="primary"
@@ -498,7 +514,7 @@
                 :loading="isSubmitting"
                 @click="handleUpdateLesson"
               >
-                Lưu bài học
+                {{ t('lesson.save') }}
               </v-btn>
             </div>
           </v-form>
@@ -521,7 +537,7 @@
           <span class="font-weight-bold">{{ snackbar.message }}</span>
         </div>
         <template #actions>
-          <v-btn variant="text" size="small" @click="snackbar.show = false">Đóng</v-btn>
+          <v-btn variant="text" size="small" @click="snackbar.show = false">{{ t('lesson.close') }}</v-btn>
         </template>
       </v-snackbar>
     </v-main>
@@ -531,6 +547,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth'
 import AppHeader from '../../components/shared/AppHeader.vue'
@@ -541,6 +558,7 @@ import DuckBearMascot from '../../components/shared/DuckBearMascot.vue'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const lessonId = computed(() => route.params.id)
 const lesson = ref(null)
@@ -621,24 +639,19 @@ const estimatedMinutes = computed(() => {
 // Breadcrumbs items
 const breadcrumbItems = computed(() => {
   const items = [
-    { title: 'Thư viện giáo trình', disabled: false, href: '/' },
+    { title: t('lesson.library'), kind: 'library', disabled: false, href: '/' },
   ]
   if (book.value) {
     items.push({
       title: book.value.title,
+      kind: 'book',
       disabled: false,
       href: `/books/${book.value.id}`,
     })
   }
-  if (chapter.value) {
-    items.push({
-      title: chapter.value.title,
-      disabled: false,
-      href: `/books/${book.value?.id || ''}`,
-    })
-  }
   items.push({
-    title: lesson.value?.title || 'Bài học',
+    title: lesson.value?.title || t('lesson.fallbackTitle'),
+    kind: 'lesson',
     disabled: true,
   })
   return items
@@ -649,7 +662,7 @@ const parsedSections = computed(() => {
   const text = lesson.value?.content
   if (!text) return []
 
-  const headerRegex = /(?:^|\n+)(MỤC TIÊU(?: BÀI HỌC)?|CÙNG HỌC|KHÁM PHÁ|LÝ THUYẾT|KIẾN THỨC MỚI|VÍ DỤ(?: MINH HỌA)?|EM GHI NHỚ|GHI NHỚ|TRỌNG TÂM|TỰ THỬ|LUYỆN TẬP|THỰC HÀNH|BÀI TẬP|VẬN DỤNG)(?:\n+|$)/gi
+  const headerRegex = /(?:^|\n+)(YÊU CẦU CẦN ĐẠT|NỘI DUNG BÀI HỌC|MỤC TIÊU(?: BÀI HỌC)?|CÙNG HỌC|KHÁM PHÁ|LÝ THUYẾT|KIẾN THỨC MỚI|VÍ DỤ(?: MINH HỌA)?|EM GHI NHỚ|GHI NHỚ|TRỌNG TÂM|TỰ THỬ|LUYỆN TẬP|THỰC HÀNH|BÀI TẬP|VẬN DỤNG)(?:\n+|$)/gi
 
   const matches = [...text.matchAll(headerRegex)]
 
@@ -696,9 +709,9 @@ const parsedSections = computed(() => {
     let badgeColor = 'primary'
     let tag = 'LÝ THUYẾT'
 
-    if (rawHeader.includes('MỤC TIÊU')) {
+    if (rawHeader.includes('MỤC TIÊU') || rawHeader.includes('YÊU CẦU CẦN ĐẠT')) {
       type = 'target'
-      title = 'Mục tiêu bài học'
+      title = rawHeader.includes('YÊU CẦU CẦN ĐẠT') ? 'Yêu cầu cần đạt' : 'Mục tiêu bài học'
       icon = 'mdi-target'
       badgeColor = 'info'
       tag = 'MỤC TIÊU'
@@ -736,12 +749,78 @@ const parsedSections = computed(() => {
 })
 
 function parseContentBlocks(text) {
-  return text.split(/\n+/).map((line) => line.trim()).filter(Boolean).map((line) => {
+  const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean)
+  const blocks = []
+  let index = 0
+
+  while (index < lines.length) {
+    const line = lines[index]
     const image = line.match(/^!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)$/i)
-    return image
-      ? { type: 'image', alt: image[1], src: image[2] }
-      : { type: 'text', content: line }
-  })
+    if (image) {
+      blocks.push({ type: 'image', alt: image[1], src: image[2] })
+      index++
+      continue
+    }
+
+    const step = line.match(/^Bước\s+\d+\s*[:.)-]\s*(.+)$/i)
+    if (step) {
+      const items = []
+      while (index < lines.length) {
+        const match = lines[index].match(/^Bước\s+\d+\s*[:.)-]\s*(.+)$/i)
+        if (!match) break
+        items.push(match[1])
+        index++
+      }
+      blocks.push({ type: 'steps', items })
+      continue
+    }
+
+    if (/^(?:[-*•▪]|–)\s+/.test(line)) {
+      const items = []
+      while (index < lines.length && /^(?:[-*•▪]|–)\s+/.test(lines[index])) {
+        items.push(lines[index].replace(/^(?:[-*•▪]|–)\s+/, ''))
+        index++
+      }
+      blocks.push({ type: 'bullet-list', items })
+      continue
+    }
+
+    const callout = line.match(/^(Ví dụ(?:\s*\d+)?|Lưu ý|Ghi nhớ|Kết luận|Đáp số(?: gợi ý)?|Nhận xét|Chú ý|Mẹo làm bài|Cách làm)\s*[:：]\s*(.*)$/i)
+    if (callout) {
+      blocks.push({ type: 'callout', label: callout[1], content: callout[2] })
+      index++
+      continue
+    }
+
+    if (isLessonSubheading(line)) {
+      blocks.push({ type: 'subheading', content: line.replace(/^#{1,3}\s*/, '') })
+      index++
+      continue
+    }
+
+    if (/^\d+[.)]\s+/.test(line)) {
+      const items = []
+      while (index < lines.length && /^\d+[.)]\s+/.test(lines[index])) {
+        items.push(lines[index].replace(/^\d+[.)]\s+/, ''))
+        index++
+      }
+      blocks.push({ type: 'steps', items })
+      continue
+    }
+
+    blocks.push({ type: 'text', content: line.replace(/^\s*[-*•▪]\s+/, '') })
+    index++
+  }
+
+  return blocks
+}
+
+function isLessonSubheading(line) {
+  if (/^#{1,3}\s+\S/.test(line)) return true
+  if (/^(?:[IVX]+\.|[A-Z]\.)\s+/.test(line)) return true
+  if (line.length > 90 || /[.!?。]$/.test(line)) return false
+  const letters = line.replace(/[^\p{L}]/gu, '')
+  return letters.length >= 4 && line === line.toLocaleUpperCase('vi-VN')
 }
 
 // Lấy thông tin bài học
@@ -923,6 +1002,55 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
+.lesson-navigation {
+  width: 100%;
+  min-width: 0;
+}
+
+.lesson-breadcrumbs {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: calc(100% - 285px);
+}
+
+.lesson-breadcrumbs :deep(.v-breadcrumbs-item) {
+  min-width: 0;
+}
+
+.lesson-crumb-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lesson-crumb-library {
+  max-width: 145px;
+}
+
+.lesson-crumb-book {
+  max-width: 150px;
+}
+
+.lesson-crumb-lesson {
+  display: -webkit-box;
+  max-width: 250px;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .lesson-navigation {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .lesson-breadcrumbs {
+    max-width: 100%;
+  }
+}
+
 /* Hero card bài giảng */
 .lesson-hero-card {
   border: 1px solid #E2EDFA !important;
@@ -958,7 +1086,17 @@ onBeforeUnmount(() => {
   line-height: 1.75;
 }
 
+.font-size-sm :is(.lesson-bullet-list li, .lesson-step-text, .lesson-callout > span:last-child) {
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
 .font-size-md .section-paragraph {
+  font-size: 1.05rem;
+  line-height: 1.85;
+}
+
+.font-size-md :is(.lesson-bullet-list li, .lesson-step-text, .lesson-callout > span:last-child) {
   font-size: 1.05rem;
   line-height: 1.85;
 }
@@ -966,6 +1104,115 @@ onBeforeUnmount(() => {
 .font-size-lg .section-paragraph {
   font-size: 1.18rem;
   line-height: 1.95;
+}
+
+.font-size-lg :is(.lesson-bullet-list li, .lesson-step-text, .lesson-callout > span:last-child) {
+  font-size: 1.18rem;
+  line-height: 1.95;
+}
+
+.lesson-subheading {
+  margin: 1.4rem 0 0.65rem;
+  padding-left: 0.8rem;
+  border-left: 4px solid #2F7CF6;
+  color: #173B70;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.lesson-list {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.8rem 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.lesson-bullet-list li {
+  position: relative;
+  padding: 0.7rem 0.9rem 0.7rem 2.25rem;
+  border: 1px solid #E2EDFA;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.76);
+  color: #344054;
+  line-height: 1.65;
+}
+
+.lesson-bullet-list li::before {
+  position: absolute;
+  top: 1.12rem;
+  left: 0.95rem;
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 50%;
+  background: #2F7CF6;
+  content: '';
+}
+
+.lesson-steps {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.9rem 0 1.1rem;
+}
+
+.lesson-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.lesson-step:not(:last-child)::after {
+  position: absolute;
+  top: 2rem;
+  bottom: -0.65rem;
+  left: 0.94rem;
+  width: 2px;
+  background: #CFE0FF;
+  content: '';
+}
+
+.lesson-step-number {
+  z-index: 1;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid #CFE0FF;
+  border-radius: 50%;
+  background: #EAF2FF;
+  color: #175CD3;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.lesson-step-text {
+  padding: 0.2rem 0 0.65rem;
+  color: #344054;
+  line-height: 1.7;
+}
+
+.lesson-callout {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.85rem 0 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #B9E6D2;
+  border-left: 4px solid #2BC48A;
+  border-radius: 12px;
+  background: #F2FBF7;
+  color: #175C43;
+  line-height: 1.7;
+}
+
+.lesson-callout-label {
+  color: #087443;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 /* CÁC THẺ HỌC TẬP SƯ PHẠM (Pedagogical Cards) */
@@ -1097,6 +1344,50 @@ onBeforeUnmount(() => {
   box-shadow: 0 8px 22px rgba(47, 124, 246, 0.35) !important;
 }
 
+.lesson-next-wrap {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lesson-next-btn {
+  min-height: 68px !important;
+  max-width: 540px;
+  border-radius: 18px !important;
+  text-align: left;
+  white-space: normal;
+}
+
+.lesson-next-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.3;
+}
+
+.lesson-next-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.82;
+}
+
+.lesson-next-title {
+  display: -webkit-box;
+  overflow: hidden;
+  width: 100%;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.lesson-next-icon {
+  flex: 0 0 auto;
+  margin-inline-start: 12px;
+}
+
 .bg-shub-empty {
   border: 1.5px dashed #D4E5FA;
 }
@@ -1118,9 +1409,52 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 600px) {
+  .lesson-breadcrumbs {
+    max-width: 100%;
+  }
+
+  .lesson-crumb-lesson {
+    max-width: min(250px, calc(100vw - 72px));
+  }
+
+  .lesson-next-wrap {
+    justify-content: stretch;
+  }
+
+  .lesson-next-btn {
+    max-width: none;
+  }
+
   .pedagogical-card {
     padding: 18px 16px;
     border-radius: 16px;
+  }
+
+  .lesson-bullet-list li {
+    padding: 0.65rem 0.75rem 0.65rem 1.9rem;
+  }
+
+  .lesson-bullet-list li::before {
+    left: 0.75rem;
+  }
+
+  .lesson-step {
+    grid-template-columns: 1.8rem minmax(0, 1fr);
+    gap: 0.6rem;
+  }
+
+  .lesson-step-number {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .lesson-step:not(:last-child)::after {
+    top: 1.8rem;
+    left: 0.85rem;
+  }
+
+  .lesson-callout {
+    padding: 0.75rem 0.85rem;
   }
 }
 </style>

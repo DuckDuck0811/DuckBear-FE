@@ -22,7 +22,7 @@
           color="primary"
           @click="goBack"
         >
-          Quay lại Thư viện giáo trình
+          {{ t('bookDetail.backToLibrary') }}
         </v-btn>
 
         <!-- Hero Showcase Banner Sách Phong Cách SHub Classroom -->
@@ -40,13 +40,13 @@
               <div>
                 <div class="d-flex align-center ga-2 mb-2 flex-wrap">
                   <v-chip color="primary" size="small" variant="flat" class="font-weight-black">
-                    LỚP {{ book.gradeLevel }}
+                    {{ t('bookDetail.grade', { grade: book.gradeLevel }) }}
                   </v-chip>
                   <v-chip color="secondary" size="small" variant="tonal" class="font-weight-bold">
-                    {{ book.subject }}
+                    {{ subjectLabel }}
                   </v-chip>
                   <span class="text-caption text-secondary font-weight-medium">
-                    {{ book.chapters?.length || 0 }} chương mục
+                    {{ t('bookDetail.chapterCount', { count: book.chapters?.length || 0 }) }}
                   </span>
                 </div>
 
@@ -66,7 +66,7 @@
               prepend-icon="mdi-folder-plus-outline"
               @click="openAddChapterDialog"
             >
-              Thêm chương mới
+              {{ t('bookDetail.addChapter') }}
             </v-btn>
           </div>
         </v-card>
@@ -76,10 +76,10 @@
           <div class="d-flex justify-space-between align-center mb-4">
             <div>
               <h2 class="text-h5 font-weight-black text-primary mb-0">
-                Nội dung chương trình học
+                {{ t('bookDetail.contentsTitle') }}
               </h2>
               <span class="text-caption text-secondary">
-                Bấm vào từng chương để xem và học các bài giảng
+                {{ t('bookDetail.contentsSubtitle') }}
               </span>
             </div>
           </div>
@@ -87,9 +87,9 @@
           <!-- EmptyState khi chưa có chương nào -->
           <EmptyState
             v-if="!book.chapters || book.chapters.length === 0"
-            title="Sách này chưa có chương mục nào"
-            description="Hãy bắt đầu tạo dựng nội dung khóa học bằng việc thêm chương mục đầu tiên nhé!"
-            :action-text="authStore.isTeacher ? 'Thêm chương mục ngay' : ''"
+            :title="t('bookDetail.noChapters')"
+            :description="t('bookDetail.noChaptersHint')"
+            :action-text="authStore.isTeacher ? t('bookDetail.addFirstChapter') : ''"
             action-icon="mdi-folder-plus-outline"
             @action="openAddChapterDialog"
           />
@@ -123,7 +123,7 @@
                         {{ chapter.title }}
                       </div>
                       <span class="text-caption text-secondary">
-                        {{ chapter.lessons?.length || 0 }} bài học
+                        {{ t('bookDetail.lessonCount', { count: chapter.lessons?.length || 0 }) }}
                       </span>
                     </div>
                   </div>
@@ -139,7 +139,7 @@
                       class="text-none font-weight-bold"
                       @click="openAddLessonDialog(chapter.id, $event)"
                     >
-                      Thêm bài học
+                      {{ t('bookDetail.addLesson') }}
                     </v-btn>
 
                     <v-btn
@@ -147,7 +147,7 @@
                       size="small"
                       variant="text"
                       color="primary"
-                      title="Sửa chương"
+                      :title="t('bookDetail.editChapter')"
                       @click="openEditChapterDialog(chapter, $event)"
                     />
 
@@ -156,7 +156,7 @@
                       size="small"
                       variant="text"
                       color="error"
-                      title="Xóa chương"
+                      :title="t('bookDetail.deleteChapter')"
                       @click="confirmDeleteChapter(chapter, $event)"
                     />
                   </div>
@@ -169,8 +169,8 @@
                   v-if="!chapter.lessons || chapter.lessons.length === 0"
                   class="py-4 text-center text-caption text-secondary"
                 >
-                  Chương này chưa có bài học nào.
-                  <span v-if="authStore.isTeacher">Bấm "Thêm bài học" ở trên để tạo nhé!</span>
+                  {{ t('bookDetail.noLessons') }}
+                  <span v-if="authStore.isTeacher">{{ t('bookDetail.noLessonsTeacherHint') }}</span>
                 </div>
 
                 <!-- Danh sách các bài học -->
@@ -195,7 +195,7 @@
 
                     <div class="d-flex align-center ga-3">
                       <v-chip size="x-small" color="primary" variant="text" append-icon="mdi-arrow-right" class="font-weight-bold d-none d-sm-inline-flex">
-                        Vào học
+                        {{ t('bookDetail.startLearning') }}
                       </v-chip>
 
                       <!-- Nút Sửa / Xóa Bài học cho Teacher -->
@@ -210,7 +210,7 @@
                           size="x-small"
                           variant="text"
                           color="primary"
-                          title="Sửa bài học"
+                          :title="t('bookDetail.editLesson')"
                           @click="openEditLessonDialog(lesson, $event)"
                         />
                         <v-btn
@@ -218,7 +218,7 @@
                           size="x-small"
                           variant="text"
                           color="error"
-                          title="Xóa bài học"
+                          :title="t('bookDetail.deleteLesson')"
                           @click="confirmDeleteLesson(lesson, $event)"
                         />
                       </div>
@@ -240,18 +240,18 @@
             </v-avatar>
             <div>
               <h2 class="text-h6 font-weight-black text-primary">
-                {{ isEditingChapter ? 'Chỉnh sửa Chương mục' : 'Thêm Chương mới' }}
+                {{ t(isEditingChapter ? 'bookDetail.editChapterTitle' : 'bookDetail.addChapterTitle') }}
               </h2>
-              <span class="text-caption text-secondary">Cấu trúc giáo trình</span>
+              <span class="text-caption text-secondary">{{ t('bookDetail.curriculumStructure') }}</span>
             </div>
           </div>
 
           <v-form ref="chapterFormRef" @submit.prevent="handleSaveChapter">
             <div class="mb-4">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">TIÊU ĐỀ CHƯƠNG</label>
+              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('bookDetail.chapterTitleLabel') }}</label>
               <v-text-field
                 v-model="chapterForm.title"
-                placeholder="Ví dụ: Chương 1: Số tự nhiên và các phép tính"
+                :placeholder="t('bookDetail.chapterTitlePlaceholder')"
                 variant="outlined"
                 rounded="lg"
                 density="comfortable"
@@ -262,7 +262,7 @@
             </div>
 
             <div class="mb-6">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">THỨ TỰ HIỂN THỊ</label>
+              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('bookDetail.orderLabel') }}</label>
               <v-text-field
                 v-model="chapterForm.orderIndex"
                 type="number"
@@ -283,7 +283,7 @@
                 :disabled="isSubmittingChapter"
                 @click="showChapterDialog = false"
               >
-                Hủy bỏ
+                {{ t('bookDetail.cancel') }}
               </v-btn>
               <v-btn
                 color="primary"
@@ -292,7 +292,7 @@
                 :loading="isSubmittingChapter"
                 @click="handleSaveChapter"
               >
-                {{ isEditingChapter ? 'Lưu thay đổi' : 'Thêm chương' }}
+                {{ t(isEditingChapter ? 'bookDetail.saveChanges' : 'bookDetail.addChapter') }}
               </v-btn>
             </div>
           </v-form>
@@ -302,8 +302,8 @@
       <!-- Dialog Xác nhận xóa Chương -->
       <ConfirmDialog
         v-model="showDeleteChapterConfirm"
-        title="Xóa chương mục"
-        :message="`Bạn có chắc chắn muốn xóa chương '${chapterToDelete?.title}'? Toàn bộ bài học bên trong sẽ bị xóa theo.`"
+        :title="t('bookDetail.deleteChapter')"
+        :message="t('bookDetail.confirmDeleteChapter', { title: chapterToDelete?.title })"
         :loading="isDeletingChapter"
         @confirm="handleDeleteChapter"
       />
@@ -317,18 +317,18 @@
             </v-avatar>
             <div>
               <h2 class="text-h6 font-weight-black text-primary">
-                {{ isEditingLesson ? 'Chỉnh sửa Bài học' : 'Thêm Bài học mới' }}
+                {{ t(isEditingLesson ? 'bookDetail.editLessonTitle' : 'bookDetail.addLessonTitle') }}
               </h2>
-              <span class="text-caption text-secondary">Nội dung bài giảng</span>
+              <span class="text-caption text-secondary">{{ t('bookDetail.lessonContent') }}</span>
             </div>
           </div>
 
           <v-form ref="lessonFormRef" @submit.prevent="handleSaveLesson">
             <div class="mb-4">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">TIÊU ĐỀ BÀI HỌC</label>
+              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('bookDetail.lessonTitleLabel') }}</label>
               <v-text-field
                 v-model="lessonForm.title"
-                placeholder="Ví dụ: Bài 1: Tập hợp và các phần tử"
+                :placeholder="t('bookDetail.lessonTitlePlaceholder')"
                 variant="outlined"
                 rounded="lg"
                 density="comfortable"
@@ -339,7 +339,7 @@
             </div>
 
             <div class="mb-4">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">THỨ TỰ HIỂN THỊ</label>
+              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('bookDetail.orderLabel') }}</label>
               <v-text-field
                 v-model="lessonForm.orderIndex"
                 type="number"
@@ -353,10 +353,10 @@
             </div>
 
             <div class="mb-6">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">NỘI DUNG BÀI HỌC (TÙY CHỌN)</label>
+              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('bookDetail.optionalLessonContent') }}</label>
               <v-textarea
                 v-model="lessonForm.content"
-                placeholder="Nhập nội dung bài giảng, lý thuyết tóm tắt, công thức và ví dụ..."
+                :placeholder="t('bookDetail.lessonContentPlaceholder')"
                 variant="outlined"
                 rounded="lg"
                 density="comfortable"
@@ -374,7 +374,7 @@
                 :disabled="isSubmittingLesson"
                 @click="showLessonDialog = false"
               >
-                Hủy bỏ
+                {{ t('bookDetail.cancel') }}
               </v-btn>
               <v-btn
                 color="primary"
@@ -383,7 +383,7 @@
                 :loading="isSubmittingLesson"
                 @click="handleSaveLesson"
               >
-                {{ isEditingLesson ? 'Lưu thay đổi' : 'Thêm bài học' }}
+                {{ t(isEditingLesson ? 'bookDetail.saveChanges' : 'bookDetail.addLesson') }}
               </v-btn>
             </div>
           </v-form>
@@ -393,8 +393,8 @@
       <!-- Dialog Xác nhận xóa Bài Học -->
       <ConfirmDialog
         v-model="showDeleteLessonConfirm"
-        title="Xóa bài học"
-        :message="`Bạn có chắc chắn muốn xóa bài học '${lessonToDelete?.title}'?`"
+        :title="t('bookDetail.deleteLesson')"
+        :message="t('bookDetail.confirmDeleteLesson', { title: lessonToDelete?.title })"
         :loading="isDeletingLesson"
         @confirm="handleDeleteLesson"
       />
@@ -415,7 +415,7 @@
           <span class="font-weight-bold">{{ snackbar.message }}</span>
         </div>
         <template #actions>
-          <v-btn variant="text" size="small" @click="snackbar.show = false">Đóng</v-btn>
+          <v-btn variant="text" size="small" @click="snackbar.show = false">{{ t('bookDetail.close') }}</v-btn>
         </template>
       </v-snackbar>
     </v-main>
@@ -423,8 +423,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth'
 import AppHeader from '../../components/shared/AppHeader.vue'
@@ -437,9 +438,23 @@ import QuestionBankSection from '../../components/QuestionBankSection.vue'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
+
+const subjectTranslationKeys = {
+  'Toán': 'math', 'Tiếng Việt': 'vietnamese', 'Ngữ Văn': 'literature', 'Ngữ văn': 'literature',
+  'Tiếng Anh': 'english', 'Đạo đức': 'ethics', 'Tự nhiên và Xã hội': 'natureSociety', 'Khoa học': 'science',
+  'Lịch sử': 'history', 'Địa lí': 'geography', 'Lịch sử và Địa lí': 'historyGeography', 'Vật lí': 'physics',
+  'Hóa học': 'chemistry', 'Sinh học': 'biology', 'Tin học': 'informatics', 'Công nghệ': 'technology',
+  'Giáo dục công dân': 'civicEducation', 'Giáo dục kinh tế và pháp luật': 'economicsLaw', 'Âm nhạc': 'music',
+  'Mĩ thuật': 'arts', 'Giáo dục thể chất': 'physicalEducation', 'Hoạt động trải nghiệm': 'experientialActivities',
+}
 
 const bookId = route.params.id
 const book = ref(null)
+const subjectLabel = computed(() => {
+  const key = subjectTranslationKeys[book.value?.subject]
+  return key ? t(`booksPage.subjects.${key}`) : book.value?.subject
+})
 const isLoading = ref(false)
 const openedPanels = ref([])
 
@@ -490,7 +505,7 @@ const showDeleteLessonConfirm = ref(false)
 const lessonToDelete = ref(null)
 const isDeletingLesson = ref(false)
 
-const requiredRule = [(v) => !!v || 'Vui lòng nhập thông tin']
+const requiredRule = [(v) => !!v || t('bookDetail.required')]
 
 // Lấy chi tiết sách
 async function fetchBookDetail() {
@@ -546,13 +561,13 @@ async function handleSaveChapter() {
         method: 'PATCH',
         body: payload,
       })
-      showNotice('Cập nhật chương thành công!')
+      showNotice(t('bookDetail.chapterUpdated'))
     } else {
       await api(`/books/${bookId}/chapters`, {
         method: 'POST',
         body: payload,
       })
-      showNotice('Thêm chương mới thành công!')
+      showNotice(t('bookDetail.chapterAdded'))
     }
     showChapterDialog.value = false
     await fetchBookDetail()
@@ -576,7 +591,7 @@ async function handleDeleteChapter() {
     await api(`/chapters/${chapterToDelete.value.id}`, {
       method: 'DELETE',
     })
-    showNotice('Xóa chương thành công!')
+    showNotice(t('bookDetail.chapterDeleted'))
     showDeleteChapterConfirm.value = false
     chapterToDelete.value = null
     await fetchBookDetail()
@@ -631,13 +646,13 @@ async function handleSaveLesson() {
         method: 'PATCH',
         body: payload,
       })
-      showNotice('Cập nhật bài học thành công!')
+      showNotice(t('bookDetail.lessonUpdated'))
     } else {
       await api(`/chapters/${targetChapterId.value}/lessons`, {
         method: 'POST',
         body: payload,
       })
-      showNotice('Thêm bài học mới thành công!')
+      showNotice(t('bookDetail.lessonAdded'))
     }
     showLessonDialog.value = false
     await fetchBookDetail()
@@ -661,7 +676,7 @@ async function handleDeleteLesson() {
     await api(`/lessons/${lessonToDelete.value.id}`, {
       method: 'DELETE',
     })
-    showNotice('Xóa bài học thành công!')
+    showNotice(t('bookDetail.lessonDeleted'))
     showDeleteLessonConfirm.value = false
     lessonToDelete.value = null
     await fetchBookDetail()
