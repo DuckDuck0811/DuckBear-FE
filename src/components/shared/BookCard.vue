@@ -3,7 +3,7 @@
     class="shub-book-card w-100 d-flex flex-column h-100"
     role="button"
     tabindex="0"
-    :aria-label="`Xem chi tiết sách ${book.title}`"
+    :aria-label="t('booksPage.viewBook', { title: book.title })"
     @click="emit('click', book)"
     @keydown.enter="emit('click', book)"
   >
@@ -25,11 +25,11 @@
           class="font-weight-black grade-chip"
           variant="flat"
         >
-          LỚP {{ book.gradeLevel }}
+          {{ t('booksPage.gradeOption', { grade: book.gradeLevel }) }}
         </v-chip>
 
         <span class="subject-tag font-weight-bold text-caption text-white">
-          {{ book.subject }}
+          {{ subjectLabel }}
         </span>
       </div>
 
@@ -75,7 +75,7 @@
           append-icon="mdi-arrow-right"
           class="font-weight-bold"
         >
-          Khám phá
+          {{ t('booksPage.explore') }}
         </v-btn>
 
         <!-- Thao tác Sửa / Xóa cho Teacher -->
@@ -85,7 +85,7 @@
             size="small"
             variant="text"
             color="primary"
-            title="Sửa sách"
+            :title="t('booksPage.editBook')"
             @click="emit('edit', book, $event)"
           />
           <v-btn
@@ -93,7 +93,7 @@
             size="small"
             variant="text"
             color="error"
-            title="Xóa sách"
+            :title="t('booksPage.deleteBook')"
             @click="emit('delete', book, $event)"
           />
         </div>
@@ -104,6 +104,9 @@
 
 <script setup>
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t, locale } = useI18n();
 
 const props = defineProps({
   book: {
@@ -117,6 +120,19 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["click", "edit", "delete"]);
+
+const subjectLabelKeys = {
+  'Toán': 'math', 'Tiếng Việt': 'vietnamese', 'Ngữ Văn': 'literature', 'Ngữ văn': 'literature',
+  'Tiếng Anh': 'english', 'Đạo đức': 'ethics', 'Tự nhiên và Xã hội': 'natureSociety', 'Khoa học': 'science',
+  'Lịch sử': 'history', 'Địa lí': 'geography', 'Lịch sử và Địa lí': 'historyGeography', 'Vật lí': 'physics',
+  'Hóa học': 'chemistry', 'Sinh học': 'biology', 'Tin học': 'informatics', 'Công nghệ': 'technology',
+  'Giáo dục công dân': 'civicEducation', 'Giáo dục kinh tế và pháp luật': 'economicsLaw', 'Âm nhạc': 'music',
+  'Mĩ thuật': 'arts', 'Giáo dục thể chất': 'physicalEducation', 'Hoạt động trải nghiệm': 'experientialActivities',
+};
+const subjectLabel = computed(() => {
+  const key = subjectLabelKeys[props.book.subject];
+  return key ? t(`booksPage.subjects.${key}`) : props.book.subject;
+});
 
 // Màu gradient bìa sách tươi sáng theo khối lớp & môn học
 const coverConfig = computed(() => {
@@ -183,7 +199,7 @@ const coverConfig = computed(() => {
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("vi-VN");
+  return new Date(dateStr).toLocaleDateString(locale.value === 'vi' ? 'vi-VN' : 'en-US');
 }
 </script>
 

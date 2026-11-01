@@ -46,12 +46,12 @@
                 append-icon="mdi-chevron-down"
                 class="font-weight-bold text-none"
               >
-                Mục lục chương ({{ currentLessonIndex + 1 }}/{{ chapterLessons.length }})
+                {{ t('lesson.chapterContents', { current: currentLessonIndex + 1, total: chapterLessons.length }) }}
               </v-btn>
             </template>
             <v-card class="rounded-xl pa-2" min-width="280" max-width="360" elevation="4">
               <div class="text-caption font-weight-black text-secondary px-3 py-2 border-b">
-                DANH SÁCH BÀI TRONG CHƯƠNG
+                {{ t('lesson.chapterLessonList') }}
               </div>
               <v-list density="compact" class="pa-1">
                 <v-list-item
@@ -85,9 +85,9 @@
           style="border: 1px solid #E4ECF7;"
         >
           <DuckBearMascot :size="90" mood="empty" class="mb-4" />
-          <h2 class="text-h5 font-weight-black text-primary mb-2">Không tìm thấy bài học</h2>
+          <h2 class="text-h5 font-weight-black text-primary mb-2">{{ t('lesson.notFoundTitle') }}</h2>
           <p class="text-body-2 text-secondary mb-6">
-            Bài giảng này có thể đã bị gỡ bỏ hoặc bạn không có quyền truy cập.
+            {{ t('lesson.notFoundBody') }}
           </p>
           <v-btn
             color="primary"
@@ -95,7 +95,7 @@
             class="btn-shub-primary px-6 font-weight-bold"
             @click="goBack"
           >
-            Quay lại
+            {{ t('lesson.back') }}
           </v-btn>
         </v-card>
 
@@ -108,7 +108,7 @@
               <div>
                 <div class="d-flex align-center ga-2 mb-2">
                   <v-chip color="primary" size="small" variant="flat" class="font-weight-black">
-                    BÀI HỌC {{ lesson.orderIndex ?? (currentLessonIndex + 1) }}
+                    {{ t('lesson.number', { number: lesson.orderIndex ?? (currentLessonIndex + 1) }) }}
                   </v-chip>
                   <span class="text-caption text-secondary font-weight-bold">
                     {{ bookTitle ? `${bookTitle.toUpperCase()} · ` : '' }}DUCKBEAR CLASSROOM
@@ -179,7 +179,7 @@
               <div class="d-flex align-center ga-2">
                 <!-- Bộ chỉnh cỡ chữ linh hoạt -->
                 <div class="font-size-control d-inline-flex align-center rounded-pill pa-1">
-                  <span class="text-caption font-weight-bold px-2 text-secondary">Cỡ chữ:</span>
+                  <span class="text-caption font-weight-bold px-2 text-secondary">{{ t('lesson.fontSize') }}</span>
                   <button
                     type="button"
                     class="font-size-btn"
@@ -344,11 +344,11 @@
                   @click="goToLesson(prevLesson.id)"
                 >
                   <v-icon start icon="mdi-arrow-left" />
-                  <span class="text-truncate">Bài trước: {{ prevLesson.title }}</span>
+                  <span class="text-truncate">{{ t('lesson.previous', { title: prevLesson.title }) }}</span>
                 </v-btn>
                 <div v-else class="text-caption text-disabled px-4 py-2">
                   <v-icon icon="mdi-flag-outline" size="14" class="mr-1" />
-                  Đây là bài học mở đầu chương
+                  {{ t('lesson.firstInChapter') }}
                 </div>
               </div>
 
@@ -363,14 +363,14 @@
                   @click="goToLesson(nextLesson.id)"
                 >
                   <span class="lesson-next-copy">
-                    <span class="lesson-next-label">Bài tiếp theo</span>
+                    <span class="lesson-next-label">{{ t('lesson.next') }}</span>
                     <span class="lesson-next-title">{{ nextLesson.title }}</span>
                   </span>
                   <v-icon class="lesson-next-icon" icon="mdi-arrow-right" />
                 </v-btn>
                 <div v-else class="text-caption text-success font-weight-bold px-4 py-2">
                   <v-icon icon="mdi-check-decagram" size="16" class="mr-1" />
-                  Bạn đã xem hết bài trong chương này! 🎉
+                  {{ t('lesson.chapterComplete') }}
                 </div>
               </div>
             </div>
@@ -387,19 +387,17 @@
               <v-icon icon="mdi-file-document-edit-outline" size="24" color="primary" />
             </v-avatar>
             <div>
-              <h2 class="text-h6 font-weight-black text-primary">
-                Chỉnh sửa bài học
-              </h2>
-              <span class="text-caption text-secondary">Cập nhật nội dung bài giảng & cấu trúc sư phạm</span>
+              <h2 class="text-h6 font-weight-black text-primary">{{ t('lesson.editTitle') }}</h2>
+              <span class="text-caption text-secondary">{{ t('lesson.editSubtitle') }}</span>
             </div>
           </div>
 
           <v-form ref="formRef" @submit.prevent="handleUpdateLesson">
             <div class="mb-4">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">TIÊU ĐỀ BÀI HỌC</label>
+              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('lesson.titleLabel') }}</label>
               <v-text-field
                 v-model="editForm.title"
-                placeholder="Ví dụ: Ở trên, ở dưới, ở trước, ở sau"
+                :placeholder="t('lesson.titlePlaceholder')"
                 variant="outlined"
                 rounded="lg"
                 density="comfortable"
@@ -410,7 +408,7 @@
             </div>
 
             <div class="mb-4">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">THỨ TỰ HIỂN THỊ</label>
+              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('lesson.orderLabel') }}</label>
               <v-text-field
                 v-model="editForm.orderIndex"
                 type="number"
@@ -426,8 +424,8 @@
             <!-- Thanh chèn mẫu sư phạm nhanh 1-Click -->
             <div class="mb-2">
               <div class="d-flex justify-space-between align-center mb-1">
-                <label class="text-caption font-weight-bold text-secondary">NỘI DUNG BÀI GIẢNG</label>
-                <span class="text-caption text-secondary">Bấm để chèn nhanh mẫu khối:</span>
+                <label class="text-caption font-weight-bold text-secondary">{{ t('lesson.contentLabel') }}</label>
+                <span class="text-caption text-secondary">{{ t('lesson.insertTemplateHint') }}</span>
               </div>
               <div class="d-flex flex-wrap ga-2 mb-2">
                 <v-btn
@@ -438,7 +436,7 @@
                   class="font-weight-bold text-none"
                   @click="insertTemplate('MỤC TIÊU\nEm nói được mục tiêu bài học...')"
                 >
-                  + Mục tiêu
+                  + {{ t('lesson.templateObjective') }}
                 </v-btn>
                 <v-btn
                   size="x-small"
@@ -448,7 +446,7 @@
                   class="font-weight-bold text-none"
                   @click="insertTemplate('CÙNG HỌC\nKiến thức trọng tâm bài học...')"
                 >
-                  + Cùng học
+                  + {{ t('lesson.templateLearn') }}
                 </v-btn>
                 <v-btn
                   size="x-small"
@@ -458,7 +456,7 @@
                   class="font-weight-bold text-none"
                   @click="insertTemplate('VÍ DỤ\nVí dụ minh họa cụ thể...')"
                 >
-                  + Ví dụ
+                  + {{ t('lesson.templateExample') }}
                 </v-btn>
                 <v-btn
                   size="x-small"
@@ -468,7 +466,7 @@
                   class="font-weight-bold text-none"
                   @click="insertTemplate('EM GHI NHỚ\nĐiều quan trọng cần ghi nhớ...')"
                 >
-                  + Ghi nhớ
+                  + {{ t('lesson.templateRemember') }}
                 </v-btn>
                 <v-btn
                   size="x-small"
@@ -478,18 +476,18 @@
                   class="font-weight-bold text-none"
                   @click="insertTemplate('TỰ THỬ\nThực hành bài tập tự thử...')"
                 >
-                  + Tự thử
+                  + {{ t('lesson.templatePractice') }}
                 </v-btn>
               </div>
               <div class="d-flex align-center ga-2 mb-2">
                 <v-btn size="small" variant="tonal" color="teal" prepend-icon="mdi-image-plus" @click="insertImage">
-                  Chèn ảnh minh họa
+                  {{ t('lesson.insertImage') }}
                 </v-btn>
-                <span class="text-caption text-secondary">Dán đường dẫn ảnh công khai (https://).</span>
+                <span class="text-caption text-secondary">{{ t('lesson.imageUrlHint') }}</span>
               </div>
               <v-textarea
                 v-model="editForm.content"
-                placeholder="Nhập nội dung bài giảng, chia theo MỤC TIÊU, CÙNG HỌC, VÍ DỤ, EM GHI NHỚ, TỰ THỬ để hiển thị thẻ màu đẹp mắt..."
+                :placeholder="t('lesson.contentPlaceholder')"
                 variant="outlined"
                 rounded="lg"
                 density="comfortable"
@@ -507,7 +505,7 @@
                 :disabled="isSubmitting"
                 @click="showEditDialog = false"
               >
-                Hủy bỏ
+                {{ t('lesson.cancel') }}
               </v-btn>
               <v-btn
                 color="primary"
@@ -516,7 +514,7 @@
                 :loading="isSubmitting"
                 @click="handleUpdateLesson"
               >
-                Lưu bài học
+                {{ t('lesson.save') }}
               </v-btn>
             </div>
           </v-form>
@@ -539,7 +537,7 @@
           <span class="font-weight-bold">{{ snackbar.message }}</span>
         </div>
         <template #actions>
-          <v-btn variant="text" size="small" @click="snackbar.show = false">Đóng</v-btn>
+          <v-btn variant="text" size="small" @click="snackbar.show = false">{{ t('lesson.close') }}</v-btn>
         </template>
       </v-snackbar>
     </v-main>
@@ -549,6 +547,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth'
 import AppHeader from '../../components/shared/AppHeader.vue'
@@ -559,6 +558,7 @@ import DuckBearMascot from '../../components/shared/DuckBearMascot.vue'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const lessonId = computed(() => route.params.id)
 const lesson = ref(null)
@@ -639,7 +639,7 @@ const estimatedMinutes = computed(() => {
 // Breadcrumbs items
 const breadcrumbItems = computed(() => {
   const items = [
-    { title: 'Thư viện giáo trình', kind: 'library', disabled: false, href: '/' },
+    { title: t('lesson.library'), kind: 'library', disabled: false, href: '/' },
   ]
   if (book.value) {
     items.push({
@@ -650,7 +650,7 @@ const breadcrumbItems = computed(() => {
     })
   }
   items.push({
-    title: lesson.value?.title || 'Bài học',
+    title: lesson.value?.title || t('lesson.fallbackTitle'),
     kind: 'lesson',
     disabled: true,
   })

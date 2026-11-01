@@ -24,8 +24,7 @@
         <v-card class="week-toolbar rounded-xl pa-4 mb-5" elevation="0">
           <div class="week-toolbar-main">
             <div class="week-date-heading">
-              <span class="week-date-label">{{ t('schedule.weekOf', { start: formatRangeDate(weekStart), end: formatRangeDate(weekEnd) }) }}</span>
-              <span class="week-date-year">{{ weekStart.getFullYear() }}</span>
+              <span class="week-date-label">{{ monthTitle }}</span>
             </div>
             <div class="week-controls">
               <v-btn
@@ -33,26 +32,26 @@
                 variant="outlined"
                 color="primary"
                 size="small"
-                :aria-label="t('schedule.previousWeek')"
-                @click="weekOffset--"
+                :aria-label="t('schedule.previousMonth')"
+                @click="monthOffset--"
               />
               <v-btn
                 variant="tonal"
                 color="primary"
                 size="small"
                 class="text-none font-weight-bold"
-                :disabled="weekOffset === 0"
-                @click="weekOffset = 0"
+                :disabled="monthOffset === 0"
+                @click="goToCurrentMonth"
               >
-                {{ t('schedule.thisWeek') }}
+                {{ t('schedule.currentMonth') }}
               </v-btn>
               <v-btn
                 icon="mdi-chevron-right"
                 variant="outlined"
                 color="primary"
                 size="small"
-                :aria-label="t('schedule.nextWeek')"
-                @click="weekOffset++"
+                :aria-label="t('schedule.nextMonth')"
+                @click="monthOffset++"
               />
             </div>
           </div>
@@ -60,7 +59,7 @@
           <div class="schedule-stats">
             <div class="schedule-stat">
               <v-icon icon="mdi-calendar-check-outline" color="primary" size="19" />
-              <span><strong>{{ weeklyEvents.length }}</strong> {{ t('schedule.deadlines') }}</span>
+              <span><strong>{{ monthEvents.length }}</strong> {{ t('schedule.deadlinesMonth') }}</span>
             </div>
             <div class="schedule-stat">
               <v-icon icon="mdi-progress-clock" color="warning" size="19" />
@@ -71,47 +70,52 @@
 
         <v-progress-linear v-if="loading" indeterminate color="primary" rounded class="mb-5" />
 
-        <div v-if="!loading && !weeklyEvents.length && !errorMessage" class="schedule-empty pa-8 text-center">
-          <v-avatar color="primary" variant="tonal" size="68" class="mb-4">
-            <v-icon icon="mdi-calendar-blank-outline" size="34" />
-          </v-avatar>
-          <h2>{{ t('schedule.noEvents') }}</h2>
-          <p>{{ t(isStudent ? 'schedule.studentSubtitle' : 'schedule.teacherSubtitle') }}</p>
-          <v-btn
-            color="primary"
-            variant="tonal"
-            rounded="pill"
-            class="mt-2 text-none font-weight-bold"
-            @click="router.push('/assignments')"
-          >
-            {{ t('schedule.manageAssignments') }}
-          </v-btn>
-        </div>
-
-        <section v-else-if="!loading" class="schedule-calendar">
-          <div class="week-day-strip" role="tablist" :aria-label="t('schedule.title')">
-            <button
-              v-for="day in days"
-              :key="day.key"
-              type="button"
-              role="tab"
-              class="week-day-button"
-              :class="{
-                'week-day-selected': selectedDayKey === day.key,
-                'week-day-today': day.isToday,
-                'week-day-has-events': day.events.length,
-              }"
-              :aria-selected="selectedDayKey === day.key"
-              @click="selectedDayKey = day.key"
-            >
-              <span class="week-day-name">{{ day.weekdayShort }}</span>
-              <span class="week-day-date">{{ day.dayNumber }}</span>
-              <span class="week-day-month">{{ day.monthLabel }}</span>
-              <span v-if="day.events.length" class="week-day-event-count">
-                {{ day.events.length }}
-              </span>
-              <span v-else class="week-day-dot-spacer" />
-            </button>
+        <section v-if="!loading && !errorMessage" class="schedule-calendar">
+          <div class="month-calendar">
+            <div class="month-weekdays" role="row">
+              <div v-for="weekday in weekdayNames" :key="weekday" class="month-weekday" role="columnheader">
+                {{ weekday }}
+              </div>
+            </div>
+            <div class="month-grid" role="grid" :aria-label="monthTitle">
+              <template v-for="day in calendarDays" :key="day.key">
+                <button
+                  type="button"
+                  role="gridcell"
+                  class="month-day-cell"
+                  :class="{
+                    'month-day-outside': !day.isCurrentMonth,
+                    'month-day-today': day.isToday,
+                    'month-day-selected': selectedDayKey === day.key,
+                    'month-day-has-events': day.events.length,
+                  }"
+                  :aria-label="`${day.longDate}${day.events.length ? `, ${day.events.length}` : ''}`"
+                  :aria-selected="selectedDayKey === day.key"
+                  @click="selectCalendarDay(day)"
+                >
+                  <span class="month-day-number">{{ day.dayNumber }}</span>
+                  <span v-if="day.isToday" class="month-day-today-mark">{{ t('schedule.today') }}</span>
+                  <span class="month-day-event-list">
+                    <span
+                      v-for="event in day.events.slice(0, 2)"
+                      :key="event.id"
+                      class="month-event-pill"
+                      :class="`month-event-${event.status}`"
+                      :title="`${formatTime(event.deadline)} · ${event.title}`"
+                    >
+                      <span class="month-event-time">{{ formatTime(event.deadline) }}</span>
+                      <span class="month-event-title">{{ event.title }}</span>
+                    </span>
+                    <span v-if="day.events.length > 2" class="month-event-more">
+                      +{{ day.events.length - 2 }} {{ t('schedule.moreEvents') }}
+                    </span>
+                  </span>
+                  <span v-if="day.events.length" class="month-day-mobile-count">
+                    {{ day.events.length }}
+                  </span>
+                </button>
+              </template>
+            </div>
           </div>
 
           <div class="selected-day-agenda">
@@ -207,8 +211,9 @@ const isStudent = computed(() => authStore.user?.role === 'STUDENT')
 const assignments = ref([])
 const loading = ref(true)
 const errorMessage = ref('')
-const weekOffset = ref(0)
+const monthOffset = ref(0)
 const selectedDayKey = ref('')
+const preserveSelectedOnMonthChange = ref(false)
 
 function startOfDay(date) {
   const result = new Date(date)
@@ -223,17 +228,15 @@ function getMonday(date) {
   return result
 }
 
-const weekStart = computed(() => {
-  const date = new Date()
-  date.setDate(date.getDate() + weekOffset.value * 7)
-  return getMonday(date)
+const monthDate = computed(() => {
+  const now = new Date()
+  return new Date(now.getFullYear(), now.getMonth() + monthOffset.value, 1)
 })
 
-const weekEnd = computed(() => {
-  const date = new Date(weekStart.value)
-  date.setDate(date.getDate() + 6)
-  return date
-})
+const monthTitle = computed(() => new Intl.DateTimeFormat(
+  locale.value === 'vi' ? 'vi-VN' : 'en-US',
+  { month: 'long', year: 'numeric' },
+).format(monthDate.value))
 
 function dateKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
@@ -248,12 +251,7 @@ function getEventStatus(assignment, deadline) {
   return deadline < new Date() ? 'overdue' : 'upcoming'
 }
 
-const weeklyEvents = computed(() => {
-  const start = weekStart.value
-  const end = new Date(weekEnd.value)
-  end.setDate(end.getDate() + 1)
-
-  return assignments.value
+const allEvents = computed(() => assignments.value
     .filter(assignment => assignment.deadline)
     .map(assignment => {
       const deadline = new Date(assignment.deadline)
@@ -263,61 +261,90 @@ const weeklyEvents = computed(() => {
         status: getEventStatus(assignment, deadline),
       }
     })
-    .filter(assignment => assignment.deadlineDate >= start && assignment.deadlineDate < end)
-    .sort((a, b) => a.deadlineDate - b.deadlineDate)
-})
+    .filter(assignment => !Number.isNaN(assignment.deadlineDate.getTime()))
+    .sort((a, b) => a.deadlineDate - b.deadlineDate))
 
-const pendingCount = computed(() => weeklyEvents.value.filter(event => (
+const monthEvents = computed(() => allEvents.value.filter(event => (
+  event.deadlineDate.getFullYear() === monthDate.value.getFullYear()
+  && event.deadlineDate.getMonth() === monthDate.value.getMonth()
+)))
+
+const pendingCount = computed(() => monthEvents.value.filter(event => (
   isStudent.value ? event.status !== 'submitted' : event.status !== 'overdue'
 )).length)
 
-const days = computed(() => {
-  const today = dateKey(new Date())
-  const todayStart = startOfDay(new Date())
+const weekdayNames = computed(() => {
   const dateLocale = locale.value === 'vi' ? 'vi-VN' : 'en-US'
-  const weekdayFormatter = new Intl.DateTimeFormat(dateLocale, { weekday: 'long' })
-  const shortWeekdayFormatter = new Intl.DateTimeFormat(dateLocale, { weekday: 'short' })
-  const shortMonthFormatter = new Intl.DateTimeFormat(dateLocale, { month: 'short' })
-  const longDateFormatter = new Intl.DateTimeFormat(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })
-
-  return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(weekStart.value)
-    date.setDate(date.getDate() + index)
-    const key = dateKey(date)
-    return {
-      key,
-      weekday: weekdayFormatter.format(date),
-      weekdayShort: shortWeekdayFormatter.format(date),
-      dayNumber: date.getDate(),
-      monthLabel: shortMonthFormatter.format(date),
-      longDate: longDateFormatter.format(date),
-      isToday: key === today,
-      isPast: date < todayStart,
-      events: weeklyEvents.value
-        .filter(event => dateKey(event.deadlineDate) === key)
-        .map(event => ({ ...event, id: event.id, title: event.title, deadline: event.deadlineDate })),
-    }
-  })
+  const formatter = new Intl.DateTimeFormat(dateLocale, { weekday: 'short' })
+  return Array.from({ length: 7 }, (_, index) => formatter.format(new Date(2024, 0, index + 1)))
 })
 
-const selectedDay = computed(() => days.value.find(day => day.key === selectedDayKey.value) || days.value[0])
+const calendarDays = computed(() => {
+  const today = dateKey(new Date())
+  const dateLocale = locale.value === 'vi' ? 'vi-VN' : 'en-US'
+  const weekdayFormatter = new Intl.DateTimeFormat(dateLocale, { weekday: 'long' })
+  const longDateFormatter = new Intl.DateTimeFormat(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })
+  const firstOfMonth = new Date(monthDate.value)
+  const gridStart = getMonday(firstOfMonth)
+  const lastOfMonth = new Date(monthDate.value.getFullYear(), monthDate.value.getMonth() + 1, 0)
+  const gridEnd = getMonday(lastOfMonth)
+  gridEnd.setDate(gridEnd.getDate() + 6)
+
+  const dates = []
+  for (const date = new Date(gridStart); date <= gridEnd; date.setDate(date.getDate() + 1)) {
+    const key = dateKey(date)
+    dates.push({
+      key,
+      date: new Date(date),
+      weekday: weekdayFormatter.format(date),
+      dayNumber: date.getDate(),
+      longDate: longDateFormatter.format(date),
+      isToday: key === today,
+      isCurrentMonth: date.getMonth() === monthDate.value.getMonth(),
+      events: allEvents.value
+        .filter(event => dateKey(event.deadlineDate) === key)
+        .map(event => ({ ...event, deadline: event.deadlineDate })),
+    })
+  }
+  return dates
+})
+
+const selectedDay = computed(() => calendarDays.value.find(day => day.key === selectedDayKey.value) || calendarDays.value[0])
 const selectedDayEvents = computed(() => selectedDay.value?.events || [])
 
-watch([weekOffset, weeklyEvents], () => {
+watch([monthOffset, monthEvents], () => {
+  if (preserveSelectedOnMonthChange.value && calendarDays.value.some(day => day.key === selectedDayKey.value)) {
+    preserveSelectedOnMonthChange.value = false
+    return
+  }
+
   const todayKey = dateKey(new Date())
-  const todayInWeek = days.value.find(day => day.key === todayKey)
-  if (weekOffset.value === 0 && todayInWeek?.events.length) {
+  const todayInMonth = calendarDays.value.find(day => day.key === todayKey)
+  if (monthOffset.value === 0 && todayInMonth?.events.length) {
     selectedDayKey.value = todayKey
     return
   }
 
   const todayStart = startOfDay(new Date())
-  const nearestEvent = weeklyEvents.value.find(event => event.deadlineDate >= todayStart) || weeklyEvents.value[0]
-  selectedDayKey.value = nearestEvent ? dateKey(nearestEvent.deadlineDate) : (todayInWeek?.key || dateKey(weekStart.value))
+  const nearestEvent = monthEvents.value.find(event => event.deadlineDate >= todayStart) || monthEvents.value[0]
+  selectedDayKey.value = nearestEvent
+    ? dateKey(nearestEvent.deadlineDate)
+    : (todayInMonth?.key || dateKey(monthDate.value))
 }, { immediate: true })
 
-function formatRangeDate(date) {
-  return date.toLocaleDateString(locale.value === 'vi' ? 'vi-VN' : 'en-US', { day: 'numeric', month: 'short' })
+function selectCalendarDay(day) {
+  selectedDayKey.value = day.key
+  if (day.isCurrentMonth) return
+
+  const monthDifference = (day.date.getFullYear() - monthDate.value.getFullYear()) * 12
+    + day.date.getMonth() - monthDate.value.getMonth()
+  preserveSelectedOnMonthChange.value = true
+  monthOffset.value += monthDifference
+}
+
+function goToCurrentMonth() {
+  monthOffset.value = 0
+  selectedDayKey.value = dateKey(new Date())
 }
 
 function formatTime(date) {
@@ -478,106 +505,154 @@ onMounted(loadAssignments)
   gap: 16px;
 }
 
-.week-day-strip {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid #e1eaf7;
+.month-calendar {
+  overflow: hidden;
+  border: 1px solid #dfe8f5;
   border-radius: 20px;
   background: #fff;
+  box-shadow: 0 8px 24px rgba(38, 78, 130, 0.06);
 }
 
-.week-day-button {
+.month-weekdays,
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.month-weekdays {
+  background: #f4f8ff;
+}
+
+.month-weekday {
+  padding: 13px 8px;
+  border-bottom: 1px solid #e7eef8;
+  color: #667b98;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.month-day-cell {
   position: relative;
   display: flex;
   min-width: 0;
-  min-height: 112px;
+  min-height: 126px;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  border: 1px solid transparent;
-  border-radius: 15px;
-  background: #f8faff;
-  color: #667085;
-  cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
-}
-
-.week-day-button:hover {
-  transform: translateY(-2px);
-  border-color: #cfe0ff;
-  background: #f0f6ff;
-}
-
-.week-day-selected {
-  border-color: #2f7cf6 !important;
-  background: linear-gradient(160deg, #347ef5, #1f5fd0) !important;
-  color: #fff !important;
-  box-shadow: 0 8px 18px rgba(47, 124, 246, 0.2);
-}
-
-.week-day-today:not(.week-day-selected) {
-  border-color: #a9caff;
-  background: #eff6ff;
-}
-
-.week-day-name {
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-transform: capitalize;
-}
-
-.week-day-date {
+  align-items: stretch;
+  gap: 5px;
+  padding: 9px 8px;
+  border: 0;
+  border-right: 1px solid #edf1f7;
+  border-bottom: 1px solid #edf1f7;
+  background: #fff;
   color: #172b4d;
-  font-size: 1.6rem;
-  font-weight: 900;
-  line-height: 1.1;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.week-day-selected .week-day-date {
-  color: #fff;
+.month-day-cell:nth-child(7n) {
+  border-right: 0;
 }
 
-.week-day-month {
-  font-size: 0.72rem;
-  font-weight: 600;
+.month-day-cell:hover {
+  z-index: 1;
+  background: #f5f9ff;
+  box-shadow: inset 0 0 0 2px #b8d3ff;
 }
 
-.week-day-event-count,
-.week-day-dot-spacer {
+.month-day-outside {
+  background: #fafbfd;
+  color: #a6b1c1;
+}
+
+.month-day-number {
   display: grid;
-  min-width: 18px;
-  height: 18px;
-  margin-top: 2px;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
   place-items: center;
+  border-radius: 50%;
+  color: #344054;
+  font-size: 0.86rem;
+  font-weight: 750;
 }
 
-.week-day-event-count {
-  padding: 0 5px;
-  border-radius: 999px;
-  background: #dff8ed;
-  color: #087443;
-  font-size: 0.68rem;
-  font-weight: 900;
+.month-day-outside .month-day-number {
+  color: #a6b1c1;
 }
 
-.week-day-selected .week-day-event-count {
-  background: rgba(255, 255, 255, 0.2);
+.month-day-today .month-day-number {
+  background: #eaf2ff;
+  color: #2167d8;
+}
+
+.month-day-selected {
+  z-index: 1;
+  background: #f1f6ff;
+  box-shadow: inset 0 0 0 2px #2f7cf6;
+}
+
+.month-day-selected .month-day-number {
+  background: #2f7cf6;
   color: #fff;
 }
 
-.week-day-dot-spacer::after {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #d7e1ef;
-  content: '';
+.month-day-today-mark {
+  position: absolute;
+  top: 14px;
+  right: 8px;
+  color: #2f7cf6;
+  font-size: 0.63rem;
+  font-weight: 800;
 }
 
-.week-day-selected .week-day-dot-spacer::after {
-  background: rgba(255, 255, 255, 0.75);
+.month-day-event-list {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.month-event-pill {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  padding: 3px 5px;
+  border-radius: 6px;
+  background: #fff5df;
+  color: #875b00;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.month-event-submitted { background: #e9f9f1; color: #087443; }
+.month-event-inProgress { background: #eaf2ff; color: #175cd3; }
+.month-event-overdue { background: #ffefed; color: #b42318; }
+
+.month-event-time {
+  flex: 0 0 auto;
+  font-weight: 800;
+}
+
+.month-event-title {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.month-event-more {
+  padding-left: 5px;
+  color: #667085;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.month-day-mobile-count {
+  display: none;
 }
 
 .selected-day-agenda {
@@ -721,22 +796,17 @@ onMounted(loadAssignments)
     padding: 20px;
   }
 
-  .week-day-strip {
-    gap: 6px;
-    padding: 8px;
+  .month-day-cell {
+    min-height: 108px;
+    padding: 7px 6px;
   }
 
-  .week-day-button {
-    min-height: 96px;
-    border-radius: 12px;
+  .month-event-pill {
+    font-size: 0.62rem;
   }
 
-  .week-day-name {
-    font-size: 0.68rem;
-  }
-
-  .week-day-date {
-    font-size: 1.3rem;
+  .month-event-time {
+    display: none;
   }
 
   .agenda-event {
@@ -774,26 +844,50 @@ onMounted(loadAssignments)
     font-size: 0.84rem;
   }
 
-  .week-day-strip {
-    gap: 4px;
-    padding: 6px;
+  .month-calendar {
+    border-radius: 14px;
   }
 
-  .week-day-button {
-    min-height: 86px;
-    gap: 3px;
+  .month-weekday {
+    padding: 9px 1px;
+    font-size: 0.59rem;
   }
 
-  .week-day-name {
+  .month-day-cell {
+    min-height: 68px;
+    padding: 4px;
+  }
+
+  .month-day-number {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .month-day-today-mark,
+  .month-day-event-list {
+    display: none;
+  }
+
+  .month-day-mobile-count {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    display: grid;
+    min-width: 17px;
+    height: 17px;
+    place-items: center;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #e1efff;
+    color: #175cd3;
     font-size: 0.62rem;
+    font-weight: 900;
   }
 
-  .week-day-date {
-    font-size: 1.15rem;
-  }
-
-  .week-day-month {
-    font-size: 0.62rem;
+  .month-day-selected .month-day-mobile-count {
+    background: #2f7cf6;
+    color: #fff;
   }
 
   .agenda-empty {
