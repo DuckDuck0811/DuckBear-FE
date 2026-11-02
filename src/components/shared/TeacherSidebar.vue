@@ -81,7 +81,7 @@ const groups = computed(() => [
   },
   {
     title: "sidebar.account",
-    items: [{ label: "sidebar.profile", icon: "mdi-account-cog-outline" }],
+    items: [{ label: "sidebar.profile", icon: "mdi-account-cog-outline", to: "/profile", match: ["profile"] }],
   },
 ]);
 

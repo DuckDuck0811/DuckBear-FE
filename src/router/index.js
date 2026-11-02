@@ -23,6 +23,12 @@ const routes = [
     meta: { roles: ["STUDENT"] },
   },
   {
+    path: "/profile",
+    name: "profile",
+    component: () => import("../views/profile/ProfileView.vue"),
+    meta: { roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"] },
+  },
+  {
     path: "/",
     name: "books",
     component: () => import("../views/books/BooksView.vue"),

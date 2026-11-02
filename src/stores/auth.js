@@ -20,6 +20,11 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    setUser(user) {
+      this.user = user
+      localStorage.setItem('user', JSON.stringify(user))
+    },
+
     /**
      * Đăng nhập tài khoản
      * @param {{ email: string, password: string }} credentials

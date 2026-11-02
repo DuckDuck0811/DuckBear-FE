@@ -64,7 +64,7 @@ const items = [
   { label: "studentSidebar.schedule", icon: "mdi-calendar-week-outline", to: "/schedule", match: ["schedule"] },
   { label: "studentSidebar.results", icon: "mdi-chart-box-outline" },
   { label: "studentSidebar.chatbot", icon: "mdi-robot-outline" },
-  { label: "studentSidebar.profile", icon: "mdi-account-circle-outline" },
+  { label: "studentSidebar.profile", icon: "mdi-account-circle-outline", to: "/profile", match: ["profile"] },
 ];
 
 function isActive(item) {
