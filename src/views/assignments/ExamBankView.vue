@@ -278,25 +278,33 @@
         <!-- TRƯỜNG HỢP 2: CHẾ ĐỘ BẢNG THU GỌN (TABLE VIEW) -->
         <v-card v-else-if="!loading && filteredTemplates.length && viewMode === 'table'" class="rounded-xl border bg-white overflow-hidden" elevation="0">
           <v-table density="comfortable" class="exam-table">
+            <colgroup>
+              <col class="exam-col-title" />
+              <col class="exam-col-book" />
+              <col class="exam-col-curriculum" />
+              <col class="exam-col-count" />
+              <col class="exam-col-date" />
+              <col class="exam-col-actions" />
+            </colgroup>
             <thead>
               <tr class="bg-grey-lighten-4">
-                <th class="font-weight-black text-caption text-uppercase text-secondary" style="min-width: 260px">
+                <th class="font-weight-black text-caption text-uppercase text-secondary">
                   {{ t('examBank.title') }}
                 </th>
-                <th class="font-weight-black text-caption text-uppercase text-secondary" style="min-width: 220px">
+                <th class="font-weight-black text-caption text-uppercase text-secondary">
                   {{ t('examBank.bookLabel') }}
                 </th>
-                <th class="font-weight-black text-caption text-uppercase text-secondary" style="min-width: 260px">
+                <th class="font-weight-black text-caption text-uppercase text-secondary">
                   {{ t('examBank.curriculumLabel') }}
                 </th>
-                <th class="font-weight-black text-caption text-uppercase text-secondary text-center" style="width: 120px">
-                  {{ t('examBank.questionList') }}
+                <th class="font-weight-black text-caption text-uppercase text-secondary text-center text-no-wrap">
+                  {{ t('examBank.questionCountShort') }}
                 </th>
-                <th class="font-weight-black text-caption text-uppercase text-secondary" style="width: 130px">
-                  Ngày lưu
+                <th class="font-weight-black text-caption text-uppercase text-secondary text-no-wrap">
+                  {{ t('examBank.savedOn') }}
                 </th>
-                <th class="font-weight-black text-caption text-uppercase text-secondary text-right" style="width: 160px">
-                  Thao tác
+                <th class="font-weight-black text-caption text-uppercase text-secondary text-right text-no-wrap">
+                  {{ t('examBank.actions') }}
                 </th>
               </tr>
             </thead>
@@ -331,10 +339,10 @@
                   </div>
                 </td>
                 <td>
-                  <div class="text-caption text-truncate text-secondary mb-0_5" :title="template.lesson.chapter.title">
+                  <div class="exam-curriculum-title text-caption text-secondary mb-0_5" :title="template.lesson.chapter.title">
                     {{ template.lesson.chapter.title }}
                   </div>
-                  <div class="text-caption font-weight-bold text-slate-800 text-truncate" :title="template.lesson.title">
+                  <div class="exam-curriculum-title text-caption font-weight-bold text-slate-800" :title="template.lesson.title">
                     {{ template.lesson.title }}
                   </div>
                 </td>
@@ -868,6 +876,42 @@ function getQuestionTypeLabel(type) {
 /* Table View */
 .exam-table {
   background: transparent;
+}
+
+.exam-table :deep(.v-table__wrapper) {
+  overflow-x: hidden;
+}
+
+.exam-table :deep(table) {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.exam-col-title { width: 21%; }
+.exam-col-book { width: 17%; }
+.exam-col-curriculum { width: 26%; }
+.exam-col-count { width: 8%; }
+.exam-col-date { width: 9%; }
+.exam-col-actions { width: 19%; }
+
+.exam-table :deep(th),
+.exam-table :deep(td) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exam-table :deep(th) {
+  white-space: nowrap;
+}
+
+.exam-curriculum-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .table-row-hover:hover {
