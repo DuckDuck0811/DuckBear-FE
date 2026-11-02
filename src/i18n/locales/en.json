@@ -265,6 +265,18 @@
     "eyebrow": "YOUR ACCOUNT",
     "title": "Profile",
     "subtitle": "Update your personal information and account security.",
+    "accountLabel": "ACCOUNT DETAILS",
+    "accountActive": "Account active",
+    "detailsTitle": "Personal information",
+    "detailsHint": "This information is used for your account.",
+    "securityTitle": "Account security",
+    "roles": {
+      "ADMIN": "Administrator",
+      "TEACHER": "Teacher",
+      "STUDENT": "Student",
+      "PARENT": "Parent",
+      "member": "Member"
+    },
     "changePhoto": "Change profile photo",
     "removePhoto": "Remove photo",
     "fullName": "Full name",

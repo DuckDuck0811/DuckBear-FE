@@ -5,7 +5,7 @@
     <StudentSidebar />
     <v-main class="pb-16">
       <v-container class="py-8 px-4 px-md-8" style="max-width: 1040px">
-        <div class="mb-6">
+        <div class="page-heading mb-5">
           <div class="text-overline text-primary font-weight-bold">{{ t('profilePage.eyebrow') }}</div>
           <h1 class="text-h4 font-weight-black mb-1">{{ t('profilePage.title') }}</h1>
           <p class="text-body-2 text-secondary mb-0">{{ t('profilePage.subtitle') }}</p>
@@ -13,26 +13,45 @@
 
         <v-alert v-if="pageError" type="error" variant="tonal" class="mb-5">{{ pageError }}</v-alert>
 
+        <section class="profile-hero mb-6">
+          <div class="profile-hero-glow" />
+          <div class="profile-hero-content">
+            <div class="avatar-wrap">
+              <v-avatar size="92" class="profile-avatar" color="white">
+                <v-img v-if="avatarUrl" :src="avatarUrl" :alt="profile.fullName" cover />
+                <span v-else class="text-h3 font-weight-black text-primary">{{ initials }}</span>
+              </v-avatar>
+              <span class="avatar-status" />
+            </div>
+            <div class="profile-identity">
+              <div class="text-overline hero-eyebrow">{{ t('profilePage.accountLabel') }}</div>
+              <h2 class="text-h5 font-weight-black mb-1">{{ profile.fullName || authStore.user?.fullName }}</h2>
+              <p class="text-body-2 mb-3 hero-email">{{ profile.email || authStore.user?.email }}</p>
+              <div class="d-flex flex-wrap ga-2">
+                <v-chip size="small" color="primary" variant="tonal" prepend-icon="mdi-account-check-outline">{{ roleLabel }}</v-chip>
+                <v-chip size="small" color="success" variant="tonal" prepend-icon="mdi-shield-check-outline">{{ t('profilePage.accountActive') }}</v-chip>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <v-btn size="small" variant="flat" color="white" prepend-icon="mdi-image-edit-outline" :loading="loading" @click="avatarInput?.click()">
+                {{ t('profilePage.changePhoto') }}
+              </v-btn>
+              <v-btn v-if="avatarUrl" size="small" variant="text" class="remove-photo-btn" @click="clearAvatar">
+                {{ t('profilePage.removePhoto') }}
+              </v-btn>
+            </div>
+            <input ref="avatarInput" class="d-none" type="file" accept="image/png,image/jpeg,image/webp" @change="handleAvatarFile" />
+          </div>
+        </section>
+
         <v-row>
           <v-col cols="12" md="7">
             <v-card class="profile-card rounded-xl pa-5 pa-md-7" elevation="0">
-              <div class="d-flex align-center ga-4 mb-6">
-                <v-avatar size="84" color="primary" class="profile-avatar">
-                  <v-img v-if="avatarUrl" :src="avatarUrl" :alt="profile.fullName" cover />
-                  <span v-else class="text-h4 font-weight-black">{{ initials }}</span>
-                </v-avatar>
+              <div class="section-heading mb-5">
+                <v-avatar color="primary" variant="tonal" rounded="lg" size="42"><v-icon icon="mdi-card-account-details-outline" /></v-avatar>
                 <div>
-                  <div class="text-subtitle-1 font-weight-black">{{ profile.fullName || authStore.user?.fullName }}</div>
-                  <div class="text-body-2 text-secondary mb-2">{{ profile.email || authStore.user?.email }}</div>
-                  <div class="d-flex flex-wrap ga-2">
-                    <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-image-edit-outline" :loading="loading" @click="avatarInput?.click()">
-                      {{ t('profilePage.changePhoto') }}
-                    </v-btn>
-                    <v-btn v-if="avatarUrl" size="small" variant="text" color="error" @click="clearAvatar">
-                      {{ t('profilePage.removePhoto') }}
-                    </v-btn>
-                  </div>
-                  <input ref="avatarInput" class="d-none" type="file" accept="image/png,image/jpeg,image/webp" @change="handleAvatarFile" />
+                  <h2 class="text-h6 font-weight-black">{{ t('profilePage.detailsTitle') }}</h2>
+                  <p class="text-caption text-secondary mb-0">{{ t('profilePage.detailsHint') }}</p>
                 </div>
               </div>
 
@@ -70,10 +89,10 @@
 
           <v-col cols="12" md="5">
             <v-card class="profile-card rounded-xl pa-5 pa-md-7" elevation="0">
-              <div class="d-flex align-center ga-3 mb-5">
-                <v-avatar color="warning" variant="tonal" rounded="lg"><v-icon icon="mdi-lock-reset" /></v-avatar>
+              <div class="section-heading mb-5">
+                <v-avatar color="warning" variant="tonal" rounded="lg" size="42"><v-icon icon="mdi-lock-reset" /></v-avatar>
                 <div>
-                  <h2 class="text-h6 font-weight-black">{{ t('profilePage.passwordTitle') }}</h2>
+                  <h2 class="text-h6 font-weight-black">{{ t('profilePage.securityTitle') }}</h2>
                   <p class="text-caption text-secondary mb-0">{{ t('profilePage.passwordHint') }}</p>
                 </div>
               </div>
@@ -155,6 +174,10 @@ const showNewPassword = ref(false)
 const profile = reactive({ fullName: '', email: '' })
 const passwordForm = reactive({ currentPassword: '', newPassword: '', confirmPassword: '' })
 const initials = computed(() => profile.fullName.trim().charAt(0).toUpperCase() || 'D')
+const roleLabel = computed(() => {
+  const role = authStore.user?.role
+  return t(`profilePage.roles.${role || 'member'}`)
+})
 
 const rules = {
   required: (value) => !!String(value || '').trim() || t('profilePage.required'),
@@ -267,6 +290,46 @@ async function changePassword() {
 
 <style scoped>
 .profile-page { background: #f4f8ff; }
-.profile-card { border: 1px solid #e2edfa; background: #fff; box-shadow: 0 4px 18px rgba(31, 79, 145, .04); }
-.profile-avatar { border: 3px solid #eaf2ff; }
+.page-heading { padding: 2px 2px 0; }
+.profile-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 26px 30px;
+  border: 1px solid #dce8fb;
+  border-radius: 24px;
+  background: linear-gradient(115deg, #ffffff 0%, #f6faff 55%, #e5f0ff 100%);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, .05);
+}
+.profile-hero-glow {
+  position: absolute;
+  top: -110px;
+  right: -45px;
+  width: 330px;
+  height: 330px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(96, 165, 250, .2), rgba(96, 165, 250, 0) 70%);
+  pointer-events: none;
+}
+.profile-hero-content { position: relative; display: flex; align-items: center; gap: 22px; }
+.avatar-wrap { position: relative; flex: none; }
+.profile-avatar { border: 4px solid rgba(255, 255, 255, .95); box-shadow: 0 5px 18px rgba(30, 64, 175, .14); }
+.avatar-status { position: absolute; right: 4px; bottom: 4px; width: 17px; height: 17px; border: 3px solid #fff; border-radius: 50%; background: #22c55e; }
+.profile-identity { min-width: 0; flex: 1; }
+.profile-identity h2 { overflow: hidden; color: #172b4d; text-overflow: ellipsis; white-space: nowrap; }
+.hero-eyebrow { color: #3975d5; font-size: .68rem; font-weight: 800; letter-spacing: .08em; }
+.hero-email { overflow: hidden; color: #64748b; text-overflow: ellipsis; white-space: nowrap; }
+.hero-actions { display: flex; flex: none; flex-direction: column; align-items: flex-end; gap: 4px; }
+.remove-photo-btn { color: #64748b; }
+.profile-card { height: 100%; border: 1px solid #e2edfa; background: #fff; box-shadow: 0 6px 22px rgba(31, 79, 145, .045); transition: box-shadow .18s ease, transform .18s ease; }
+.profile-card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(31, 79, 145, .075); }
+.section-heading { display: flex; align-items: center; gap: 13px; }
+.section-heading h2 { color: #172b4d; }
+@media (max-width: 600px) {
+  .profile-hero { padding: 22px 20px; border-radius: 20px; }
+  .profile-hero-content { align-items: flex-start; flex-wrap: wrap; gap: 15px; }
+  .profile-avatar { width: 72px !important; height: 72px !important; }
+  .avatar-wrap { margin-right: 2px; }
+  .profile-identity { padding-top: 2px; flex-basis: calc(100% - 92px); }
+  .hero-actions { width: 100%; flex-direction: row; align-items: center; justify-content: flex-start; }
+}
 </style>
