@@ -80,9 +80,10 @@
         <v-avatar
           size="38"
           color="primary"
+          :image="user.avatarUrl || undefined"
           class="mr-3 text-white font-weight-bold avatar-shub"
         >
-          {{ userInitial }}
+          <span v-if="!user.avatarUrl">{{ userInitial }}</span>
         </v-avatar>
 
         <div class="text-left d-none d-sm-block mr-2">
@@ -109,6 +110,17 @@
           </v-chip>
         </div>
       </div>
+
+      <v-btn
+        icon="mdi-account-edit-outline"
+        variant="text"
+        color="primary"
+        size="small"
+        class="mr-1"
+        :title="t('sidebar.profile')"
+        :aria-label="t('sidebar.profile')"
+        @click="router.push('/profile')"
+      />
 
       <!-- Nút Đăng xuất Outlined Pill -->
       <v-btn
