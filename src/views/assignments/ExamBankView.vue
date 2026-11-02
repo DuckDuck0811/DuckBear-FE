@@ -767,9 +767,19 @@ function getDifficultyChip(diff) {
 }
 
 function getQuestionTypeLabel(type) {
-  if (type === 'MULTIPLE_CHOICE') return t('examBank.typeMCQ')
-  if (type === 'ESSAY') return t('examBank.typeEssay')
-  return type || t('examBank.typeMCQ')
+  const normalizedType = String(type || '').trim().toUpperCase()
+  const typeLabels = {
+    MCQ: 'Trắc nghiệm một đáp án',
+    MULTIPLE_CHOICE: 'Trắc nghiệm một đáp án',
+    SINGLE_CHOICE: 'Trắc nghiệm một đáp án',
+    MULTI_MCQ: 'Trắc nghiệm nhiều đáp án',
+    TRUE_FALSE: 'Đúng / sai',
+    MATCHING: 'Nối cặp',
+    FILL: 'Điền khuyết',
+    ESSAY: 'Tự luận',
+    DRAG_DROP: 'Kéo thả',
+  }
+  return typeLabels[normalizedType] || 'Loại câu hỏi khác'
 }
 </script>
 
