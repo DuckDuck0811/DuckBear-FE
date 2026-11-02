@@ -269,7 +269,10 @@
     "accountActive": "Tài khoản đang hoạt động",
     "detailsTitle": "Thông tin cá nhân",
     "detailsHint": "Thông tin này được dùng cho tài khoản của bạn.",
+    "detailsFootnote": "Email được dùng để đăng nhập.",
     "securityTitle": "Bảo mật tài khoản",
+    "passwordFootnote": "Mật khẩu mới sẽ có hiệu lực ngay sau khi cập nhật.",
+    "photoHint": "Ảnh PNG, JPEG hoặc WebP · tối đa 2 MB",
     "roles": {
       "ADMIN": "Quản trị viên",
       "TEACHER": "Giáo viên",

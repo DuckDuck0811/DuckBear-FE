@@ -269,7 +269,10 @@
     "accountActive": "Account active",
     "detailsTitle": "Personal information",
     "detailsHint": "This information is used for your account.",
+    "detailsFootnote": "Your email is used to sign in.",
     "securityTitle": "Account security",
+    "passwordFootnote": "Your new password takes effect as soon as it is updated.",
+    "photoHint": "PNG, JPEG or WebP · up to 2 MB",
     "roles": {
       "ADMIN": "Administrator",
       "TEACHER": "Teacher",
