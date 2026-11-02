@@ -412,6 +412,7 @@
         </v-card-title>
         <v-card-text>
           <v-alert v-if="formError" type="error" variant="tonal" class="mb-4">{{ formError }}</v-alert>
+          <v-alert v-if="formSuccess" type="success" variant="tonal" class="mb-4">{{ formSuccess }}</v-alert>
           <v-text-field v-model="form.title" :label="t('assignmentHub.title')" variant="outlined" class="mb-2" prepend-inner-icon="mdi-format-title" />
           <div class="form-section-title"><span>1</span>{{ t('assignmentHub.selectClassAndLesson') }}</div>
           <v-row>
@@ -466,6 +467,7 @@
         <v-card-actions class="pa-5 pt-0">
           <v-spacer />
           <v-btn variant="text" @click="createDialog = false">{{ t('assignmentHub.cancel') }}</v-btn>
+          <v-btn v-if="!isStudent" variant="tonal" color="primary" prepend-icon="mdi-content-save-outline" :loading="savingTemplate" @click="saveTemplate">{{ t('examBank.saveTemplate') }}</v-btn>
           <v-btn color="primary" rounded="pill" prepend-icon="mdi-send-outline" :loading="saving" @click="saveAssignment">{{ t('assignmentHub.assign') }}</v-btn>
         </v-card-actions>
       </v-card>
@@ -519,7 +521,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../services/api'
 import { useAuthStore } from '../../stores/auth'
@@ -529,10 +531,12 @@ import StudentSidebar from '../../components/shared/StudentSidebar.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const isStudent = computed(() => auth.user?.role === 'STUDENT')
 const loading = ref(false)
 const saving = ref(false)
+const savingTemplate = ref(false)
 const questionsLoading = ref(false)
 const createDialog = ref(false)
 const submissionsDialog = ref(false)
@@ -541,6 +545,7 @@ const selectedAssignment = ref(null)
 const submissionDetails = ref(null)
 const errorMessage = ref('')
 const formError = ref('')
+const formSuccess = ref('')
 const assignments = ref([])
 const classes = ref([])
 const books = ref([])
@@ -659,7 +664,12 @@ const form = reactive({ title: '', classId: null, bookId: null, lessonId: null, 
 const selectedBook = computed(() => bookDetails.value)
 const lessons = computed(() => (selectedBook.value?.chapters || []).flatMap((chapter) => chapter.lessons.map((lesson) => ({ ...lesson, title: `${chapter.title} · ${lesson.title}` }))))
 
-onMounted(loadData)
+onMounted(async () => {
+  await loadData()
+  if (route.query.templateId && !isStudent.value) {
+    await prefillFromTemplate(route.query.templateId)
+  }
+})
 watch(() => form.lessonId, (id) => { if (!id) { questions.value = []; form.questionIds = [] } })
 
 async function loadData() {
@@ -670,7 +680,7 @@ async function loadData() {
     if (!isStudent.value) {
       const [classResult, bookResult] = await Promise.all([api('/classes/mine'), api('/books')])
       classes.value = classResult.classes || []
-      books.value = (bookResult || []).filter((book) => book.createdById === auth.user?.id)
+      books.value = (bookResult || []).filter((book) => auth.user?.role === 'ADMIN' || book.createdById === auth.user?.id)
     }
   } catch (error) {
     errorMessage.value = error.message
@@ -738,10 +748,57 @@ async function saveAssignment() {
     createDialog.value = false
     form.title = ''; form.classId = null; form.bookId = null; bookDetails.value = null; form.lessonId = null; form.questionIds = []; form.deadline = ''; form.durationMinutes = null; form.maxAttempts = 0; form.shuffleQuestions = false; form.shuffleOptions = false
     await loadData()
+    if (route.query.templateId) router.replace({ name: 'assignments' })
   } catch (error) {
     formError.value = error.message
   } finally {
     saving.value = false
+  }
+}
+
+async function saveTemplate() {
+  formError.value = ''
+  formSuccess.value = ''
+  if (!form.lessonId || !form.questionIds.length) {
+    formError.value = t('assignmentHub.requiredSelection')
+    return
+  }
+  savingTemplate.value = true
+  try {
+    await api('/assignments/templates', {
+      method: 'POST',
+      body: {
+        title: form.title.trim() || lessons.value.find((lesson) => lesson.id === form.lessonId)?.title || t('assignmentHub.defaultTitle'),
+        lessonId: Number(form.lessonId),
+        questionIds: form.questionIds.map(Number),
+      },
+    })
+    formSuccess.value = t('examBank.templateSaved')
+  } catch (error) {
+    formError.value = error.message
+  } finally {
+    savingTemplate.value = false
+  }
+}
+
+async function prefillFromTemplate(templateId) {
+  try {
+    formError.value = ''
+    const template = await api(`/assignments/templates/${templateId}`)
+    const bookId = template.lesson.chapter.book.id
+    form.title = template.title
+    form.classId = null
+    form.deadline = ''
+    form.durationMinutes = null
+    form.maxAttempts = 0
+    form.bookId = bookId
+    await selectBook(bookId)
+    form.lessonId = template.lessonId
+    await loadQuestions()
+    form.questionIds = template.questions.map(({ questionId }) => Number(questionId))
+    openCreateDialog()
+  } catch (error) {
+    errorMessage.value = error.message
   }
 }
 
@@ -758,6 +815,7 @@ function toLocalDateTimeInput(timestamp) {
 }
 function openCreateDialog() {
   formError.value = ''
+  formSuccess.value = ''
   form.shuffleQuestions = false
   form.shuffleOptions = false
   minDeadline.value = toLocalDateTimeInput(Date.now())

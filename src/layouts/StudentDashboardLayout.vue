@@ -14,7 +14,7 @@
 <script setup>
 import AppHeader from "../components/shared/AppHeader.vue";
 import StudentSidebar from "../components/shared/StudentSidebar.vue";
-
+  
 defineProps({
   gradeStyle: { type: String, default: "neutral" },
 });
