@@ -68,7 +68,7 @@ const groups = computed(() => [
     items: [
       { label: "sidebar.createAssignment", icon: "mdi-file-edit-outline", to: "/assignments", match: ["assignments"] },
       { label: "sidebar.schedule", icon: "mdi-calendar-week-outline", to: "/schedule", match: ["schedule"] },
-      { label: "sidebar.examBank", icon: "mdi-folder-text-outline" },
+      { label: "sidebar.examBank", icon: "mdi-folder-text-outline", to: "/exam-bank", match: ["exam-bank"] },
     ],
   },
   {
