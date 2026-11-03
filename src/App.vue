@@ -52,6 +52,12 @@ watch(
       notification.show = true;
       window.dispatchEvent(new CustomEvent("classes:refresh"));
     });
+    classSocket.on("classes.assignment-activity", (activity) => {
+      window.dispatchEvent(new CustomEvent("activity-log:assignment-event", { detail: activity }));
+    });
+    classSocket.on("connect", () => {
+      window.dispatchEvent(new CustomEvent("activity-log:reconnected"));
+    });
   },
   { immediate: true },
 );

@@ -76,7 +76,7 @@ const groups = computed(() => [
     items: [
       { label: "sidebar.submissions", icon: "mdi-cloud-upload-outline" },
       { label: "sidebar.results", icon: "mdi-chart-box-outline" },
-      { label: "sidebar.activityLog", icon: "mdi-history" },
+      { label: "sidebar.activityLog", icon: "mdi-history", to: "/activity-log", match: ["activity-log"] },
     ],
   },
   {
