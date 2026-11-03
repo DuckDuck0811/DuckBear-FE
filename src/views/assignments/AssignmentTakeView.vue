@@ -26,7 +26,7 @@
         <template v-else-if="assignment">
           <v-card class="pa-5 pa-md-7 mb-5" rounded="xl">
             <div class="d-flex flex-wrap align-center justify-space-between ga-3">
-              <div><div class="text-overline text-primary">{{ assignment.class.name }} · {{ assignment.lesson.title }}</div><h1 class="text-h4 font-weight-black">{{ assignment.title }}</h1></div>
+              <div><div class="text-overline text-primary">{{ assignment.class.name }} · {{ assignment.lesson?.title || assignment.book?.title }}</div><h1 class="text-h4 font-weight-black">{{ assignment.title }}</h1></div>
               <v-chip v-if="remainingSeconds !== null" color="warning" variant="tonal" prepend-icon="mdi-timer-outline">{{ timeLabel }}</v-chip>
             </div>
             <div class="text-body-2 text-secondary mt-2">{{ t('assignmentHub.attemptLabel', { number: attemptNo, max: assignment.maxAttempts ? assignment.maxAttempts : t('assignmentHub.unlimited') }) }}</div>
