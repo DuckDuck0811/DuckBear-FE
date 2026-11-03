@@ -76,6 +76,9 @@
                     <v-icon icon="mdi-clock-check-outline" size="14" />
                     <span>{{ formatJoinedAt(student.joinedAt) }}</span>
                   </div>
+                  <v-btn size="x-small" color="primary" variant="tonal" rounded="pill" class="mt-2" @click="openStudentHistory(student)">
+                    <v-icon start icon="mdi-history" />{{ t('classSeatMap.history') }}
+                  </v-btn>
                 </div>
                 <div class="desk-front" aria-hidden="true" />
               </article>
@@ -91,6 +94,51 @@
           </section>
         </template>
       </v-container>
+
+      <v-dialog v-model="historyDialog" max-width="760" scrollable>
+        <v-card rounded="xl">
+          <v-card-title class="d-flex align-center justify-space-between ga-3 pa-5">
+            <div class="min-width-0">
+              <div class="text-h6 font-weight-black text-truncate">{{ selectedHistory?.student.fullName }}</div>
+              <div class="text-body-2 text-secondary">{{ selectedHistory?.class.name }} · {{ t('classSeatMap.historyTitle') }}</div>
+            </div>
+            <v-btn icon="mdi-close" variant="text" @click="historyDialog = false" />
+          </v-card-title>
+          <v-divider />
+          <v-card-text class="pa-5">
+            <v-progress-linear v-if="historyLoading" indeterminate color="primary" />
+            <v-alert v-else-if="historyError" type="error" variant="tonal">{{ historyError }}</v-alert>
+            <div v-else-if="!selectedHistory?.attempts.length" class="py-10 text-center text-secondary">
+              <v-icon icon="mdi-notebook-outline" size="40" class="mb-2" />
+              <div>{{ t('classSeatMap.noHistory') }}</div>
+            </div>
+            <div v-else class="student-attempt-list">
+              <article v-for="attempt in pagedStudentAttempts" :key="attempt.id" class="student-attempt-row">
+                <div class="min-width-0 flex-grow-1">
+                  <div class="font-weight-bold text-truncate">{{ attempt.assignment.title }}</div>
+                  <div class="text-caption text-secondary mt-1">
+                    {{ t('classSeatMap.attemptNumber', { number: attempt.attemptNo }) }} · {{ formatJoinedAt(attempt.startedAt) }}
+                    <span v-if="attempt.submittedAt"> · {{ t('classSeatMap.submittedAt') }} {{ formatJoinedAt(attempt.submittedAt) }}</span>
+                  </div>
+                  <div v-if="attempt.screenEvents?.length" class="screen-event-list">
+                    <v-chip size="x-small" color="warning" variant="tonal">
+                      {{ t('classSeatMap.screenExitCount', { count: screenExitCount(attempt) }) }}
+                    </v-chip>
+                    <span v-for="event in attempt.screenEvents" :key="event.id">
+                      {{ screenEventLabel(event.action) }} · {{ formatJoinedAt(event.createdAt) }}
+                    </span>
+                  </div>
+                  <div v-else class="text-caption text-success mt-1">{{ t('classSeatMap.noScreenExit') }}</div>
+                </div>
+                <v-chip v-if="attempt.score !== null" color="primary" variant="tonal" size="small">{{ attempt.score }}%</v-chip>
+                <v-chip v-else-if="attempt.submittedAt" color="grey" variant="tonal" size="small">{{ t('classSeatMap.notGraded') }}</v-chip>
+                <v-chip v-else color="warning" variant="tonal" size="small">{{ t('classSeatMap.inProgress') }}</v-chip>
+              </article>
+              <ListPagination v-model="historyPage" :total="selectedHistory.attempts.length" :page-size="pageSize" />
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-dialog>
     </v-main>
   </v-layout>
 </template>
@@ -108,8 +156,14 @@ const route = useRoute();
 const { t, locale } = useI18n();
 const schoolClass = ref(null);
 const studentsPage = ref(1);
+const historyDialog = ref(false);
+const historyLoading = ref(false);
+const historyError = ref('');
+const selectedHistory = ref(null);
+const historyPage = ref(1);
 const pageSize = 20;
 const pagedStudents = computed(() => (schoolClass.value?.students || []).slice((studentsPage.value - 1) * pageSize, studentsPage.value * pageSize));
+const pagedStudentAttempts = computed(() => (selectedHistory.value?.attempts || []).slice((historyPage.value - 1) * pageSize, historyPage.value * pageSize));
 watch(() => Math.ceil((schoolClass.value?.students.length || 0) / pageSize), count => { if (studentsPage.value > count) studentsPage.value = Math.max(1, count); });
 const isLoading = ref(false);
 const errorMessage = ref("");
@@ -126,6 +180,21 @@ async function loadClass() {
   }
 }
 
+async function openStudentHistory(student) {
+  historyDialog.value = true;
+  historyLoading.value = true;
+  historyError.value = '';
+  historyPage.value = 1;
+  selectedHistory.value = { class: schoolClass.value, student, attempts: [] };
+  try {
+    selectedHistory.value = await api(`/classes/${schoolClass.value.id}/students/${student.id}/attempts`);
+  } catch (error) {
+    historyError.value = error.message || t('classSeatMap.historyError');
+  } finally {
+    historyLoading.value = false;
+  }
+}
+
 function formatJoinedAt(value) {
   if (!value) return t("classSeatMap.joinTimeUnknown");
   return new Intl.DateTimeFormat(locale.value, {
@@ -135,6 +204,16 @@ function formatJoinedAt(value) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function screenExitCount(attempt) {
+  return attempt.screenEvents.filter(event => ['ATTEMPT_SCREEN_HIDDEN', 'ATTEMPT_SCREEN_LEFT'].includes(event.action)).length
+}
+
+function screenEventLabel(action) {
+  if (action === 'ATTEMPT_SCREEN_HIDDEN') return t('classSeatMap.screenHidden')
+  if (action === 'ATTEMPT_SCREEN_RETURNED') return t('classSeatMap.screenReturned')
+  return t('classSeatMap.screenLeft')
 }
 
 onMounted(loadClass);
@@ -151,6 +230,10 @@ onMounted(loadClass);
   background: #fff;
   box-shadow: 0 6px 20px rgba(47, 124, 246, 0.05);
 }
+.student-attempt-list { display: flex; flex-direction: column; }
+.student-attempt-row { display: flex; align-items: center; gap: 14px; padding: 14px 4px; border-bottom: 1px solid #edf2f8; }
+.student-attempt-row:last-of-type { border-bottom: 0; }
+.screen-event-list { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; color: #8a5a14; font-size: .72rem; }
 
 .class-summary,
 .class-identity {
