@@ -411,7 +411,7 @@
           <v-avatar color="primary" variant="tonal" rounded="lg"><v-icon icon="mdi-clipboard-plus-outline" /></v-avatar>
           <div><h2>{{ t('assignmentHub.newAssignment') }}</h2><p>{{ t('assignmentHub.dialogSubtitle') }}</p></div>
         </v-card-title>
-        <v-card-text>
+        <v-card-text class="create-dialog-body">
           <v-alert v-if="formError" type="error" variant="tonal" class="mb-4">{{ formError }}</v-alert>
           <v-alert v-if="formSuccess" type="success" variant="tonal" class="mb-4">{{ formSuccess }}</v-alert>
           <v-text-field v-model="form.title" :label="t('assignmentHub.title')" variant="outlined" class="mb-2" prepend-inner-icon="mdi-format-title" />
@@ -424,42 +424,225 @@
           <v-alert v-if="form.lessonId === 'ALL'" type="info" variant="tonal" density="comfortable" class="mt-3">
             {{ t('assignmentHub.bookExamHint', { count: form.questionIds.length }) }}
           </v-alert>
+          <!-- PHẦN 2: CHỌN CÂU HỎI (COMPACT QUESTION PICKER) -->
           <div v-if="form.lessonId" class="question-section mb-5">
-            <div class="form-section-title"><span>2</span>{{ t('assignmentHub.pickQuestions') }}<v-spacer /><v-chip size="small" color="primary" variant="tonal">{{ t('assignmentHub.selectedCount', { count: form.questionIds.length }) }}</v-chip></div>
+            <div class="d-flex align-center justify-space-between mb-2">
+              <div class="form-section-title mb-0">
+                <span>2</span>{{ t('assignmentHub.pickQuestions') }}
+              </div>
+              <div class="d-flex align-center ga-2">
+                <!-- Status Chip -->
+                <v-chip
+                  size="small"
+                  :color="form.lessonId === 'ALL' ? (form.questionIds.length === 40 ? 'success' : 'warning') : 'primary'"
+                  variant="tonal"
+                  class="font-weight-bold"
+                >
+                  <v-icon :icon="form.lessonId === 'ALL' && form.questionIds.length === 40 ? 'mdi-check-circle-outline' : 'mdi-checkbox-marked-circle-outline'" size="16" class="mr-1" />
+                  {{ t('assignmentHub.selectedCount', { count: form.questionIds.length }) }}
+                  <span v-if="form.lessonId === 'ALL'" class="ml-1 text-caption">/ 40</span>
+                </v-chip>
+
+                <!-- Collapse / Expand Toggle Button -->
+                <v-btn
+                  variant="text"
+                  size="small"
+                  density="comfortable"
+                  color="secondary"
+                  :prepend-icon="isQuestionsCollapsed ? 'mdi-chevron-down' : 'mdi-chevron-up'"
+                  class="text-none font-weight-medium"
+                  @click="isQuestionsCollapsed = !isQuestionsCollapsed"
+                >
+                  {{ isQuestionsCollapsed ? t('assignmentHub.expandQuestions') : t('assignmentHub.collapseQuestions') }}
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- Loading State -->
             <div v-if="questionsLoading" class="py-8"><v-progress-linear indeterminate color="primary" rounded /></div>
+
+            <!-- Empty State -->
             <v-alert v-else-if="!questions.length" type="info" variant="tonal" density="comfortable">{{ t('assignmentHub.noQuestionsInLesson') }}</v-alert>
-            <div v-else class="question-list">
-              <v-card
-                v-for="question in questions"
-                :key="question.id"
-                variant="outlined"
-                class="px-3 mb-2 question-choice"
-                :class="{ 'question-choice--selected': form.questionIds.includes(Number(question.id)), 'question-choice--disabled': isDragQuestionIncomplete(question) }"
-                rounded="lg"
-                role="checkbox"
-                tabindex="0"
-                :aria-checked="form.questionIds.includes(Number(question.id))"
-                @click="form.lessonId !== 'ALL' && !isDragQuestionIncomplete(question) && toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
-                @keydown.enter.prevent="form.lessonId !== 'ALL' && !isDragQuestionIncomplete(question) && toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
-                @keydown.space.prevent="form.lessonId !== 'ALL' && !isDragQuestionIncomplete(question) && toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
-              >
-                <v-checkbox
-                  :model-value="form.questionIds.includes(Number(question.id))"
-                  :disabled="form.lessonId === 'ALL' || isDragQuestionIncomplete(question)"
-                  :label="question.content"
-                  hide-details
-                  density="compact"
-                  @click.stop="toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
-                />
-                <div v-if="form.lessonId === 'ALL'" class="text-caption text-secondary pb-2">
-                  {{ question.lessonTitle }}
+
+            <!-- Tóm tắt khi thu gọn -->
+            <div v-else-if="isQuestionsCollapsed" class="collapsed-summary pa-3 px-4 rounded-xl border bg-blue-lighten-5 d-flex align-center justify-space-between">
+              <div class="d-flex align-center ga-2">
+                <v-icon icon="mdi-check-circle" color="primary" size="20" />
+                <span class="text-body-2 font-weight-bold text-slate-800">
+                  {{ t('assignmentHub.questionsSummary', { selected: form.questionIds.length, total: questions.length }) }}
+                </span>
+                <span v-if="selectedTypeSummary" class="text-caption text-secondary">
+                  &bull; {{ selectedTypeSummary }}
+                </span>
+              </div>
+              <v-btn size="x-small" variant="tonal" color="primary" rounded="pill" class="text-none font-weight-bold" @click="isQuestionsCollapsed = false">
+                {{ t('assignmentHub.expandQuestions') }}
+              </v-btn>
+            </div>
+
+            <!-- Khung chọn câu hỏi độc lập (Toolbar + Scroll Box) -->
+            <div v-else class="question-picker-container rounded-xl border bg-white overflow-hidden">
+              <!-- Smart Question Toolbar -->
+              <div class="question-toolbar pa-2 px-3 bg-grey-lighten-5 border-b">
+                <v-row dense align="center">
+                  <!-- Search box -->
+                  <v-col cols="12" sm="4">
+                    <v-text-field
+                      v-model="questionSearchQuery"
+                      :placeholder="t('assignmentHub.searchQuestionPlaceholder')"
+                      prepend-inner-icon="mdi-magnify"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      clearable
+                      rounded="lg"
+                      class="bg-white"
+                    />
+                  </v-col>
+
+                  <!-- Filter by Type -->
+                  <v-col cols="6" sm="2">
+                    <v-select
+                      v-model="questionTypeFilter"
+                      :items="questionTypeOptions"
+                      item-title="title"
+                      item-value="value"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      rounded="lg"
+                      class="bg-white"
+                    />
+                  </v-col>
+
+                  <!-- Filter by Difficulty -->
+                  <v-col cols="6" sm="2">
+                    <v-select
+                      v-model="questionDifficultyFilter"
+                      :items="questionDifficultyOptions"
+                      item-title="title"
+                      item-value="value"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                      rounded="lg"
+                      class="bg-white"
+                    />
+                  </v-col>
+
+                  <!-- Quick actions buttons -->
+                  <v-col cols="12" sm="4" class="question-picker-actions d-flex justify-end align-center">
+                    <!-- Button Chọn lại 40 câu ngẫu nhiên (nếu là ALL) -->
+                    <v-btn
+                      v-if="form.lessonId === 'ALL'"
+                      variant="tonal"
+                      color="primary"
+                      size="small"
+                      rounded="pill"
+                      prepend-icon="mdi-dice-multiple-outline"
+                      class="text-none font-weight-bold px-3"
+                      @click="reshuffleBookQuestions"
+                    >
+                      {{ t('assignmentHub.reshuffle') }}
+                    </v-btn>
+
+                    <!-- Nút Chọn tất cả / Bỏ chọn cho bài đơn lẻ -->
+                    <template v-else>
+                      <v-btn
+                        variant="text"
+                        size="small"
+                        color="primary"
+                        class="question-picker-action text-none font-weight-bold px-1"
+                        @click="selectAllQuestions"
+                      >
+                        {{ t('assignmentHub.selectAll') }}
+                      </v-btn>
+                      <span class="question-picker-divider text-grey-lighten-1">|</span>
+                      <v-btn
+                        variant="text"
+                        size="small"
+                        color="secondary"
+                        class="question-picker-action text-none px-1"
+                        @click="deselectAllQuestions"
+                      >
+                        {{ t('assignmentHub.deselectAll') }}
+                      </v-btn>
+                    </template>
+                  </v-col>
+                </v-row>
+
+                <!-- Subtoolbar / Filter Status Bar -->
+                <div class="d-flex align-center justify-space-between mt-2 pt-1 text-caption text-secondary border-t">
+                  <div class="d-flex align-center ga-2">
+                    <span class="font-weight-medium">{{ t('assignmentHub.questionsSummary', { selected: form.questionIds.length, total: questions.length }) }}</span>
+                    <span v-if="filteredQuestions.length !== questions.length" class="text-primary font-weight-bold">
+                      &bull; Lọc ra {{ filteredQuestions.length }} câu
+                    </span>
+                  </div>
+                  <div class="d-flex align-center ga-1">
+                    <v-btn-toggle v-model="questionSelectionFilter" mandatory density="compact" variant="text" color="primary">
+                      <v-btn value="ALL" size="x-small" class="text-none px-2">{{ t('assignmentHub.filterAllStatus') }}</v-btn>
+                      <v-btn value="SELECTED" size="x-small" class="text-none px-2">{{ t('assignmentHub.filterSelectedOnly') }} ({{ form.questionIds.length }})</v-btn>
+                      <v-btn value="UNSELECTED" size="x-small" class="text-none px-2">{{ t('assignmentHub.filterUnselectedOnly') }} ({{ questions.length - form.questionIds.length }})</v-btn>
+                    </v-btn-toggle>
+                  </div>
                 </div>
-                <div class="d-flex ga-2 pb-2">
-                  <v-chip size="x-small" color="primary" variant="tonal">{{ t(`questionBank.types.${question.type}`) }}</v-chip>
-                  <v-chip size="x-small" variant="tonal">{{ t(`questionBank.difficulties.${question.difficulty}`) }}</v-chip>
+              </div>
+
+              <!-- Khung cuộn độc lập chứa danh sách câu hỏi -->
+              <div class="question-scroll-box pa-2">
+                <!-- Empty filter message -->
+                <div v-if="!filteredQuestions.length" class="text-center py-6 text-secondary text-caption">
+                  <v-icon icon="mdi-filter-variant-remove" size="24" class="mb-1 d-block mx-auto text-grey" />
+                  {{ t('assignmentHub.noQuestionsMatch') }}
                 </div>
-                <div v-if="isDragQuestionIncomplete(question)" class="text-caption text-warning pb-2">{{ t('assignmentHub.dragDataMissing') }}</div>
-              </v-card>
+
+                <!-- Dòng câu hỏi siêu gọn (Compact Question Row) -->
+                <div
+                  v-for="(question, index) in filteredQuestions"
+                  :key="question.id"
+                  class="question-row-compact d-flex align-start pa-2 px-3 mb-1 rounded-lg"
+                  :class="{
+                    'question-row-selected': form.questionIds.includes(Number(question.id)),
+                    'question-row-disabled': isDragQuestionIncomplete(question)
+                  }"
+                  @click="!isDragQuestionIncomplete(question) && toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
+                >
+                  <div class="d-flex align-start ga-2 min-w-0 flex-grow-1">
+                    <v-checkbox-btn
+                      :model-value="form.questionIds.includes(Number(question.id))"
+                      :disabled="isDragQuestionIncomplete(question)"
+                      density="compact"
+                      color="primary"
+                      class="question-row-checkbox"
+                      @click.stop="toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
+                    />
+                    <span class="question-stt-badge flex-shrink-0">
+                      #{{ index + 1 }}
+                    </span>
+                    <div class="question-row-content min-w-0 flex-grow-1">
+                      <div class="question-text text-body-2 font-weight-medium text-slate-800" :title="question.content">
+                        {{ question.content }}
+                      </div>
+                      <div v-if="form.lessonId === 'ALL'" class="question-source-tag text-caption text-secondary" :title="question.lessonTitle">
+                        <v-icon icon="mdi-bookmark-outline" size="11" class="mr-0_5 text-primary" />
+                        <span>{{ question.lessonTitle?.split(' · ').at(-1) || question.lessonTitle }}</span>
+                      </div>
+                      <div class="d-flex align-center ga-1 flex-wrap mt-1">
+                        <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-medium">
+                          {{ t(`questionBank.types.${question.type}`) }}
+                        </v-chip>
+                        <v-chip size="x-small" :color="getDifficultyColor(question.difficulty)" variant="tonal" class="font-weight-medium">
+                          {{ t(`questionBank.difficulties.${question.difficulty}`) }}
+                        </v-chip>
+                        <v-chip v-if="isDragQuestionIncomplete(question)" size="x-small" color="warning" variant="flat">
+                          {{ t('assignmentHub.dragDataMissing') }}
+                        </v-chip>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="form-section-title"><span>{{ form.lessonId ? 3 : 2 }}</span>{{ t('assignmentHub.conditions') }}</div>
@@ -566,6 +749,13 @@ const searchQuery = ref('')
 const selectedClassFilter = ref('ALL')
 const statusFilter = ref('ALL')
 
+// State Question Picker nâng cấp
+const isQuestionsCollapsed = ref(false)
+const questionSearchQuery = ref('')
+const questionTypeFilter = ref('ALL')
+const questionDifficultyFilter = ref('ALL')
+const questionSelectionFilter = ref('ALL')
+
 function setViewMode(mode) {
   viewMode.value = mode
   localStorage.setItem('duckbear_assignment_view_mode', mode)
@@ -575,6 +765,95 @@ function clearFilters() {
   searchQuery.value = ''
   selectedClassFilter.value = 'ALL'
   statusFilter.value = 'ALL'
+}
+
+// Helpers cho Question Picker
+const questionTypeOptions = computed(() => [
+  { title: t('assignmentHub.filterAllTypes'), value: 'ALL' },
+  { title: t('questionBank.types.MULTIPLE_CHOICE'), value: 'MULTIPLE_CHOICE' },
+  { title: t('questionBank.types.ESSAY'), value: 'ESSAY' },
+  { title: t('questionBank.types.DRAG_DROP'), value: 'DRAG_DROP' },
+  { title: t('questionBank.types.MATCHING'), value: 'MATCHING' },
+].filter(opt => opt.value === 'ALL' || questions.value.some(q => q.type === opt.value)))
+
+const questionDifficultyOptions = computed(() => [
+  { title: t('assignmentHub.filterAllDifficulties'), value: 'ALL' },
+  { title: t('questionBank.difficulties.EASY'), value: 'EASY' },
+  { title: t('questionBank.difficulties.MEDIUM'), value: 'MEDIUM' },
+  { title: t('questionBank.difficulties.HARD'), value: 'HARD' },
+  { title: t('questionBank.difficulties.VERY_HARD'), value: 'VERY_HARD' },
+].filter(opt => opt.value === 'ALL' || questions.value.some(q => q.difficulty === opt.value)))
+
+const filteredQuestions = computed(() => {
+  let list = questions.value
+  const q = questionSearchQuery.value?.trim().toLowerCase()
+  if (q) list = list.filter(qn => (qn.content || '').toLowerCase().includes(q) || (qn.lessonTitle || '').toLowerCase().includes(q))
+  if (questionTypeFilter.value !== 'ALL') list = list.filter(qn => qn.type === questionTypeFilter.value)
+  if (questionDifficultyFilter.value !== 'ALL') list = list.filter(qn => qn.difficulty === questionDifficultyFilter.value)
+  if (questionSelectionFilter.value === 'SELECTED') list = list.filter(qn => form.questionIds.includes(Number(qn.id)))
+  if (questionSelectionFilter.value === 'UNSELECTED') list = list.filter(qn => !form.questionIds.includes(Number(qn.id)))
+  return list
+})
+
+const selectedTypeSummary = computed(() => {
+  if (!form.questionIds.length || !questions.value.length) return ''
+  const typeCount = {}
+  questions.value.filter(q => form.questionIds.includes(Number(q.id))).forEach(q => {
+    typeCount[q.type] = (typeCount[q.type] || 0) + 1
+  })
+  return Object.entries(typeCount).map(([type, count]) => `${count} ${t(`questionBank.types.${type}`)}`).join(' · ')
+})
+
+function getDifficultyColor(diff) {
+  switch (diff) {
+    case 'EASY': return 'success'
+    case 'MEDIUM': return 'info'
+    case 'HARD': return 'warning'
+    case 'VERY_HARD': return 'error'
+    default: return 'secondary'
+  }
+}
+
+function selectAllQuestions() {
+  const validIds = questions.value.filter(q => !isDragQuestionIncomplete(q)).map(q => Number(q.id))
+  form.questionIds = [...new Set([...form.questionIds, ...validIds])]
+}
+
+function deselectAllQuestions() {
+  form.questionIds = []
+}
+
+async function reshuffleBookQuestions() {
+  if (!bookDetails.value) return
+  questionsLoading.value = true
+  formError.value = ''
+  try {
+    const lessonQuestionSets = await Promise.all(lessons.value.map(async (lesson) => ({
+      lesson,
+      questions: await api(`/lessons/${lesson.id}/questions`),
+    })))
+    const pools = lessonQuestionSets.map(({ lesson, questions: lessonQuestions }) => ({
+      lesson,
+      questions: lessonQuestions.filter(q => !isDragQuestionIncomplete(q)).sort(() => Math.random() - 0.5),
+      cursor: 0,
+    }))
+    const selected = []
+    while (selected.length < 40 && pools.some(pool => pool.cursor < pool.questions.length)) {
+      for (const pool of pools) {
+        if (selected.length >= 40) break
+        if (pool.cursor < pool.questions.length) {
+          selected.push({ ...pool.questions[pool.cursor++], lessonTitle: pool.lesson.title })
+        }
+      }
+    }
+    questions.value = pools.flatMap(pool => pool.questions.map(q => ({ ...q, lessonTitle: pool.lesson.title })))
+    form.questionIds = selected.map(({ id }) => Number(id))
+    if (selected.length < 40) formError.value = t('assignmentHub.bookExamInsufficient', { available: selected.length })
+  } catch (error) {
+    formError.value = error.message
+  } finally {
+    questionsLoading.value = false
+  }
 }
 
 // Helpers kiểm tra hạn nộp
@@ -731,7 +1010,10 @@ async function loadQuestions() {
           }
         }
       }
-      questions.value = selected
+      questions.value = pools.flatMap((pool) => pool.questions.map((question) => ({
+        ...question,
+        lessonTitle: pool.lesson.title,
+      })))
       form.questionIds = selected.map(({ id }) => Number(id))
       if (selected.length < 40) {
         formError.value = t('assignmentHub.bookExamInsufficient', { available: selected.length })
@@ -752,8 +1034,12 @@ async function selectBook(id) {
 }
 
 function toggleQuestion(id, checked) {
-  if (form.lessonId === 'ALL') return
   const questionId = Number(id)
+  if (checked && form.lessonId === 'ALL' && form.questionIds.length >= 40) {
+    formError.value = t('assignmentHub.bookExamLimit')
+    return
+  }
+  formError.value = ''
   form.questionIds = checked
     ? [...new Set([...form.questionIds, questionId])]
     : form.questionIds.filter((value) => value !== questionId)
@@ -866,6 +1152,11 @@ function openCreateDialog() {
   form.shuffleQuestions = false
   form.shuffleOptions = false
   minDeadline.value = toLocalDateTimeInput(Date.now())
+  isQuestionsCollapsed.value = false
+  questionSearchQuery.value = ''
+  questionTypeFilter.value = 'ALL'
+  questionDifficultyFilter.value = 'ALL'
+  questionSelectionFilter.value = 'ALL'
   createDialog.value = true
 }
 
@@ -1044,18 +1335,184 @@ async function openSubmissions(assignment) {
 }
 
 /* Dialog Styles */
-.create-dialog { overflow: hidden; }
+.create-dialog {
+  display: flex;
+  max-height: 90vh;
+  max-height: 90dvh;
+  flex-direction: column;
+  overflow: hidden;
+}
+.create-dialog-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+}
 .dialog-heading { display: flex; align-items: center; gap: 14px; padding: 20px 24px 16px; border-bottom: 1px solid #edf1f7; white-space: normal; }
 .dialog-heading h2 { margin: 0; color: #1c2c46; font-size: 1.25rem; font-weight: 850; }
 .dialog-heading p { margin: 4px 0 0; color: #728097; font-size: .86rem; font-weight: 400; }
 .form-section-title { display: flex; align-items: center; gap: 10px; margin: 8px 0 14px; color: #263b59; font-size: .95rem; font-weight: 800; }
 .form-section-title > span { display: grid; width: 26px; height: 26px; flex: none; place-items: center; border-radius: 50%; background: #eaf2ff; color: #2f7cf6; font-size: .8rem; }
+.question-section-heading { min-width: 0; }
+.question-count-chip { flex: none; white-space: nowrap; }
 .question-section { padding-top: 4px; }
-.question-list { max-height: 330px; overflow-y: auto; padding: 2px 6px 2px 2px; }
+
+/* NEW: Compact Question Picker Container */
+.question-picker-container {
+  border-color: #dce8fb !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+
+/* NEW: Smart Question Toolbar */
+.question-toolbar {
+  border-bottom: 1px solid #e8f0fb;
+  background: #f7faff;
+}
+
+.question-picker-actions {
+  gap: 4px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.question-picker-action {
+  min-width: 0;
+  white-space: nowrap;
+}
+.question-picker-divider {
+  flex: 0 0 auto;
+}
+
+/* NEW: Bounded Scroll Box */
+.question-scroll-box {
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c7d7f0 transparent;
+}
+
+.question-scroll-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.question-scroll-box::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.question-scroll-box::-webkit-scrollbar-thumb {
+  background: #c7d7f0;
+  border-radius: 3px;
+}
+
+/* NEW: Compact Question Row */
+.question-row-compact {
+  cursor: pointer;
+  border: 1px solid #e8f0fb;
+  transition: all 0.14s ease;
+  background: #fff;
+  min-height: 44px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.question-row-compact > .d-flex {
+  width: 100%;
+}
+
+.question-row-checkbox {
+  width: 32px;
+  min-width: 32px;
+  flex: 0 0 32px;
+}
+
+.question-row-checkbox :deep(.v-selection-control) {
+  width: 32px;
+  min-width: 32px;
+  flex: 0 0 32px;
+}
+
+.question-row-compact:hover {
+  border-color: #93c5fd;
+  background: #f5f9ff;
+}
+
+.question-row-selected {
+  border-color: #60a5fa !important;
+  background: #eff6ff !important;
+}
+
+.question-row-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.question-row-compact:last-child {
+  margin-bottom: 0 !important;
+}
+
+.question-stt-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  min-width: 30px;
+  flex: 0 0 30px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 6px;
+  background: #e8f0fc;
+  color: #3b82f6;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.question-row-selected .question-stt-badge {
+  background: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.question-text {
+  line-height: 1.35;
+  font-size: 0.855rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.question-source-tag {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  margin-top: 1px;
+  color: #728097;
+}
+.question-source-tag span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.question-row-content {
+  min-width: 0;
+}
+
+/* NEW: Collapsed Summary Strip */
+.collapsed-summary {
+  border-color: #bfdbfe !important;
+  background: #eff6ff !important;
+}
+
+/* Legacy classes kept for safety (no longer actively used) */
+.question-list { padding: 2px 6px 2px 2px; }
 .question-choice { cursor: pointer; border-color: #e0e8f3; transition: background .16s ease, border-color .16s ease; }
 .question-choice:hover { border-color: #8db6f7; background: #f8fbff; }
 .question-choice--selected { border-color: #73a5f5; background: #f1f6ff; }
-.question-choice:focus-visible { outline: 2px solid #2f7cf6; outline-offset: 2px; }
+.question-source { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 @media (max-width: 600px) {
   .assignment-hero { min-height: 0; flex-direction: column; align-items: flex-start; padding: 18px 20px; }
