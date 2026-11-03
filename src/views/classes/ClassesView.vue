@@ -134,7 +134,7 @@
           <h2 class="text-h6 font-weight-black mb-4">{{ t('classesPage.managedClasses') }}</h2>
           <v-row v-if="classes.length">
             <v-col
-              v-for="schoolClass in classes"
+              v-for="schoolClass in pagedClasses"
               :key="schoolClass.id"
               cols="12"
               sm="6"
@@ -183,6 +183,7 @@
                 </div>
               </v-card>
             </v-col>
+            <v-col cols="12"><ListPagination v-model="classesPage" :total="classes.length" /></v-col>
           </v-row>
           <v-card
             v-else-if="!isLoading"
@@ -219,7 +220,7 @@
           <v-card v-if="requests.length" class="shub-card overflow-hidden">
             <v-list lines="two">
               <v-list-item
-                v-for="request in requests"
+                v-for="request in pagedRequests"
                 :key="request.id"
                 :title="request.student.fullName"
                 :subtitle="`${request.class.name} · ${request.student.email}`"
@@ -247,6 +248,7 @@
                 </template>
               </v-list-item>
             </v-list>
+            <ListPagination v-model="requestsPage" :total="requests.length" />
           </v-card>
           <v-card
             v-else-if="!isLoading"
@@ -259,7 +261,7 @@
           <h2 class="text-h6 font-weight-black mt-6 mb-4">{{ t('classesPage.joinedClasses') }}</h2>
           <v-row v-if="classes.length">
             <v-col
-              v-for="schoolClass in classes"
+              v-for="schoolClass in pagedClasses"
               :key="schoolClass.id"
               cols="12"
               sm="6"
@@ -283,6 +285,7 @@
                 </div>
               </v-card>
             </v-col>
+            <v-col cols="12"><ListPagination v-model="classesPage" :total="classes.length" /></v-col>
           </v-row>
           <v-card
             v-else-if="!isLoading"
@@ -294,7 +297,7 @@
             <h2 class="text-h6 font-weight-black mt-8 mb-4">{{ t('classesPage.myRequests') }}</h2>
             <v-row>
               <v-col
-                v-for="request in requests"
+                v-for="request in pagedRequests"
                 :key="request.id"
                 cols="12"
                 sm="6"
@@ -330,6 +333,7 @@
                   </v-chip>
                 </v-card>
               </v-col>
+              <v-col cols="12"><ListPagination v-model="requestsPage" :total="requests.length" /></v-col>
             </v-row>
           </template>
         </template>
@@ -403,7 +407,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { api } from "../../services/api";
@@ -411,6 +415,7 @@ import { useAuthStore } from "../../stores/auth";
 import AppHeader from "../../components/shared/AppHeader.vue";
 import TeacherSidebar from "../../components/shared/TeacherSidebar.vue";
 import StudentSidebar from "../../components/shared/StudentSidebar.vue";
+import ListPagination from "../../components/shared/ListPagination.vue";
 import PageHeader from "../../components/shared/PageHeader.vue";
 
 const authStore = useAuthStore();
@@ -423,6 +428,13 @@ const isReviewing = ref(null);
 const showCreateDialog = ref(false);
 const classes = ref([]);
 const requests = ref([]);
+const classesPage = ref(1);
+const requestsPage = ref(1);
+const pageSize = 20;
+const pagedClasses = computed(() => classes.value.slice((classesPage.value - 1) * pageSize, classesPage.value * pageSize));
+const pagedRequests = computed(() => requests.value.slice((requestsPage.value - 1) * pageSize, requestsPage.value * pageSize));
+watch(() => Math.ceil(classes.value.length / pageSize), count => { if (classesPage.value > count) classesPage.value = Math.max(1, count); });
+watch(() => Math.ceil(requests.value.length / pageSize), count => { if (requestsPage.value > count) requestsPage.value = Math.max(1, count); });
 const joinCode = ref("");
 const classPreview = ref(null);
 const searchError = ref("");

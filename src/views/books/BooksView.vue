@@ -80,7 +80,7 @@
         <!-- Lưới Thẻ Sách BookCard Responsive -->
         <v-row v-else class="fade-in-up">
           <v-col
-            v-for="book in books"
+            v-for="book in pagedBooks"
             :key="book.id"
             cols="12"
             sm="6"
@@ -97,6 +97,7 @@
             />
           </v-col>
         </v-row>
+        <ListPagination v-model="booksPage" :total="books.length" />
       </v-container>
 
       <!-- Dialog Thêm / Sửa Sách (Vuetify rounded="xl") -->
@@ -252,6 +253,7 @@ import FilterChips from "../../components/shared/FilterChips.vue";
 import BookCard from "../../components/shared/BookCard.vue";
 import EmptyState from "../../components/shared/EmptyState.vue";
 import ConfirmDialog from "../../components/shared/ConfirmDialog.vue";
+import ListPagination from "../../components/shared/ListPagination.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -259,6 +261,9 @@ const { t } = useI18n();
 
 // Danh sách sách & trạng thái tải
 const books = ref([]);
+const booksPage = ref(1);
+const booksPageSize = 20;
+const pagedBooks = computed(() => books.value.slice((booksPage.value - 1) * booksPageSize, booksPage.value * booksPageSize));
 const isLoading = ref(false);
 const selectedGrade = ref(null);
 const baseSubjects = [
@@ -391,6 +396,7 @@ async function fetchBooks() {
 
 function handleGradeChange(val) {
   selectedGrade.value = val;
+  booksPage.value = 1;
   fetchBooks();
 }
 

@@ -164,7 +164,7 @@
 
         <!-- TRƯỜNG HỢP 1: CHẾ ĐỘ LƯỚI (GRID VIEW) -->
         <v-row v-if="!loading && filteredTemplates.length && viewMode === 'grid'">
-          <v-col v-for="template in filteredTemplates" :key="template.id" cols="12" md="6" lg="4">
+          <v-col v-for="template in pagedTemplates" :key="template.id" cols="12" md="6" lg="4">
             <v-card class="template-card rounded-2xl h-100" elevation="0">
               <!-- Dải màu môn học & Header thẻ -->
               <div class="template-card-header d-flex align-start justify-space-between mb-3">
@@ -273,6 +273,7 @@
               </div>
             </v-card>
           </v-col>
+          <v-col cols="12"><ListPagination v-model="templatesPage" :total="filteredTemplates.length" /></v-col>
         </v-row>
 
         <!-- TRƯỜNG HỢP 2: CHẾ ĐỘ BẢNG THU GỌN (TABLE VIEW) -->
@@ -309,7 +310,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="template in filteredTemplates" :key="template.id" class="table-row-hover">
+              <tr v-for="template in pagedTemplates" :key="template.id" class="table-row-hover">
                 <td>
                   <div class="d-flex align-center ga-3 py-2">
                     <v-avatar
@@ -387,6 +388,7 @@
               </tr>
             </tbody>
           </v-table>
+          <ListPagination v-model="templatesPage" :total="filteredTemplates.length" />
         </v-card>
 
         <!-- KHI TÌM KIẾM HOẶC LỌC KHÔNG CÓ KẾT QUẢ -->
@@ -564,17 +566,20 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { api } from '../../services/api'
 import AppHeader from '../../components/shared/AppHeader.vue'
 import TeacherSidebar from '../../components/shared/TeacherSidebar.vue'
+import ListPagination from '../../components/shared/ListPagination.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
 
 const templates = ref([])
+const templatesPage = ref(1)
+const pageSize = 20
 const loading = ref(false)
 const deleting = ref(false)
 const errorMessage = ref('')
@@ -684,6 +689,11 @@ const filteredTemplates = computed(() => {
   }
 
   return list
+})
+const pagedTemplates = computed(() => filteredTemplates.value.slice((templatesPage.value - 1) * pageSize, templatesPage.value * pageSize))
+watch([searchQuery, selectedSubject, selectedGrade], () => { templatesPage.value = 1 })
+watch(() => Math.ceil(filteredTemplates.value.length / pageSize), pageCount => {
+  if (templatesPage.value > pageCount) templatesPage.value = Math.max(1, pageCount)
 })
 
 function resetFilters() {

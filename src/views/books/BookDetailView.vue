@@ -95,14 +95,14 @@
           />
 
           <!-- Cây Chương Mục Dạng Expansion Panels Bo Góc Lớn -->
+          <div v-else>
           <v-expansion-panels
-            v-else
             v-model="openedPanels"
             multiple
             class="ga-3"
           >
             <v-expansion-panel
-              v-for="(chapter, cIndex) in book.chapters"
+              v-for="(chapter, cIndex) in pagedChapters"
               :key="chapter.id"
               class="rounded-xl overflow-hidden shub-panel"
             >
@@ -115,7 +115,7 @@
                       size="36"
                       class="mr-3 font-weight-black text-white"
                     >
-                      {{ cIndex + 1 }}
+                      {{ (chaptersPage - 1) * pageSize + cIndex + 1 }}
                     </v-avatar>
 
                     <div>
@@ -176,7 +176,7 @@
                 <!-- Danh sách các bài học -->
                 <div v-else class="d-flex flex-column ga-2">
                   <div
-                    v-for="(lesson, lIndex) in chapter.lessons"
+                    v-for="(lesson, lIndex) in pagedLessons(chapter)"
                     :key="lesson.id"
                     class="lesson-item-shub d-flex align-center justify-space-between pa-3 rounded-lg bg-white"
                     role="button"
@@ -186,7 +186,7 @@
                   >
                     <div class="d-flex align-center">
                       <v-avatar color="primary" variant="tonal" size="28" class="mr-3 font-weight-bold text-caption">
-                        {{ lIndex + 1 }}
+                        {{ (lessonPages[chapter.id] ? lessonPages[chapter.id] - 1 : 0) * pageSize + lIndex + 1 }}
                       </v-avatar>
                       <div class="text-body-2 font-weight-bold text-primary">
                         {{ lesson.title }}
@@ -224,10 +224,18 @@
                       </div>
                     </div>
                   </div>
+                  <ListPagination
+                    :model-value="lessonPages[chapter.id] || 1"
+                    :total="chapter.lessons.length"
+                    :page-size="pageSize"
+                    @update:model-value="setLessonPage(chapter.id, $event)"
+                  />
                 </div>
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
+          <ListPagination v-model="chaptersPage" :total="book.chapters.length" :page-size="pageSize" />
+          </div>
         </div>
       </v-container>
 
@@ -423,7 +431,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../services/api'
@@ -433,6 +441,7 @@ import TeacherSidebar from '../../components/shared/TeacherSidebar.vue'
 import StudentSidebar from '../../components/shared/StudentSidebar.vue'
 import EmptyState from '../../components/shared/EmptyState.vue'
 import ConfirmDialog from '../../components/shared/ConfirmDialog.vue'
+import ListPagination from '../../components/shared/ListPagination.vue'
 import QuestionBankSection from '../../components/QuestionBankSection.vue'
 
 const route = useRoute()
@@ -451,6 +460,18 @@ const subjectTranslationKeys = {
 
 const bookId = route.params.id
 const book = ref(null)
+const chaptersPage = ref(1)
+const lessonPages = ref({})
+const pageSize = 20
+const pagedChapters = computed(() => (book.value?.chapters || []).slice((chaptersPage.value - 1) * pageSize, chaptersPage.value * pageSize))
+watch(() => Math.ceil((book.value?.chapters?.length || 0) / pageSize), count => { if (chaptersPage.value > count) chaptersPage.value = Math.max(1, count) })
+function pagedLessons(chapter) {
+  const page = lessonPages.value[chapter.id] || 1
+  return (chapter.lessons || []).slice((page - 1) * pageSize, page * pageSize)
+}
+function setLessonPage(chapterId, page) {
+  lessonPages.value[chapterId] = page
+}
 const subjectLabel = computed(() => {
   const key = subjectTranslationKeys[book.value?.subject]
   return key ? t(`booksPage.subjects.${key}`) : book.value?.subject
