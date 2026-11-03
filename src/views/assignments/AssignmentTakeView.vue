@@ -91,7 +91,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../services/api'
 import AppHeader from '../../components/shared/AppHeader.vue'
@@ -111,6 +111,7 @@ const answers = reactive({})
 const selectedDrag = ref(null)
 const now = ref(Date.now())
 let timer = null
+let screenHidden = false
 
 watch(answers, () => {
   if (attemptId.value) localStorage.setItem(`assignment-attempt-${attemptId.value}`, JSON.stringify(answers))
@@ -127,9 +128,38 @@ const timeLabel = computed(() => `${String(Math.floor(remainingSeconds.value / 6
 
 onMounted(async () => {
   timer = window.setInterval(() => { now.value = Date.now() }, 1000)
+  document.addEventListener('visibilitychange', trackScreenVisibility)
   await startAttempt()
 })
-onBeforeUnmount(() => window.clearInterval(timer))
+onBeforeUnmount(() => {
+  window.clearInterval(timer)
+  document.removeEventListener('visibilitychange', trackScreenVisibility)
+})
+
+onBeforeRouteLeave(() => {
+  if (attemptId.value && !result.value && !document.hidden && !screenHidden) {
+    void recordScreenEvent('LEFT')
+  }
+})
+
+function trackScreenVisibility() {
+  if (!attemptId.value || result.value) return
+  if (document.hidden && !screenHidden) {
+    screenHidden = true
+    void recordScreenEvent('HIDDEN')
+  } else if (!document.hidden && screenHidden) {
+    screenHidden = false
+    void recordScreenEvent('RETURNED')
+  }
+}
+
+function recordScreenEvent(event) {
+  if (!attemptId.value) return Promise.resolve()
+  return api(`/assignments/attempts/${attemptId.value}/screen-events`, {
+    method: 'POST',
+    body: { event },
+  }).catch(() => {})
+}
 
 async function startAttempt() {
   loading.value = true
