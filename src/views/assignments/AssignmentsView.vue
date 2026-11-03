@@ -184,7 +184,7 @@
                 <th class="font-weight-black text-secondary">{{ t('assignmentHub.colMeta') }}</th>
                 <th class="font-weight-black text-secondary">{{ t('assignmentHub.colDeadline') }}</th>
                 <th class="font-weight-black text-secondary text-center">{{ isStudent ? t('assignmentHub.colAttempts') : t('assignmentHub.colSubmissions') }}</th>
-                <th class="font-weight-black text-secondary text-end">{{ t('assignmentHub.colActions') }}</th>
+                <th class="font-weight-black text-secondary text-center">{{ t('assignmentHub.colActions') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -203,8 +203,8 @@
                       <div class="font-weight-black text-primary text-body-2 text-truncate" :title="assignment.title">
                         {{ assignment.title }}
                       </div>
-                      <div class="text-caption text-secondary text-truncate" :title="assignment.lesson?.title">
-                        {{ assignment.lesson?.title || 'Bài tập chung' }}
+                      <div class="assignment-lesson text-caption text-secondary" :title="assignment.lesson?.title">
+                        {{ assignment.lesson?.title || assignment.book?.title || 'Bài tập chung' }}
                       </div>
                     </div>
                   </div>
@@ -242,7 +242,7 @@
                       {{ assignment.deadline ? formatDate(assignment.deadline) : t('assignmentHub.noDeadline') }}
                     </div>
                     <div>
-                      <v-chip size="x-small" :color="getDeadlineStatus(assignment).color" :variant="getDeadlineStatus(assignment).variant" class="font-weight-bold">
+                      <v-chip v-if="assignment.deadline" size="x-small" :color="getDeadlineStatus(assignment).color" :variant="getDeadlineStatus(assignment).variant" class="font-weight-bold">
                         {{ getDeadlineStatus(assignment).label }}
                       </v-chip>
                     </div>
@@ -263,12 +263,12 @@
                     <span class="font-weight-black text-body-2 text-primary">
                       {{ assignment._count?.attempts || 0 }}
                     </span>
-                    <span class="text-caption text-secondary"> {{ t('assignmentHub.submissions') }}</span>
+                    <span class="text-caption text-secondary">&nbsp;{{ t('assignmentHub.submissions') }}</span>
                   </div>
                 </td>
 
                 <!-- Cột 6: Thao tác -->
-                <td class="text-end">
+                <td class="text-center">
                   <v-btn
                     v-if="isStudent"
                     color="primary"
@@ -289,9 +289,10 @@
                     size="small"
                     prepend-icon="mdi-clipboard-list-outline"
                     class="font-weight-bold text-none px-3"
+                    title="Bài nộp"
                     @click="openSubmissions(assignment)"
                   >
-                    {{ t('assignmentHub.viewSubmissions') }}
+                    Bài nộp
                   </v-btn>
                 </td>
               </tr>
@@ -327,7 +328,7 @@
                 {{ assignment.title }}
               </h3>
               <p class="card-compact-sub text-truncate text-caption text-secondary mb-3" :title="assignment.lesson?.title">
-                {{ assignment.lesson?.title || 'Bài tập chung' }}<span v-if="isStudent"> &middot; {{ assignment.createdBy?.fullName }}</span>
+                {{ assignment.lesson?.title || assignment.book?.title || 'Bài tập chung' }}<span v-if="isStudent"> &middot; {{ assignment.createdBy?.fullName }}</span>
               </p>
 
               <div class="card-compact-meta pa-2 rounded-lg mb-3">
@@ -418,8 +419,11 @@
           <v-row>
             <v-col cols="12" md="4"><v-select v-model="form.classId" :items="classes" item-title="name" item-value="id" :label="t('assignmentHub.class')" variant="outlined" hide-details /></v-col>
             <v-col cols="12" md="4"><v-select v-model="form.bookId" :items="books" item-title="title" item-value="id" :label="t('assignmentHub.book')" variant="outlined" hide-details @update:model-value="selectBook" /></v-col>
-            <v-col cols="12" md="4"><v-select v-model="form.lessonId" :items="lessons" item-title="title" item-value="id" :label="t('assignmentHub.lesson')" variant="outlined" hide-details :disabled="!form.bookId" @update:model-value="loadQuestions" /></v-col>
+            <v-col cols="12" md="4"><v-select v-model="form.lessonId" :items="lessonOptions" item-title="title" item-value="id" :label="t('assignmentHub.lesson')" variant="outlined" hide-details :disabled="!form.bookId" @update:model-value="loadQuestions" /></v-col>
           </v-row>
+          <v-alert v-if="form.lessonId === 'ALL'" type="info" variant="tonal" density="comfortable" class="mt-3">
+            {{ t('assignmentHub.bookExamHint', { count: form.questionIds.length }) }}
+          </v-alert>
           <div v-if="form.lessonId" class="question-section mb-5">
             <div class="form-section-title"><span>2</span>{{ t('assignmentHub.pickQuestions') }}<v-spacer /><v-chip size="small" color="primary" variant="tonal">{{ t('assignmentHub.selectedCount', { count: form.questionIds.length }) }}</v-chip></div>
             <div v-if="questionsLoading" class="py-8"><v-progress-linear indeterminate color="primary" rounded /></div>
@@ -435,18 +439,21 @@
                 role="checkbox"
                 tabindex="0"
                 :aria-checked="form.questionIds.includes(Number(question.id))"
-                @click="!isDragQuestionIncomplete(question) && toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
-                @keydown.enter.prevent="!isDragQuestionIncomplete(question) && toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
-                @keydown.space.prevent="!isDragQuestionIncomplete(question) && toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
+                @click="form.lessonId !== 'ALL' && !isDragQuestionIncomplete(question) && toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
+                @keydown.enter.prevent="form.lessonId !== 'ALL' && !isDragQuestionIncomplete(question) && toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
+                @keydown.space.prevent="form.lessonId !== 'ALL' && !isDragQuestionIncomplete(question) && toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
               >
                 <v-checkbox
                   :model-value="form.questionIds.includes(Number(question.id))"
-                  :disabled="isDragQuestionIncomplete(question)"
+                  :disabled="form.lessonId === 'ALL' || isDragQuestionIncomplete(question)"
                   :label="question.content"
                   hide-details
                   density="compact"
                   @click.stop="toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
                 />
+                <div v-if="form.lessonId === 'ALL'" class="text-caption text-secondary pb-2">
+                  {{ question.lessonTitle }}
+                </div>
                 <div class="d-flex ga-2 pb-2">
                   <v-chip size="x-small" color="primary" variant="tonal">{{ t(`questionBank.types.${question.type}`) }}</v-chip>
                   <v-chip size="x-small" variant="tonal">{{ t(`questionBank.difficulties.${question.difficulty}`) }}</v-chip>
@@ -467,8 +474,8 @@
         <v-card-actions class="pa-5 pt-0">
           <v-spacer />
           <v-btn variant="text" @click="createDialog = false">{{ t('assignmentHub.cancel') }}</v-btn>
-          <v-btn v-if="!isStudent" variant="tonal" color="primary" prepend-icon="mdi-content-save-outline" :loading="savingTemplate" @click="saveTemplate">{{ t('examBank.saveTemplate') }}</v-btn>
-          <v-btn color="primary" rounded="pill" prepend-icon="mdi-send-outline" :loading="saving" @click="saveAssignment">{{ t('assignmentHub.assign') }}</v-btn>
+          <v-btn v-if="!isStudent && form.lessonId !== 'ALL'" variant="tonal" color="primary" prepend-icon="mdi-content-save-outline" :loading="savingTemplate" @click="saveTemplate">{{ t('examBank.saveTemplate') }}</v-btn>
+          <v-btn color="primary" rounded="pill" prepend-icon="mdi-send-outline" :loading="saving" :disabled="form.lessonId === 'ALL' && form.questionIds.length !== 40" @click="saveAssignment">{{ t('assignmentHub.assign') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -663,6 +670,10 @@ const filteredAssignments = computed(() => {
 const form = reactive({ title: '', classId: null, bookId: null, lessonId: null, questionIds: [], deadline: '', durationMinutes: null, maxAttempts: 0, shuffleQuestions: false, shuffleOptions: false })
 const selectedBook = computed(() => bookDetails.value)
 const lessons = computed(() => (selectedBook.value?.chapters || []).flatMap((chapter) => chapter.lessons.map((lesson) => ({ ...lesson, title: `${chapter.title} · ${lesson.title}` }))))
+const lessonOptions = computed(() => [
+  { id: 'ALL', title: t('assignmentHub.allLessons') },
+  ...lessons.value,
+])
 
 onMounted(async () => {
   await loadData()
@@ -695,7 +706,40 @@ async function loadQuestions() {
   if (!form.lessonId) return
   questionsLoading.value = true
   formError.value = ''
-  try { questions.value = await api(`/lessons/${form.lessonId}/questions`) }
+  try {
+    if (form.lessonId === 'ALL') {
+      const lessonQuestionSets = await Promise.all(lessons.value.map(async (lesson) => ({
+        lesson,
+        questions: await api(`/lessons/${lesson.id}/questions`),
+      })))
+      const pools = lessonQuestionSets.map(({ lesson, questions: lessonQuestions }) => ({
+        lesson,
+        questions: lessonQuestions
+          .filter((question) => !isDragQuestionIncomplete(question))
+          .sort(() => Math.random() - 0.5),
+        cursor: 0,
+      }))
+      const selected = []
+      while (selected.length < 40 && pools.some((pool) => pool.cursor < pool.questions.length)) {
+        for (const pool of pools) {
+          if (selected.length >= 40) break
+          if (pool.cursor < pool.questions.length) {
+            selected.push({
+              ...pool.questions[pool.cursor++],
+              lessonTitle: `${pool.lesson.title}`,
+            })
+          }
+        }
+      }
+      questions.value = selected
+      form.questionIds = selected.map(({ id }) => Number(id))
+      if (selected.length < 40) {
+        formError.value = t('assignmentHub.bookExamInsufficient', { available: selected.length })
+      }
+    } else {
+      questions.value = await api(`/lessons/${form.lessonId}/questions`)
+    }
+  }
   catch (error) { formError.value = error.message }
   finally { questionsLoading.value = false }
 }
@@ -708,6 +752,7 @@ async function selectBook(id) {
 }
 
 function toggleQuestion(id, checked) {
+  if (form.lessonId === 'ALL') return
   const questionId = Number(id)
   form.questionIds = checked
     ? [...new Set([...form.questionIds, questionId])]
@@ -725,7 +770,7 @@ async function saveAssignment() {
     formError.value = t('assignmentHub.deadlinePast')
     return
   }
-  if (!form.classId || !form.lessonId || !form.questionIds.length) {
+  if (!form.classId || !form.lessonId || !form.questionIds.length || (form.lessonId === 'ALL' && form.questionIds.length !== 40)) {
     formError.value = t('assignmentHub.requiredSelection')
     return
   }
@@ -734,9 +779,11 @@ async function saveAssignment() {
     await api('/assignments', {
       method: 'POST',
       body: {
-        title: form.title.trim() || lessons.value.find((lesson) => lesson.id === form.lessonId)?.title || t('assignmentHub.defaultTitle'),
+        title: (form.title.trim() || (form.lessonId === 'ALL' ? `${selectedBook.value?.title} - ${t('assignmentHub.bookExamTitle')}` : lessons.value.find((lesson) => lesson.id === form.lessonId)?.title) || t('assignmentHub.defaultTitle')).slice(0, 150),
         classId: Number(form.classId),
-        lessonId: Number(form.lessonId),
+        ...(form.lessonId === 'ALL'
+          ? { scope: 'BOOK', bookId: Number(form.bookId) }
+          : { scope: 'LESSON', lessonId: Number(form.lessonId) }),
         questionIds: form.questionIds,
         deadline: form.deadline ? new Date(form.deadline).toISOString() : undefined,
         durationMinutes: form.durationMinutes ? Number(form.durationMinutes) : undefined,
@@ -883,12 +930,51 @@ async function openSubmissions(assignment) {
 
 .assignment-table {
   width: 100%;
+  table-layout: fixed;
+}
+
+.assignment-table-card :deep(.v-table__wrapper) {
+  overflow-x: hidden;
+}
+
+/* Keep the six columns predictable so metadata and actions don't wrap unevenly. */
+.assignment-table th:nth-child(1),
+.assignment-table td:nth-child(1) { width: 39%; }
+.assignment-table th:nth-child(2),
+.assignment-table td:nth-child(2) { width: 9%; }
+.assignment-table th:nth-child(3),
+.assignment-table td:nth-child(3) { width: 16%; }
+.assignment-table th:nth-child(4),
+.assignment-table td:nth-child(4) { width: 16%; }
+.assignment-table th:nth-child(5),
+.assignment-table td:nth-child(5) { width: 8%; }
+.assignment-table th:nth-child(6),
+.assignment-table td:nth-child(6) { width: 12%; }
+
+.assignment-table td {
+  vertical-align: middle;
+}
+
+.assignment-table td:nth-child(3) > div {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.assignment-table td:nth-child(5) {
+  white-space: nowrap;
+}
+
+.assignment-lesson {
+  max-width: 38ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .table-header-row th {
   background: #f8fbff;
-  font-size: 0.8rem;
-  padding: 12px 16px !important;
+  font-size: 0.76rem;
+  padding: 12px 9px !important;
   border-bottom: 1.5px solid #e2edfa !important;
   white-space: nowrap;
 }
@@ -902,8 +988,18 @@ async function openSubmissions(assignment) {
 }
 
 .assignment-tr td {
-  padding: 10px 16px !important;
+  padding: 12px 9px !important;
   border-bottom: 1px solid #edf2f9 !important;
+}
+
+.assignment-tr td:last-child :deep(.v-btn) {
+  max-width: 100%;
+  padding-inline: 8px !important;
+  font-size: 0.76rem;
+}
+
+.assignment-tr:last-child td {
+  border-bottom: 0 !important;
 }
 
 /* Compact Grid Card View */

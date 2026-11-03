@@ -14,13 +14,13 @@
     <v-dialog v-model="showDialog" max-width="900" scrollable>
       <v-card class="question-bank-dialog rounded-xl">
         <v-card-title
-          class="d-flex align-center justify-space-between ga-3 pa-5"
+          class="question-bank-heading d-flex align-start justify-space-between ga-3 pa-5"
         >
-          <div>
+          <div class="question-bank-heading-copy">
             <div class="text-overline text-primary font-weight-bold">
               {{ t('questionBank.eyebrow') }}
             </div>
-            <h2 class="text-h6 font-weight-black">{{ lessonTitle }}</h2>
+            <h2 class="question-bank-heading-title text-h6 font-weight-black">{{ lessonTitle }}</h2>
           </div>
           <v-btn
             icon="mdi-close"
@@ -765,6 +765,20 @@ async function deleteQuestion() {
 .question-bank-dialog {
   border: 1px solid #dce7f7;
   box-shadow: 0 16px 40px rgba(30, 64, 120, 0.16);
+}
+
+.question-bank-heading-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.question-bank-heading-title {
+  max-width: 100%;
+  margin: 0;
+  font-size: clamp(1.15rem, 2.4vw, 1.65rem) !important;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .question-list {
