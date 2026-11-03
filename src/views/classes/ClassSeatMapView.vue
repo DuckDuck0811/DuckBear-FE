@@ -120,15 +120,28 @@
                     {{ t('classSeatMap.attemptNumber', { number: attempt.attemptNo }) }} · {{ formatJoinedAt(attempt.startedAt) }}
                     <span v-if="attempt.submittedAt"> · {{ t('classSeatMap.submittedAt') }} {{ formatJoinedAt(attempt.submittedAt) }}</span>
                   </div>
-                  <div v-if="attempt.screenEvents?.length" class="screen-event-list">
-                    <v-chip size="x-small" color="warning" variant="tonal">
-                      {{ t('classSeatMap.screenExitCount', { count: screenExitCount(attempt) }) }}
-                    </v-chip>
-                    <span v-for="event in attempt.screenEvents" :key="event.id">
-                      {{ screenEventLabel(event.action) }} · {{ formatJoinedAt(event.createdAt) }}
-                    </span>
+                  <div v-if="attempt.activityLogs?.length" class="screen-log">
+                    <div class="screen-log-summary">
+                      <v-chip v-if="screenExitCount(attempt)" size="x-small" color="warning" variant="tonal" prepend-icon="mdi-eye-off-outline">
+                        {{ t('classSeatMap.screenExitCount', { count: screenExitCount(attempt) }) }}
+                      </v-chip>
+                      <span v-else class="text-caption text-success">{{ t('classSeatMap.noScreenExit') }}</span>
+                      <v-btn
+                        size="x-small"
+                        variant="text"
+                        color="primary"
+                        :append-icon="isScreenLogExpanded(attempt.id) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                        @click="toggleScreenLog(attempt.id)"
+                      >{{ isScreenLogExpanded(attempt.id) ? t('classSeatMap.hideScreenLog') : t('classSeatMap.showScreenLog') }}</v-btn>
+                    </div>
+                    <div v-if="isScreenLogExpanded(attempt.id)" class="screen-log-details">
+                      <div v-for="event in attempt.activityLogs" :key="event.id" class="screen-log-event">
+                        <span class="screen-log-dot" :class="{ 'screen-log-dot--return': event.action === 'ATTEMPT_SCREEN_RETURNED' }" />
+                        <span class="screen-log-event-label">{{ activityLabel(event.action) }}</span>
+                        <time>{{ formatEventDate(event.createdAt) }}</time>
+                      </div>
+                    </div>
                   </div>
-                  <div v-else class="text-caption text-success mt-1">{{ t('classSeatMap.noScreenExit') }}</div>
                 </div>
                 <v-chip v-if="attempt.score !== null" color="primary" variant="tonal" size="small">{{ attempt.score }}%</v-chip>
                 <v-chip v-else-if="attempt.submittedAt" color="grey" variant="tonal" size="small">{{ t('classSeatMap.notGraded') }}</v-chip>
@@ -161,6 +174,7 @@ const historyLoading = ref(false);
 const historyError = ref('');
 const selectedHistory = ref(null);
 const historyPage = ref(1);
+const expandedScreenLogs = ref({});
 const pageSize = 20;
 const pagedStudents = computed(() => (schoolClass.value?.students || []).slice((studentsPage.value - 1) * pageSize, studentsPage.value * pageSize));
 const pagedStudentAttempts = computed(() => (selectedHistory.value?.attempts || []).slice((historyPage.value - 1) * pageSize, historyPage.value * pageSize));
@@ -185,6 +199,7 @@ async function openStudentHistory(student) {
   historyLoading.value = true;
   historyError.value = '';
   historyPage.value = 1;
+  expandedScreenLogs.value = {};
   selectedHistory.value = { class: schoolClass.value, student, attempts: [] };
   try {
     selectedHistory.value = await api(`/classes/${schoolClass.value.id}/students/${student.id}/attempts`);
@@ -207,13 +222,30 @@ function formatJoinedAt(value) {
 }
 
 function screenExitCount(attempt) {
-  return attempt.screenEvents.filter(event => ['ATTEMPT_SCREEN_HIDDEN', 'ATTEMPT_SCREEN_LEFT'].includes(event.action)).length
+  return attempt.activityLogs.filter(event => ['ATTEMPT_SCREEN_HIDDEN', 'ATTEMPT_SCREEN_LEFT'].includes(event.action)).length
 }
 
-function screenEventLabel(action) {
+function activityLabel(action) {
+  if (action === 'ATTEMPT_STARTED') return t('classSeatMap.activityStarted')
+  if (action === 'ATTEMPT_SUBMITTED') return t('classSeatMap.activitySubmitted')
   if (action === 'ATTEMPT_SCREEN_HIDDEN') return t('classSeatMap.screenHidden')
   if (action === 'ATTEMPT_SCREEN_RETURNED') return t('classSeatMap.screenReturned')
   return t('classSeatMap.screenLeft')
+}
+
+function isScreenLogExpanded(attemptId) {
+  return Boolean(expandedScreenLogs.value[attemptId]);
+}
+
+function toggleScreenLog(attemptId) {
+  expandedScreenLogs.value[attemptId] = !expandedScreenLogs.value[attemptId];
+}
+
+function formatEventDate(value) {
+  return new Intl.DateTimeFormat(locale.value, {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).format(new Date(value));
 }
 
 onMounted(loadClass);
@@ -231,9 +263,17 @@ onMounted(loadClass);
   box-shadow: 0 6px 20px rgba(47, 124, 246, 0.05);
 }
 .student-attempt-list { display: flex; flex-direction: column; }
-.student-attempt-row { display: flex; align-items: center; gap: 14px; padding: 14px 4px; border-bottom: 1px solid #edf2f8; }
+.student-attempt-row { display: flex; align-items: flex-start; gap: 14px; padding: 16px 4px; border-bottom: 1px solid #edf2f8; }
 .student-attempt-row:last-of-type { border-bottom: 0; }
-.screen-event-list { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; color: #8a5a14; font-size: .72rem; }
+.student-attempt-row > .v-chip { flex: none; }
+.screen-log { margin-top: 9px; }
+.screen-log-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.screen-log-details { display: grid; gap: 5px; margin-top: 8px; padding: 9px 11px; border: 1px solid #f5e8ca; border-radius: 10px; background: #fffcf5; }
+.screen-log-event { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 8px; color: #8b6b38; font-size: .73rem; }
+.screen-log-dot { width: 7px; height: 7px; border-radius: 50%; background: #e5a538; }
+.screen-log-dot--return { background: #36a879; }
+.screen-log-event-label { min-width: 0; }
+.screen-log-event time { color: #8a93a2; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 .class-summary,
 .class-identity {

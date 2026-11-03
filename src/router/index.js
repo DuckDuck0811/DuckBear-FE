@@ -80,6 +80,12 @@ const routes = [
     meta: { roles: ["TEACHER", "STUDENT"] },
   },
   {
+    path: "/activity-log",
+    name: "activity-log",
+    component: () => import("../views/assignments/ActivityLogView.vue"),
+    meta: { roles: ["TEACHER"] },
+  },
+  {
     path: "/assignments/:id/do",
     name: "assignment-take",
     component: () => import("../views/assignments/AssignmentTakeView.vue"),
@@ -103,7 +109,7 @@ const router = createRouter({
 });
 
 // Navigation Guard
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const token = localStorage.getItem("accessToken");
   let user = null;
   try {
@@ -114,14 +120,13 @@ router.beforeEach((to, from, next) => {
   const landingPath = user?.role === "STUDENT" ? "/student" : "/";
 
   if (to.path !== "/login" && !to.path.startsWith("/register") && !token) {
-    next("/login");
+    return "/login";
   } else if ((to.path === "/login" || to.path.startsWith("/register")) && token) {
-    next(landingPath);
+    return landingPath;
   } else if (to.meta.roles && !to.meta.roles.includes(user?.role)) {
-    next(landingPath);
-  } else {
-    next();
+    return landingPath;
   }
+  return true;
 });
 
 export default router;
