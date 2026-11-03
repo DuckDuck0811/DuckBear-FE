@@ -189,7 +189,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="assignment in filteredAssignments"
+                v-for="assignment in pagedAssignments"
                 :key="assignment.id"
                 class="assignment-tr"
               >
@@ -298,12 +298,13 @@
               </tr>
             </tbody>
           </v-table>
+          <ListPagination v-model="assignmentsPage" :total="filteredAssignments.length" />
         </v-card>
 
         <!-- CHẾ ĐỘ 2: XEM THẺ LƯỚI THU GỌN (COMPACT GRID VIEW - 3 ĐẾN 4 CỘT) -->
         <v-row v-else-if="assignments.length && filteredAssignments.length && viewMode === 'grid'">
           <v-col
-            v-for="assignment in filteredAssignments"
+            v-for="assignment in pagedAssignments"
             :key="assignment.id"
             cols="12"
             sm="6"
@@ -374,6 +375,7 @@
               </div>
             </v-card>
           </v-col>
+          <v-col cols="12"><ListPagination v-model="assignmentsPage" :total="filteredAssignments.length" /></v-col>
         </v-row>
 
         <!-- Trạng thái không tìm thấy bài tập khi lọc -->
@@ -599,7 +601,7 @@
 
                 <!-- Dòng câu hỏi siêu gọn (Compact Question Row) -->
                 <div
-                  v-for="(question, index) in filteredQuestions"
+                  v-for="(question, index) in pagedQuestions"
                   :key="question.id"
                   class="question-row-compact d-flex align-start pa-2 px-3 mb-1 rounded-lg"
                   :class="{
@@ -618,7 +620,7 @@
                       @click.stop="toggleQuestion(question.id, !form.questionIds.includes(Number(question.id)))"
                     />
                     <span class="question-stt-badge flex-shrink-0">
-                      #{{ index + 1 }}
+                      #{{ (questionPage - 1) * questionPageSize + index + 1 }}
                     </span>
                     <div class="question-row-content min-w-0 flex-grow-1">
                       <div class="question-text text-body-2 font-weight-medium text-slate-800" :title="question.content">
@@ -645,6 +647,7 @@
               </div>
             </div>
           </div>
+          <ListPagination v-model="questionPage" :total="filteredQuestions.length" :page-size="questionPageSize" />
           <div class="form-section-title"><span>{{ form.lessonId ? 3 : 2 }}</span>{{ t('assignmentHub.conditions') }}</div>
           <v-row>
             <v-col cols="12" md="6"><v-text-field v-model="form.deadline" type="datetime-local" :min="minDeadline" :label="t('assignmentHub.deadlineOptional')" :hint="t('assignmentHub.deadlineHint')" persistent-hint variant="outlined" /></v-col>
@@ -678,8 +681,9 @@
           <div v-else-if="!submissionDetails?.attempts?.length" class="text-body-2 text-secondary py-6 text-center">
             {{ t('assignmentHub.noSubmissions') }}
           </div>
-          <v-expansion-panels v-else variant="accordion">
-            <v-expansion-panel v-for="attempt in submissionDetails.attempts" :key="attempt.id">
+          <div v-else>
+          <v-expansion-panels variant="accordion">
+            <v-expansion-panel v-for="attempt in pagedSubmissionAttempts" :key="attempt.id">
               <v-expansion-panel-title>
                 <div class="d-flex flex-wrap align-center ga-3">
                   <strong>{{ attempt.student.fullName }}</strong>
@@ -699,6 +703,8 @@
               </v-expansion-panel-text>
             </v-expansion-panel>
           </v-expansion-panels>
+          <ListPagination v-model="submissionPage" :total="submissionDetails.attempts.length" />
+          </div>
         </v-card-text>
         <v-card-actions class="pa-5 pt-0">
           <v-spacer />
@@ -718,6 +724,7 @@ import { useAuthStore } from '../../stores/auth'
 import AppHeader from '../../components/shared/AppHeader.vue'
 import TeacherSidebar from '../../components/shared/TeacherSidebar.vue'
 import StudentSidebar from '../../components/shared/StudentSidebar.vue'
+import ListPagination from '../../components/shared/ListPagination.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -733,10 +740,14 @@ const submissionsDialog = ref(false)
 const loadingSubmissions = ref(false)
 const selectedAssignment = ref(null)
 const submissionDetails = ref(null)
+const submissionPage = ref(1)
+const submissionPageSize = 20
 const errorMessage = ref('')
 const formError = ref('')
 const formSuccess = ref('')
 const assignments = ref([])
+const assignmentsPage = ref(1)
+const assignmentPageSize = 20
 const classes = ref([])
 const books = ref([])
 const bookDetails = ref(null)
@@ -755,6 +766,8 @@ const questionSearchQuery = ref('')
 const questionTypeFilter = ref('ALL')
 const questionDifficultyFilter = ref('ALL')
 const questionSelectionFilter = ref('ALL')
+const questionPage = ref(1)
+const questionPageSize = 20
 
 function setViewMode(mode) {
   viewMode.value = mode
@@ -793,6 +806,11 @@ const filteredQuestions = computed(() => {
   if (questionSelectionFilter.value === 'SELECTED') list = list.filter(qn => form.questionIds.includes(Number(qn.id)))
   if (questionSelectionFilter.value === 'UNSELECTED') list = list.filter(qn => !form.questionIds.includes(Number(qn.id)))
   return list
+})
+const pagedQuestions = computed(() => filteredQuestions.value.slice((questionPage.value - 1) * questionPageSize, questionPage.value * questionPageSize))
+watch([questionSearchQuery, questionTypeFilter, questionDifficultyFilter, questionSelectionFilter], () => { questionPage.value = 1 })
+watch(() => Math.ceil(filteredQuestions.value.length / questionPageSize), pageCount => {
+  if (questionPage.value > pageCount) questionPage.value = Math.max(1, pageCount)
 })
 
 const selectedTypeSummary = computed(() => {
@@ -944,6 +962,12 @@ const filteredAssignments = computed(() => {
   }
 
   return list
+})
+const pagedAssignments = computed(() => filteredAssignments.value.slice((assignmentsPage.value - 1) * assignmentPageSize, assignmentsPage.value * assignmentPageSize))
+const pagedSubmissionAttempts = computed(() => (submissionDetails.value?.attempts || []).slice((submissionPage.value - 1) * submissionPageSize, submissionPage.value * submissionPageSize))
+watch([searchQuery, selectedClassFilter, statusFilter], () => { assignmentsPage.value = 1 })
+watch(() => Math.ceil(filteredAssignments.value.length / assignmentPageSize), pageCount => {
+  if (assignmentsPage.value > pageCount) assignmentsPage.value = Math.max(1, pageCount)
 })
 
 const form = reactive({ title: '', classId: null, bookId: null, lessonId: null, questionIds: [], deadline: '', durationMinutes: null, maxAttempts: 0, shuffleQuestions: false, shuffleOptions: false })
@@ -1163,6 +1187,7 @@ function openCreateDialog() {
 async function openSubmissions(assignment) {
   selectedAssignment.value = assignment
   submissionDetails.value = null
+  submissionPage.value = 1
   submissionsDialog.value = true
   loadingSubmissions.value = true
   try { submissionDetails.value = await api(`/assignments/${assignment.id}`) }

@@ -20,7 +20,7 @@
       </v-alert>
 
       <v-row v-else-if="classes.length">
-        <v-col v-for="schoolClass in classes" :key="schoolClass.id" cols="12" sm="6">
+        <v-col v-for="schoolClass in pagedClasses" :key="schoolClass.id" cols="12" sm="6">
           <v-card to="/classes" class="student-class-card pa-5 h-100" rounded="xl">
             <div class="d-flex align-center justify-space-between mb-4">
               <v-avatar color="success" variant="tonal"><v-icon icon="mdi-google-classroom" /></v-avatar>
@@ -37,6 +37,7 @@
             </div>
           </v-card>
         </v-col>
+        <v-col cols="12"><ListPagination v-model="classesPage" :total="classes.length" /></v-col>
       </v-row>
 
       <v-card v-else-if="!isLoading" class="student-empty pa-7 text-center" rounded="xl">
@@ -60,8 +61,9 @@
             <p class="text-caption text-secondary mb-0">{{ t('studentDashboard.requestSubtitle') }}</p>
           </div>
         </div>
-        <v-list v-if="pendingRequests.length" density="compact" class="pa-0">
-          <v-list-item v-for="request in pendingRequests" :key="request.id" class="px-0">
+        <div v-if="pendingRequests.length">
+        <v-list density="compact" class="pa-0">
+          <v-list-item v-for="request in pagedRequests" :key="request.id" class="px-0">
             <v-list-item-title class="font-weight-bold">{{ request.class.name }}</v-list-item-title>
             <v-list-item-subtitle>{{ t('studentDashboard.grade', { grade: request.class.gradeLevel }) }}</v-list-item-subtitle>
             <template #append>
@@ -69,6 +71,8 @@
             </template>
           </v-list-item>
         </v-list>
+        <ListPagination v-model="requestsPage" :total="pendingRequests.length" />
+        </div>
         <div v-else class="text-body-2 text-secondary">{{ t('studentDashboard.noRequests') }}</div>
       </v-card>
 
@@ -87,9 +91,11 @@
 </template>
 
 <script setup>
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ListPagination from '../shared/ListPagination.vue'
 
-defineProps({
+const props = defineProps({
   classes: { type: Array, default: () => [] },
   pendingRequests: { type: Array, default: () => [] },
   isLoading: { type: Boolean, default: false },
@@ -98,6 +104,13 @@ defineProps({
 
 defineEmits(['retry'])
 const { t } = useI18n()
+const classesPage = ref(1)
+const requestsPage = ref(1)
+const pageSize = 20
+const pagedClasses = computed(() => props.classes.slice((classesPage.value - 1) * pageSize, classesPage.value * pageSize))
+const pagedRequests = computed(() => props.pendingRequests.slice((requestsPage.value - 1) * pageSize, requestsPage.value * pageSize))
+watch(() => Math.ceil(props.classes.length / pageSize), count => { if (classesPage.value > count) classesPage.value = Math.max(1, count) })
+watch(() => Math.ceil(props.pendingRequests.length / pageSize), count => { if (requestsPage.value > count) requestsPage.value = Math.max(1, count) })
 </script>
 
 <style scoped>

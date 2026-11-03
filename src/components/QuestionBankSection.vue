@@ -281,7 +281,7 @@
             />
             <div v-if="!isLoading && questions.length" class="question-list">
               <v-card
-                v-for="question in questions"
+                v-for="question in pagedQuestions"
                 :key="question.id"
                 class="question-item pa-4"
                 rounded="lg"
@@ -357,6 +357,7 @@
                   </div>
                 </div>
               </v-card>
+              <ListPagination v-model="questionPage" :total="questions.length" />
             </div>
             <v-card
               v-else-if="!isLoading"
@@ -390,10 +391,11 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { api } from '../services/api';
 import ConfirmDialog from './shared/ConfirmDialog.vue';
+import ListPagination from './shared/ListPagination.vue';
 
 const props = defineProps({
   lessonId: { type: [Number, String], required: true },
@@ -413,6 +415,12 @@ const showEditor = ref(false);
 const showGenerator = ref(false);
 const showDeleteConfirm = ref(false);
 const questions = ref([]);
+const questionPage = ref(1);
+const pageSize = 20;
+const pagedQuestions = computed(() => questions.value.slice((questionPage.value - 1) * pageSize, questionPage.value * pageSize));
+watch(() => Math.ceil(questions.value.length / pageSize), pageCount => {
+  if (questionPage.value > pageCount) questionPage.value = Math.max(1, pageCount);
+});
 const generatedQuestions = ref([]);
 const questionToDelete = ref(null);
 const editingQuestion = ref(null);

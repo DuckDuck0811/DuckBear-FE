@@ -65,10 +65,10 @@
               }"
             >
               <article
-                v-for="(student, index) in schoolClass.students"
+                v-for="(student, index) in pagedStudents"
                 :key="student.id"
                 class="seat-item"
-                :aria-label="t('classSeatMap.seatDescription', { seat: index + 1, name: student.fullName })"
+                :aria-label="t('classSeatMap.seatDescription', { seat: (studentsPage - 1) * pageSize + index + 1, name: student.fullName })"
               >
                 <div class="desk-card">
                   <div class="student-name">{{ student.fullName }}</div>
@@ -86,6 +86,7 @@
               <h2 class="text-h6 font-weight-black mb-2">{{ t('classSeatMap.emptyTitle') }}</h2>
               <p class="text-body-2 text-secondary mb-0">{{ t('classSeatMap.emptyBody') }}</p>
             </v-card>
+            <ListPagination v-model="studentsPage" :total="schoolClass.students.length" :page-size="pageSize" />
 
           </section>
         </template>
@@ -95,16 +96,21 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { api } from "../../services/api";
 import AppHeader from "../../components/shared/AppHeader.vue";
 import TeacherSidebar from "../../components/shared/TeacherSidebar.vue";
+import ListPagination from "../../components/shared/ListPagination.vue";
 
 const route = useRoute();
 const { t, locale } = useI18n();
 const schoolClass = ref(null);
+const studentsPage = ref(1);
+const pageSize = 20;
+const pagedStudents = computed(() => (schoolClass.value?.students || []).slice((studentsPage.value - 1) * pageSize, studentsPage.value * pageSize));
+watch(() => Math.ceil((schoolClass.value?.students.length || 0) / pageSize), count => { if (studentsPage.value > count) studentsPage.value = Math.max(1, count); });
 const isLoading = ref(false);
 const errorMessage = ref("");
 

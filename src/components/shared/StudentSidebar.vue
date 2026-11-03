@@ -62,7 +62,7 @@ const items = [
   { label: "studentSidebar.curriculum", icon: "mdi-bookshelf", to: "/", match: ["books", "book-detail", "lesson-detail"] },
   { label: "studentSidebar.assignments", icon: "mdi-clipboard-text-outline", to: "/assignments", match: ["assignments"] },
   { label: "studentSidebar.schedule", icon: "mdi-calendar-week-outline", to: "/schedule", match: ["schedule"] },
-  { label: "studentSidebar.results", icon: "mdi-chart-box-outline" },
+  { label: "studentSidebar.results", icon: "mdi-chart-box-outline", to: "/results", match: ["results"] },
   { label: "studentSidebar.chatbot", icon: "mdi-robot-outline" },
   { label: "studentSidebar.profile", icon: "mdi-account-circle-outline", to: "/profile", match: ["profile"] },
 ];

@@ -410,6 +410,28 @@
     "chatbot": "AI learning assistant",
     "profile": "Profile"
   },
+  "attemptHistory": {
+    "eyebrow": "Learning results",
+    "title": "Attempt history",
+    "subtitle": "Review the time, attempt number, and score for each assignment.",
+    "total": "Total attempts",
+    "completed": "Completed",
+    "average": "Average score",
+    "records": "Your attempts",
+    "all": "All statuses",
+    "attemptNo": "Attempt {number}",
+    "started": "Started:",
+    "submitted": "Submitted:",
+    "inProgress": "In progress",
+    "score": "{score}%",
+    "notGraded": "Not graded",
+    "continue": "Continue",
+    "emptyTitle": "No attempt history yet",
+    "emptyBody": "Completed assignments will appear here.",
+    "goAssignments": "View assignments",
+    "loadError": "Could not load attempt history. Please try again.",
+    "pageSummary": "Showing {from}–{to} of {total} attempts"
+  },
   "schedule": {
     "eyebrow": "STUDY PLANNER",
     "title": "Study calendar",
