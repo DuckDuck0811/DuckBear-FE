@@ -304,7 +304,6 @@
               <v-expansion-panels
                 v-else
                 v-model="expandedBooks"
-                multiple
                 variant="accordion"
                 class="curriculum-tree"
               >
@@ -366,12 +365,12 @@
                         <button
                           type="button"
                           class="chapter-toggle"
-                          :aria-expanded="expandedChapters.includes(chapter.id)"
-                          @click="toggleChapter(chapter.id)"
+                          :aria-expanded="expandedChapters.includes(chapterKey(book, chapter))"
+                          @click.stop="toggleChapter(book, chapter)"
                         >
                           <v-icon
                             :icon="
-                              expandedChapters.includes(chapter.id)
+                              expandedChapters.includes(chapterKey(book, chapter))
                                 ? 'mdi-chevron-down'
                                 : 'mdi-chevron-right'
                             "
@@ -407,7 +406,7 @@
                           >{{ t("schedule.assign") }}</v-btn
                         >
                         <div
-                          v-if="expandedChapters.includes(chapter.id)"
+                          v-if="expandedChapters.includes(chapterKey(book, chapter))"
                           class="lesson-list"
                         >
                           <div
@@ -848,7 +847,7 @@
               <!-- Danh sách bài Sắp đến hạn -->
               <div v-if="upcomingDisplayEvents.length" class="agenda-section upcoming-section">
                 <div class="agenda-section-title">
-                  <div class="d-flex align-center gap-1">
+                  <div class="upcoming-section-label">
                     <v-icon icon="mdi-clock-fast" size="15" color="warning" />
                     <span>{{ t("schedule.upcomingAssignmentsTitle") }}</span>
                   </div>
@@ -1144,12 +1143,12 @@
                   <button
                     type="button"
                     class="chapter-toggle"
-                    :aria-expanded="expandedChapters.includes(chapter.id)"
-                    @click="toggleChapter(chapter.id)"
+                    :aria-expanded="expandedChapters.includes(chapterKey(book, chapter))"
+                    @click.stop="toggleChapter(book, chapter)"
                   >
                     <v-icon
                       :icon="
-                        expandedChapters.includes(chapter.id)
+                        expandedChapters.includes(chapterKey(book, chapter))
                           ? 'mdi-chevron-down'
                           : 'mdi-chevron-right'
                       "
@@ -1183,7 +1182,7 @@
                     >{{ t("schedule.assign") }}</v-btn
                   >
                   <div
-                    v-if="expandedChapters.includes(chapter.id)"
+                    v-if="expandedChapters.includes(chapterKey(book, chapter))"
                     class="lesson-list"
                   >
                     <div
@@ -1656,7 +1655,7 @@ const curriculumLoading = ref(false);
 const curriculumError = ref("");
 const curriculumBooks = ref([]);
 const curriculumSearch = ref("");
-const expandedBooks = ref([]);
+const expandedBooks = ref(null);
 const expandedChapters = ref([]);
 const draggedCurriculum = ref(null);
 const keyboardLesson = ref(null);
@@ -1697,40 +1696,41 @@ const chapterLessonCount = computed(
   () => curriculumSelection.value?.chapter?.lessons?.length || 0,
 );
 const filteredBooks = computed(() => {
-  const query = curriculumSearch.value.trim().toLocaleLowerCase();
+  const query = String(curriculumSearch.value || "").trim().toLocaleLowerCase();
   if (!query) return curriculumBooks.value;
-  return curriculumBooks.value.filter(
-    (book) =>
-      book.title.toLocaleLowerCase().includes(query) ||
-      (book.chapters || []).some(
-        (chapter) =>
-          chapter.title.toLocaleLowerCase().includes(query) ||
-          (chapter.lessons || []).some((lesson) =>
-            lesson.title.toLocaleLowerCase().includes(query),
-          ),
-      ),
-  );
+  return curriculumBooks.value.filter((book) => {
+    const bookTitle = String(book?.title || "").toLocaleLowerCase();
+    if (bookTitle.includes(query)) return true;
+    return (book?.chapters || []).some((chapter) => {
+      const chapterTitle = String(chapter?.title || "").toLocaleLowerCase();
+      if (chapterTitle.includes(query)) return true;
+      return (chapter?.lessons || []).some((lesson) =>
+        String(lesson?.title || "").toLocaleLowerCase().includes(query),
+      );
+    });
+  });
 });
 
 function filteredChapters(book) {
-  const query = curriculumSearch.value.trim().toLocaleLowerCase();
-  if (!query) return book.chapters || [];
-  return (book.chapters || []).filter(
-    (chapter) =>
-      chapter.title.toLocaleLowerCase().includes(query) ||
-      book.title.toLocaleLowerCase().includes(query) ||
-      (chapter.lessons || []).some((lesson) =>
-        lesson.title.toLocaleLowerCase().includes(query),
-      ),
-  );
+  const query = String(curriculumSearch.value || "").trim().toLocaleLowerCase();
+  const chapters = Array.isArray(book?.chapters) ? book.chapters : [];
+  if (!query) return chapters;
+  return chapters.filter((chapter) => {
+    const chapterTitle = String(chapter?.title || "").toLocaleLowerCase();
+    if (chapterTitle.includes(query)) return true;
+    return (chapter?.lessons || []).some((lesson) =>
+      String(lesson?.title || "").toLocaleLowerCase().includes(query),
+    );
+  });
 }
 
 function filteredLessons(chapter) {
-  const query = curriculumSearch.value.trim().toLocaleLowerCase();
-  if (!query || chapter.title.toLocaleLowerCase().includes(query))
-    return chapter.lessons || [];
-  return (chapter.lessons || []).filter((lesson) =>
-    lesson.title.toLocaleLowerCase().includes(query),
+  const query = String(curriculumSearch.value || "").trim().toLocaleLowerCase();
+  const lessons = Array.isArray(chapter?.lessons) ? chapter.lessons : [];
+  if (!query || String(chapter?.title || "").toLocaleLowerCase().includes(query))
+    return lessons;
+  return lessons.filter((lesson) =>
+    String(lesson?.title || "").toLocaleLowerCase().includes(query),
   );
 }
 
@@ -2118,14 +2118,25 @@ function handleCalendarKeydown(day) {
   openDayDetailForSelection();
 }
 
-function toggleChapter(chapterId) {
-  expandedChapters.value = expandedChapters.value.includes(chapterId)
-    ? expandedChapters.value.filter((id) => id !== chapterId)
-    : [...expandedChapters.value, chapterId];
+function chapterKey(book, chapter) {
+  return `${book.id}:${chapter.id}`;
+}
+
+function toggleChapter(book, chapter) {
+  const key = chapterKey(book, chapter);
+  expandedChapters.value = expandedChapters.value.includes(key)
+    ? []
+    : [key];
 }
 
 function startCurriculumDrag(event, selection) {
   if (isMobile.value) {
+    event.preventDefault();
+    return;
+  }
+  // The chapter row itself is draggable for assignment, but clicking its
+  // expand button must never start a drag (which fades the whole row).
+  if (event.target.closest("button, .v-btn")) {
     event.preventDefault();
     return;
   }
@@ -2707,10 +2718,15 @@ onMounted(() => {
 onUnmounted(() => window.removeEventListener("resize", syncMobileViewport));
 
 watch(curriculumSearch, (query) => {
-  if (!query?.trim()) return;
-  expandedBooks.value = filteredBooks.value.map((book) => book.id);
+  if (!query?.trim()) {
+    expandedBooks.value = null;
+    expandedChapters.value = [];
+    return;
+  }
+
+  expandedBooks.value = filteredBooks.value[0]?.id ?? null;
   expandedChapters.value = filteredBooks.value.flatMap((book) =>
-    filteredChapters(book).map((chapter) => chapter.id),
+    filteredChapters(book).slice(0, 1).map((chapter) => chapterKey(book, chapter)),
   );
 });
 </script>
@@ -2943,7 +2959,7 @@ watch(curriculumSearch, (query) => {
 }
 
 .teacher-workspace.day-detail-expanded {
-  grid-template-columns: minmax(230px, 260px) minmax(0, 1fr) minmax(240px, 270px);
+  grid-template-columns: minmax(230px, 260px) minmax(0, 1fr) minmax(280px, 310px);
 }
 
 .teacher-workspace.curriculum-collapsed {
@@ -2951,7 +2967,7 @@ watch(curriculumSearch, (query) => {
 }
 
 .teacher-workspace.curriculum-collapsed.day-detail-expanded {
-  grid-template-columns: 50px minmax(0, 1fr) minmax(240px, 270px);
+  grid-template-columns: 50px minmax(0, 1fr) minmax(280px, 310px);
 }
 .curriculum-collapsed .curriculum-heading {
   justify-content: center;
@@ -2964,7 +2980,7 @@ watch(curriculumSearch, (query) => {
 .curriculum-sidebar {
   position: sticky;
   top: 76px;
-  height: calc(100vh - 92px);
+  height: fit-content;
   max-height: calc(100vh - 92px);
   display: flex;
   flex-direction: column;
@@ -2992,7 +3008,9 @@ watch(curriculumSearch, (query) => {
 
 .day-detail-panel .agenda-heading {
   flex: 0 0 auto;
-  padding: 10px 14px 8px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 8px;
   margin-bottom: 0;
   border-bottom: 1px solid #edf2fa;
 }
@@ -3000,22 +3018,26 @@ watch(curriculumSearch, (query) => {
 .day-detail-heading-copy {
   min-width: 0;
   flex: 1 1 auto;
+  overflow: hidden;
 }
 
 .day-detail-actions {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 2px;
+  gap: 0;
 }
 
 .day-detail-panel .agenda-eyebrow {
-  font-size: 0.68rem;
+  overflow: hidden;
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .day-detail-panel .agenda-heading h2 {
   overflow: hidden;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3071,9 +3093,9 @@ watch(curriculumSearch, (query) => {
   flex-direction: column;
   justify-content: flex-start;
   align-content: flex-start;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
-  max-height: none;
+  max-height: calc(100vh - 210px);
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0 6px 8px;
@@ -3572,23 +3594,29 @@ watch(curriculumSearch, (query) => {
   letter-spacing: 0.04em;
 }
 
+.upcoming-section-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .upcoming-section {
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
   border-top: 1px dashed #e2eaf5;
 }
 
 .upcoming-events-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .upcoming-event-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 8px;
+  padding: 8px 10px;
   border: 1px solid #e7eef8;
   border-radius: 8px;
   background: #fff;
