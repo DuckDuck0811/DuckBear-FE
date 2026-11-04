@@ -267,7 +267,7 @@
               sm="6"
               lg="4"
             >
-              <v-card class="pa-5 h-100 shub-card">
+              <v-card class="pa-5 h-100 shub-card class-card-link" role="link" tabindex="0" @click="openStudentClass(schoolClass)" @keydown.enter="openStudentClass(schoolClass)" @keydown.space.prevent="openStudentClass(schoolClass)">
                 <v-avatar color="success" variant="tonal" class="mb-3"
                   ><v-icon icon="mdi-book-account-outline"
                 /></v-avatar>
@@ -552,6 +552,10 @@ async function copyJoinCode(code) {
 
 function openClass(schoolClass) {
   router.push(`/classes/${schoolClass.id}`);
+}
+
+function openStudentClass(schoolClass) {
+  router.push(`/classes/${schoolClass.id}/manual-assignments`);
 }
 
 onMounted(() => {

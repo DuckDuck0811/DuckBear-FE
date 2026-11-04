@@ -44,9 +44,14 @@
                   </p>
                 </div>
               </div>
-              <v-chip color="primary" variant="tonal" prepend-icon="mdi-account-group-outline">
-                {{ t('classSeatMap.studentCount', { count: schoolClass.studentCount }) }}
-              </v-chip>
+              <div class="class-header-actions">
+                <v-chip color="primary" variant="tonal" prepend-icon="mdi-account-group-outline">
+                  {{ t('classSeatMap.studentCount', { count: schoolClass.studentCount }) }}
+                </v-chip>
+                <v-btn :to="`/classes/${schoolClass.id}/manual-assignments`" color="primary" variant="tonal" rounded="pill" prepend-icon="mdi-clipboard-edit-outline">
+                  {{ t('classManualAssignments.open') }}
+                </v-btn>
+              </div>
             </div>
           </v-card>
 
@@ -285,6 +290,7 @@ onMounted(loadClass);
   justify-content: space-between;
   gap: 20px;
 }
+.class-header-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 
 .class-identity {
   min-width: 0;
@@ -445,6 +451,8 @@ onMounted(loadClass);
     flex-direction: column;
     gap: 12px;
   }
+
+  .class-header-actions { width: 100%; }
 
   .class-identity {
     align-items: flex-start;

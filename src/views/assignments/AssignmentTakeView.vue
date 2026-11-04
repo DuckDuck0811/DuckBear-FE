@@ -80,6 +80,13 @@
             </div>
             <v-alert v-else-if="item.question.type === 'DRAG_DROP'" type="warning" variant="tonal" density="comfortable">{{ t('questionBank.noDragData') }}</v-alert>
             <v-textarea v-else v-model="answers[item.question.id].answerText" :label="item.question.type === 'FILL' ? t('assignmentHub.yourAnswer') : t('assignmentHub.writeAnswer')" variant="outlined" rows="2" auto-grow hide-details />
+            <template v-if="item.question.type === 'ESSAY'">
+              <v-file-input :label="t('assignmentHub.attachWork')" accept="image/png,image/jpeg,image/webp" prepend-icon="mdi-camera-outline" variant="outlined" density="compact" hide-details class="mt-4" @update:model-value="file => handleAnswerImage(item.question.id, file)" />
+              <div v-if="answers[item.question.id].imageUrl" class="attached-work mt-3">
+                <v-img :src="answers[item.question.id].imageUrl" :alt="t('assignmentHub.attachedWork')" max-height="240" width="100%" cover rounded="lg" />
+                <v-btn size="small" variant="text" color="error" prepend-icon="mdi-delete-outline" class="mt-1" @click="answers[item.question.id].imageUrl = null">{{ t('assignmentHub.removeAttachment') }}</v-btn>
+              </div>
+            </template>
           </v-card>
 
           <div class="d-flex justify-end"><v-btn color="primary" size="large" prepend-icon="mdi-send" :loading="submitting" @click="submitAttempt">{{ t('assignmentHub.submit') }}</v-btn></div>
@@ -112,6 +119,7 @@ const selectedDrag = ref(null)
 const now = ref(Date.now())
 let timer = null
 let screenHidden = false
+const maxImageBytes = 2 * 1024 * 1024
 
 watch(answers, () => {
   if (attemptId.value) localStorage.setItem(`assignment-attempt-${attemptId.value}`, JSON.stringify(answers))
@@ -171,7 +179,7 @@ async function startAttempt() {
     startedAt.value = started.startedAt
     assignment.value = started.assignment
     for (const { question } of assignment.value.questions) {
-      answers[question.id] = { selectedOptionId: null, selectedOptionIds: [], answerText: '', matchAnswers: {}, dropTargets: {} }
+      answers[question.id] = { selectedOptionId: null, selectedOptionIds: [], answerText: '', imageUrl: null, matchAnswers: {}, dropTargets: {} }
     }
     try {
       const saved = JSON.parse(localStorage.getItem(`assignment-attempt-${attemptId.value}`) || '{}')
@@ -190,6 +198,39 @@ function toggleOption(questionId, optionId, checked) {
   const selected = new Set(answers[questionId].selectedOptionIds)
   checked ? selected.add(optionId) : selected.delete(optionId)
   answers[questionId].selectedOptionIds = [...selected]
+}
+
+function handleAnswerImage(questionId, selection) {
+  const file = Array.isArray(selection) ? selection[0] : selection
+  if (!file) return
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+    errorMessage.value = t('assignmentHub.imageTypeError')
+    return
+  }
+  if (file.size > maxImageBytes) {
+    errorMessage.value = t('assignmentHub.imageSizeError')
+    return
+  }
+  const otherImageBytes = Object.entries(answers).reduce((total, [id, answer]) => {
+    if (Number(id) === Number(questionId) || !answer.imageUrl) return total
+    return total + estimatedDataUrlBytes(answer.imageUrl)
+  }, 0)
+  if (otherImageBytes + file.size > maxImageBytes) {
+    errorMessage.value = t('assignmentHub.imageTotalSizeError')
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = () => {
+    answers[questionId].imageUrl = String(reader.result)
+    errorMessage.value = ''
+  }
+  reader.onerror = () => { errorMessage.value = t('assignmentHub.imageReadError') }
+  reader.readAsDataURL(file)
+}
+
+function estimatedDataUrlBytes(value) {
+  const base64 = String(value).split(',')[1] || ''
+  return Math.floor(base64.length * 3 / 4) - (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0)
 }
 
 function displayOptionContent(type, content) {
@@ -248,6 +289,7 @@ async function submitAttempt() {
               ? [answers[question.id].selectedOptionId]
               : [],
           answerText: answers[question.id].answerText || undefined,
+          imageUrl: answers[question.id].imageUrl || undefined,
           matchAnswers: question.type === 'MATCHING' ? answers[question.id].matchAnswers : undefined,
         })),
       },
