@@ -18,7 +18,13 @@
           <div class="profile-hero-content">
             <div class="avatar-wrap">
               <v-avatar size="92" class="profile-avatar" color="white">
-                <v-img v-if="avatarUrl" :src="avatarUrl" :alt="profile.fullName" cover />
+                <v-img
+                  v-if="showAvatarImage"
+                  :src="avatarUrl"
+                  :alt="profile.fullName"
+                  cover
+                  @error="failedAvatarUrl = avatarUrl"
+                />
                 <span v-else class="text-h3 font-weight-black text-primary">{{ initials }}</span>
               </v-avatar>
               <span class="avatar-status" />
@@ -110,6 +116,8 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 const avatarInput = ref(null)
 const avatarUrl = ref(null)
+const failedAvatarUrl = ref(null)
+const showAvatarImage = computed(() => Boolean(avatarUrl.value) && failedAvatarUrl.value !== avatarUrl.value)
 const loading = ref(false)
 const savingProfile = ref(false)
 const savingPassword = ref(false)
@@ -147,6 +155,7 @@ async function loadProfile() {
     profile.fullName = user.fullName || ''
     profile.email = user.email || ''
     avatarUrl.value = user.avatarUrl || null
+    failedAvatarUrl.value = null
   } catch (error) {
     pageError.value = error.message
   } finally {
@@ -169,6 +178,7 @@ function handleAvatarFile(event) {
   const reader = new FileReader()
   reader.onload = () => {
     avatarUrl.value = String(reader.result)
+    failedAvatarUrl.value = null
     profileError.value = ''
     profileSuccess.value = ''
   }
@@ -178,6 +188,7 @@ function handleAvatarFile(event) {
 
 function clearAvatar() {
   avatarUrl.value = null
+  failedAvatarUrl.value = null
   profileError.value = ''
   profileSuccess.value = ''
 }

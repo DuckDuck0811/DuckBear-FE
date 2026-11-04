@@ -80,10 +80,16 @@
         <v-avatar
           size="38"
           color="primary"
-          :image="user.avatarUrl || undefined"
           class="mr-3 text-white font-weight-bold avatar-shub"
         >
-          <span v-if="!user.avatarUrl">{{ userInitial }}</span>
+          <v-img
+            v-if="showAvatarImage"
+            :src="user.avatarUrl"
+            alt="Ảnh đại diện"
+            cover
+            @error="failedAvatarUrl = user.avatarUrl"
+          />
+          <span v-else>{{ userInitial }}</span>
         </v-avatar>
 
         <div class="text-left d-none d-sm-block mr-2">
@@ -139,7 +145,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
@@ -154,6 +160,12 @@ const languageOptions = [
 ];
 
 const user = computed(() => authStore.user);
+const failedAvatarUrl = ref(null);
+const showAvatarImage = computed(() => Boolean(user.value?.avatarUrl) && failedAvatarUrl.value !== user.value.avatarUrl);
+
+watch(() => user.value?.avatarUrl, () => {
+  failedAvatarUrl.value = null;
+});
 
 const userInitial = computed(() => {
   const name = user.value?.fullName || user.value?.email || "D";

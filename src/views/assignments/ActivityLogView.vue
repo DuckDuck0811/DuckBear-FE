@@ -189,13 +189,14 @@ const studentPage = ref(1)
 const expandedStudents = ref({})
 const pageSize = 20
 let activityRefreshTimer = null
+let activityRequestVersion = 0
 
-const selectedClass = computed(() => classes.value.find(item => item.id === selectedClassId.value))
+const selectedClass = computed(() => classes.value.find(item => Number(item.id) === Number(selectedClassId.value)))
 const selectedAssignment = computed(() => assignments.value.find(item => item.id === selectedAssignmentId.value))
 const students = computed(() => assignmentActivity.value?.students || [])
 const studentsWhoAttempted = computed(() => students.value.filter(student => student.attempts.length).length)
 const filteredAssignments = computed(() => {
-  const list = assignments.value.filter(item => item.classId === selectedClassId.value)
+  const list = assignments.value.filter(item => Number(item.classId) === Number(selectedClassId.value))
   const query = assignmentSearch.value?.trim().toLocaleLowerCase()
   return query ? list.filter(item => item.title.toLocaleLowerCase().includes(query)) : list
 })
@@ -224,6 +225,7 @@ watch(selectedAssignmentId, assignmentId => {
   studentSearch.value = ''
   studentPage.value = 1
   expandedStudents.value = {}
+  assignmentActivity.value = null
   if (assignmentId && selectedClassId.value) void loadAssignmentActivity(selectedClassId.value, assignmentId)
 })
 watch(assignmentSearch, () => { assignmentPage.value = 1 })
@@ -265,20 +267,20 @@ async function openAssignment(assignment) {
 }
 
 async function loadAssignmentActivity(classId, assignmentId) {
-  activityLoading.value = true
-  assignmentActivity.value = null
+  const requestVersion = ++activityRequestVersion
+  activityLoading.value = !assignmentActivity.value
   errorMessage.value = ''
   try {
     const result = await api(`/classes/${classId}/assignments/${assignmentId}/activity`)
-    if (selectedClassId.value === classId && selectedAssignmentId.value === assignmentId) {
+    if (requestVersion === activityRequestVersion && Number(selectedClassId.value) === Number(classId) && Number(selectedAssignmentId.value) === Number(assignmentId)) {
       assignmentActivity.value = result
     }
   } catch (error) {
-    if (selectedClassId.value === classId && selectedAssignmentId.value === assignmentId) {
+    if (requestVersion === activityRequestVersion && Number(selectedClassId.value) === Number(classId) && Number(selectedAssignmentId.value) === Number(assignmentId)) {
       errorMessage.value = error.message || t('activityLogPage.loadError')
     }
   } finally {
-    if (selectedClassId.value === classId && selectedAssignmentId.value === assignmentId) activityLoading.value = false
+    if (requestVersion === activityRequestVersion) activityLoading.value = false
   }
 }
 
@@ -311,7 +313,7 @@ function formatDate(value, withSeconds = false) {
 
 function handleLiveActivity(event) {
   const activity = event.detail
-  if (activity?.classId !== selectedClassId.value || activity?.assignmentId !== selectedAssignmentId.value) return
+  if (Number(activity?.classId) !== Number(selectedClassId.value) || Number(activity?.assignmentId) !== Number(selectedAssignmentId.value)) return
   scheduleActivityRefresh()
 }
 
