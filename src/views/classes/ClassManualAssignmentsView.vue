@@ -277,6 +277,10 @@ async function loadPage() {
     const result = await api(`/classes/${route.params.id}/manual-assignments`)
     classInfo.value = result.class
     assignments.value = result.assignments || []
+    const selectedAssignmentId = Number(route.query.assignment)
+    if (selectedAssignmentId && assignments.value.some((assignment) => assignment.id === selectedAssignmentId)) {
+      expandedAssignmentIds.value = [selectedAssignmentId]
+    }
   } catch (error) {
     pageError.value = error.message || t('classManualAssignments.loadError')
   } finally {

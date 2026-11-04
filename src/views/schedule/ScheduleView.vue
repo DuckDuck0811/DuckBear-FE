@@ -142,6 +142,7 @@
                 </div>
                 <div class="agenda-event-main">
                   <div class="agenda-event-title" :title="event.title">{{ event.title }}</div>
+                  <v-chip v-if="event.type === 'manual'" size="x-small" color="primary" variant="tonal" class="mt-1">{{ t('schedule.manualAssignmentTag') }}</v-chip>
                   <div class="agenda-event-context">
                     <span v-if="event.class?.name"><v-icon icon="mdi-account-group-outline" size="14" />{{ event.class.name }}</span>
                     <span v-if="event.lesson?.title"><v-icon icon="mdi-book-open-page-variant-outline" size="14" />{{ event.lesson.title }}</span>
@@ -159,9 +160,9 @@
                     size="small"
                     rounded="pill"
                     class="text-none font-weight-bold"
-                    @click="router.push(`/assignments/${event.id}/do`)"
+                    @click="openEvent(event)"
                   >
-                    {{ t('schedule.openAssignment') }}
+                    {{ t(event.type === 'manual' ? 'schedule.openManualAssignment' : 'schedule.openAssignment') }}
                     <v-icon end icon="mdi-arrow-right" size="16" />
                   </v-btn>
                   <v-btn
@@ -171,9 +172,9 @@
                     size="small"
                     rounded="pill"
                     class="text-none font-weight-bold"
-                    @click="router.push('/assignments')"
+                    @click="openEvent(event)"
                   >
-                    {{ t('schedule.manageAssignments') }}
+                    {{ t(event.type === 'manual' ? 'schedule.manageManualAssignment' : 'schedule.manageAssignments') }}
                     <v-icon end icon="mdi-arrow-right" size="16" />
                   </v-btn>
                 </div>
@@ -209,6 +210,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const isStudent = computed(() => authStore.user?.role === 'STUDENT')
 const assignments = ref([])
+const manualAssignments = ref([])
 const loading = ref(true)
 const errorMessage = ref('')
 const monthOffset = ref(0)
@@ -244,6 +246,10 @@ function dateKey(date) {
 
 function getEventStatus(assignment, deadline) {
   if (isStudent.value) {
+    if (assignment.type === 'manual') {
+      if (assignment.submissions?.some(submission => submission.submittedAt)) return 'submitted'
+      return deadline < new Date() ? 'overdue' : 'upcoming'
+    }
     const attempts = assignment.myAttempts || []
     if (attempts.some(attempt => attempt.submittedAt)) return 'submitted'
     if (attempts.some(attempt => attempt.startedAt && !attempt.submittedAt)) return 'inProgress'
@@ -251,7 +257,12 @@ function getEventStatus(assignment, deadline) {
   return deadline < new Date() ? 'overdue' : 'upcoming'
 }
 
-const allEvents = computed(() => assignments.value
+const allEvents = computed(() => [...assignments.value, ...manualAssignments.value.map(assignment => ({
+  ...assignment,
+  type: 'manual',
+  id: `manual-${assignment.id}`,
+  manualAssignmentId: assignment.id,
+}))]
     .filter(assignment => assignment.deadline)
     .map(assignment => {
       const deadline = new Date(assignment.deadline)
@@ -359,13 +370,24 @@ async function loadAssignments() {
   loading.value = true
   errorMessage.value = ''
   try {
-    const result = await api('/assignments/mine')
-    assignments.value = Array.isArray(result) ? result : []
+    const [quizResult, manualResult] = await Promise.all([
+      api('/assignments/mine'),
+      api('/classes/manual-assignments/mine'),
+    ])
+    assignments.value = Array.isArray(quizResult) ? quizResult.map(item => ({ ...item, type: 'quiz' })) : []
+    manualAssignments.value = Array.isArray(manualResult) ? manualResult : []
   } catch (error) {
     errorMessage.value = error?.message || t('schedule.loadError')
   } finally {
     loading.value = false
   }
+}
+
+function openEvent(event) {
+  if (event.type === 'manual') {
+    return router.push(`/classes/${event.classId}/manual-assignments?assignment=${event.manualAssignmentId}`)
+  }
+  return router.push(isStudent.value ? `/assignments/${event.id}/do` : '/assignments')
 }
 
 onMounted(loadAssignments)
