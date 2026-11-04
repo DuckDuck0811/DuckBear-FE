@@ -690,15 +690,28 @@
                   <span>{{ t('assignmentHub.attemptLabel', { number: attempt.attemptNo, max: submissionDetails.maxAttempts ? submissionDetails.maxAttempts : t('assignmentHub.unlimited') }) }}</span>
                   <span>{{ attempt.submittedAt ? formatDate(attempt.submittedAt) : t('assignmentHub.inProgress') }}</span>
                   <v-chip v-if="attempt.score !== null" size="x-small" color="success" variant="tonal">{{ attempt.score }}%</v-chip>
+                  <v-chip v-else-if="attempt.submittedAt && hasEssayAnswers(attempt)" size="x-small" color="warning" variant="tonal">{{ t('assignmentHub.awaitingGrade') }}</v-chip>
                 </div>
               </v-expansion-panel-title>
               <v-expansion-panel-text>
                 <div v-for="(answer, index) in attempt.answers" :key="answer.id" class="mb-4">
                   <div class="font-weight-bold">{{ index + 1 }}. {{ answer.question.content }}</div>
                   <div class="text-body-2 text-secondary">{{ t('assignmentHub.studentAnswer') }}: {{ answer.selectedOption?.content || answer.displayAnswer || t('assignmentHub.noAnswer') }}</div>
+                  <v-img v-if="answer.imageUrl" :src="answer.imageUrl" :alt="t('assignmentHub.attachedWork')" max-height="360" max-width="640" width="100%" contain rounded="lg" class="mt-3 submission-image" />
                   <v-chip v-if="answer.isCorrect !== null" size="x-small" :color="answer.isCorrect ? 'success' : 'error'" variant="tonal" class="mt-1">
                     {{ answer.isCorrect ? t('assignmentHub.correct') : t('assignmentHub.incorrect') }}
                   </v-chip>
+                  <div v-if="answer.question.type === 'ESSAY' && attempt.submittedAt" class="essay-grade-fields mt-3">
+                    <v-text-field v-model.number="answer.score" type="number" min="0" :max="answer.points" step="0.1" :label="t('assignmentHub.gradePoints', { points: answer.points })" variant="outlined" density="compact" hide-details />
+                    <v-textarea v-model="answer.teacherFeedback" :label="t('assignmentHub.teacherFeedback')" variant="outlined" density="compact" rows="2" auto-grow hide-details />
+                  </div>
+                  <div v-else-if="answer.teacherFeedback" class="teacher-feedback mt-2"><strong>{{ t('assignmentHub.teacherFeedback') }}:</strong> {{ answer.teacherFeedback }}</div>
+                </div>
+                <v-alert v-if="gradeErrors[attempt.id]" type="error" variant="tonal" density="compact" class="mt-3">{{ gradeErrors[attempt.id] }}</v-alert>
+                <div v-if="attempt.submittedAt && hasEssayAnswers(attempt)" class="d-flex justify-end mt-3">
+                  <v-btn color="primary" size="small" rounded="pill" prepend-icon="mdi-check-decagram-outline" :loading="gradingAttemptId === attempt.id" :disabled="!canSaveGrade(attempt)" @click="saveAttemptGrade(attempt)">
+                    {{ t('assignmentHub.returnGrade') }}
+                  </v-btn>
                 </div>
               </v-expansion-panel-text>
             </v-expansion-panel>
@@ -741,6 +754,8 @@ const loadingSubmissions = ref(false)
 const selectedAssignment = ref(null)
 const submissionDetails = ref(null)
 const submissionPage = ref(1)
+const gradingAttemptId = ref(null)
+const gradeErrors = ref({})
 const submissionPageSize = 20
 const errorMessage = ref('')
 const formError = ref('')
@@ -1188,17 +1203,55 @@ async function openSubmissions(assignment) {
   selectedAssignment.value = assignment
   submissionDetails.value = null
   submissionPage.value = 1
+  gradeErrors.value = {}
   submissionsDialog.value = true
   loadingSubmissions.value = true
   try { submissionDetails.value = await api(`/assignments/${assignment.id}`) }
   catch (error) { errorMessage.value = error.message }
   finally { loadingSubmissions.value = false }
 }
+
+function hasEssayAnswers(attempt) {
+  return attempt.answers?.some(answer => answer.question?.type === 'ESSAY') || false
+}
+
+function canSaveGrade(attempt) {
+  return attempt.answers
+    .filter(answer => answer.question?.type === 'ESSAY')
+    .every(answer => answer.score !== null && answer.score !== '' && Number.isFinite(Number(answer.score)) && Number(answer.score) >= 0 && Number(answer.score) <= Number(answer.points))
+}
+
+async function saveAttemptGrade(attempt) {
+  if (!canSaveGrade(attempt) || gradingAttemptId.value !== null) return
+  gradingAttemptId.value = attempt.id
+  gradeErrors.value[attempt.id] = ''
+  try {
+    const result = await api(`/assignments/attempts/${attempt.id}/grade`, {
+      method: 'POST',
+      body: {
+        answers: attempt.answers
+          .filter(answer => answer.question?.type === 'ESSAY')
+          .map(answer => ({ answerId: answer.id, score: Number(answer.score), feedback: answer.teacherFeedback || '' })),
+      },
+    })
+    attempt.score = result.score
+    const now = result.gradedAt
+    for (const answer of attempt.answers.filter(item => item.question?.type === 'ESSAY')) {
+      answer.gradedAt = now
+    }
+  } catch (error) {
+    gradeErrors.value[attempt.id] = error.message || t('assignmentHub.gradeError')
+  } finally {
+    gradingAttemptId.value = null
+  }
+}
 </script>
 
 <style scoped>
 .assignment-page { background: #f4f8ff; }
 .assignment-container { max-width: 1360px; }
+.essay-grade-fields { display: grid; grid-template-columns: minmax(140px, 190px) minmax(220px, 1fr); gap: 12px; align-items: start; }
+.teacher-feedback { padding: 10px 12px; border-radius: 10px; background: #eef5ff; color: #315d9c; font-size: .88rem; }
 
 /* Hero thu gọn */
 .assignment-hero {
@@ -1542,5 +1595,6 @@ async function openSubmissions(assignment) {
 @media (max-width: 600px) {
   .assignment-hero { min-height: 0; flex-direction: column; align-items: flex-start; padding: 18px 20px; }
   .hero-action { align-self: stretch; }
+  .essay-grade-fields { grid-template-columns: 1fr; }
 }
 </style>

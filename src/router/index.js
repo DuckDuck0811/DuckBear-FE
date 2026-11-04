@@ -39,10 +39,22 @@ const routes = [
     component: () => import("../views/classes/ClassesView.vue"),
   },
   {
+    path: "/manual-assignments",
+    name: "manual-assignments",
+    component: () => import("../views/classes/ClassManualAssignmentsView.vue"),
+    meta: { roles: ["TEACHER", "ADMIN", "STUDENT"] },
+  },
+  {
     path: "/classes/:id",
     name: "class-detail",
     component: () => import("../views/classes/ClassSeatMapView.vue"),
     meta: { roles: ["TEACHER", "ADMIN"] },
+  },
+  {
+    path: "/classes/:id/manual-assignments",
+    name: "class-manual-assignments",
+    component: () => import("../views/classes/ClassManualAssignmentsView.vue"),
+    meta: { roles: ["TEACHER", "ADMIN", "STUDENT"] },
   },
   {
     path: "/books/:id",
@@ -60,6 +72,18 @@ const routes = [
     name: "assignments",
     component: () => import("../views/assignments/AssignmentsView.vue"),
     meta: { roles: ["TEACHER", "ADMIN", "STUDENT"] },
+  },
+  {
+    path: "/submissions",
+    name: "submissions",
+    component: () => import("../views/assignments/SubmissionsView.vue"),
+    meta: { roles: ["TEACHER"] },
+  },
+  {
+    path: "/submissions/:assignmentId",
+    name: "submission-detail",
+    component: () => import("../views/assignments/SubmissionDetailView.vue"),
+    meta: { roles: ["TEACHER"] },
   },
   {
     path: "/results",

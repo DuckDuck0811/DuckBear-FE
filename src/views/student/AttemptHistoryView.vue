@@ -61,6 +61,25 @@
               </v-chip>
               <v-chip v-else-if="attempt.submittedAt" color="grey" variant="tonal" size="small" class="history-score">{{ t('attemptHistory.notGraded') }}</v-chip>
               <v-btn v-else :to="`/assignments/${attempt.assignment.id}/do`" color="primary" variant="tonal" size="small" rounded="pill">{{ t('attemptHistory.continue') }}</v-btn>
+              <v-btn v-if="attempt.submittedAt" size="small" variant="text" color="primary" :loading="loadingResultId === attempt.id" @click="toggleResult(attempt.id)">
+                {{ openResultId === attempt.id ? t('attemptHistory.hideReview') : t('attemptHistory.viewReview') }}
+              </v-btn>
+              <div v-if="openResultId === attempt.id" class="history-review">
+                <div v-if="resultError" class="text-error text-body-2">{{ resultError }}</div>
+                <div v-else-if="resultLoadingId === attempt.id" class="py-4 text-center"><v-progress-circular indeterminate color="primary" size="24" /></div>
+                <div v-else-if="attemptResults[attempt.id]" class="review-answer-list">
+                  <article v-for="(answer, index) in attemptResults[attempt.id].answers" :key="answer.id" class="review-answer">
+                    <div class="font-weight-bold">{{ index + 1 }}. {{ answer.question.content }}</div>
+                    <div class="text-body-2 mt-1">{{ t('attemptHistory.yourAnswer') }}: {{ answer.selectedOption?.content || answer.answerText || t('attemptHistory.noAnswer') }}</div>
+                    <v-img v-if="answer.imageUrl" :src="answer.imageUrl" :alt="t('attemptHistory.attachedWork')" max-height="320" max-width="600" width="100%" contain rounded="lg" class="mt-3" />
+                    <div class="d-flex align-center flex-wrap ga-2 mt-2">
+                      <v-chip v-if="answer.score !== null" size="x-small" color="primary" variant="tonal">{{ t('attemptHistory.answerPoints', { earned: answer.score, total: answer.points }) }}</v-chip>
+                      <v-chip v-else-if="answer.question.type === 'ESSAY'" size="x-small" color="warning" variant="tonal">{{ t('attemptHistory.notGraded') }}</v-chip>
+                    </div>
+                    <p v-if="answer.teacherFeedback" class="review-feedback mb-0 mt-2"><strong>{{ t('attemptHistory.teacherFeedback') }}:</strong> {{ answer.teacherFeedback }}</p>
+                  </article>
+                </div>
+              </div>
             </article>
           </div>
           <div v-if="!loading && visibleAttempts.length > pageSize" class="history-pagination">
@@ -86,6 +105,10 @@ const loading = ref(true)
 const error = ref('')
 const filter = ref('all')
 const page = ref(1)
+const openResultId = ref(null)
+const loadingResultId = ref(null)
+const resultError = ref('')
+const attemptResults = ref({})
 const pageSize = 20
 const filters = computed(() => [
   { title: t('attemptHistory.all'), value: 'all' },
@@ -114,6 +137,25 @@ function formatDate(value) {
   return new Intl.DateTimeFormat(locale.value === 'vi' ? 'vi-VN' : 'en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 }
 
+async function toggleResult(attemptId) {
+  if (openResultId.value === attemptId) {
+    openResultId.value = null
+    resultError.value = ''
+    return
+  }
+  openResultId.value = attemptId
+  resultError.value = ''
+  if (attemptResults.value[attemptId]) return
+  loadingResultId.value = attemptId
+  try {
+    attemptResults.value[attemptId] = await api(`/assignments/attempts/${attemptId}/result`)
+  } catch (cause) {
+    resultError.value = cause?.message || t('attemptHistory.loadError')
+  } finally {
+    loadingResultId.value = null
+  }
+}
+
 onMounted(async () => {
   try {
     attempts.value = await api('/assignments/attempts/mine')
@@ -140,8 +182,13 @@ onMounted(async () => {
 .history-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; border-bottom: 1px solid #edf2f8; }
 .history-filter { max-width: 190px; }
 .history-list { padding: 4px 22px; }
-.history-row { display: flex; align-items: center; gap: 16px; min-width: 0; padding: 16px 0; border-bottom: 1px solid #edf2f8; }
+.history-row { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; min-width: 0; padding: 16px 0; border-bottom: 1px solid #edf2f8; }
 .history-row:last-child { border-bottom: 0; }
+.history-review { flex-basis: 100%; margin: 4px 0 0 54px; padding: 14px; border: 1px solid #e5edf8; border-radius: 12px; background: #f8fbff; }
+.review-answer-list { display: grid; gap: 12px; }
+.review-answer { padding-bottom: 12px; border-bottom: 1px solid #e5edf8; color: #40516a; }
+.review-answer:last-child { padding-bottom: 0; border-bottom: 0; }
+.review-feedback { color: #2874ee; font-size: .88rem; }
 .history-row-icon { display: grid; width: 38px; height: 38px; flex: none; place-items: center; border-radius: 12px; background: #e9f8f1; color: #18a66a; }
 .history-row-icon.is-pending { background: #fff5df; color: #c78a17; }
 .history-row-main { min-width: 180px; flex: 1; }
@@ -160,6 +207,7 @@ onMounted(async () => {
   .history-row-main { min-width: calc(100% - 52px); }
   .history-times { width: calc(100% - 52px); margin-left: 48px; }
   .history-score, .history-row > .v-btn { margin-left: 48px; }
+  .history-review { margin-left: 0; }
   .history-pagination { flex-direction: column; align-items: stretch; padding-inline: 12px; }
 }
 </style>
