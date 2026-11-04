@@ -38,6 +38,46 @@
 
     <v-spacer />
 
+    <v-menu v-if="user" v-model="notificationsOpen" location="bottom end" :close-on-content-click="false">
+      <template #activator="{ props }">
+        <v-btn
+          v-bind="props"
+          icon
+          variant="tonal"
+          color="primary"
+          class="notification-bell mr-2"
+          :aria-label="`${t('notifications.title')} (${notifications.count})`"
+        >
+          <v-icon icon="mdi-bell-outline" />
+          <span v-if="notifications.count" class="notification-count">
+            {{ notifications.count > 99 ? '99+' : notifications.count }}
+          </span>
+        </v-btn>
+      </template>
+      <v-card class="notification-menu" rounded="lg" elevation="8">
+        <div class="notification-menu-heading">{{ t('notifications.title') }}</div>
+        <v-divider />
+        <div v-if="notifications.items.length" class="notification-list">
+          <v-list density="comfortable" class="py-1">
+            <v-list-item
+              v-for="item in notifications.items"
+              :key="item.id"
+              :prepend-icon="item.icon || 'mdi-bell-outline'"
+              :title="item.title"
+              :subtitle="item.message"
+              class="notification-item"
+              @click="openNotification(item)"
+            >
+              <template #append>
+                <span class="notification-time">{{ formatNotificationTime(item.createdAt) }}</span>
+              </template>
+            </v-list-item>
+          </v-list>
+        </div>
+        <div v-else class="notification-empty">{{ t('notifications.empty') }}</div>
+      </v-card>
+    </v-menu>
+
     <v-menu location="bottom end">
       <template #activator="{ props }">
         <v-btn
@@ -149,10 +189,12 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
+import { useNotificationsStore } from "../../stores/notifications";
 import DuckBearMascot from "./DuckBearMascot.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const notifications = useNotificationsStore();
 const { t, locale } = useI18n();
 const languageOptions = [
   { title: "Tiếng Việt", value: "vi" },
@@ -160,6 +202,7 @@ const languageOptions = [
 ];
 
 const user = computed(() => authStore.user);
+const notificationsOpen = ref(false);
 const failedAvatarUrl = ref(null);
 const showAvatarImage = computed(() => Boolean(user.value?.avatarUrl) && failedAvatarUrl.value !== user.value.avatarUrl);
 
@@ -203,6 +246,18 @@ function setLocale(value) {
 function handleLogout() {
   authStore.logout();
   router.push("/login");
+}
+
+function openNotification(item) {
+  notifications.dismiss(item.id);
+  notificationsOpen.value = false;
+  if (item.url) router.push(item.url);
+}
+
+function formatNotificationTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(locale.value, { hour: "2-digit", minute: "2-digit" }).format(date);
 }
 
 function goHome() {
@@ -252,6 +307,73 @@ function goHome() {
   font-size: 0.88rem;
   color: #1d2939;
   line-height: 1.2;
+}
+
+.notification-menu {
+  width: min(420px, calc(100vw - 24px));
+  max-height: min(520px, calc(100vh - 90px));
+  overflow: hidden;
+}
+
+.notification-bell {
+  position: relative;
+  overflow: visible !important;
+}
+
+.notification-count {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  display: inline-flex;
+  min-width: 19px;
+  height: 19px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.notification-menu-heading {
+  padding: 16px 20px;
+  color: #1d2939;
+  font-weight: 700;
+}
+
+.notification-list {
+  max-height: min(450px, calc(100vh - 160px));
+  overflow-y: auto;
+}
+
+.notification-item {
+  cursor: pointer;
+}
+
+.notification-item :deep(.v-list-item-subtitle) {
+  display: -webkit-box;
+  overflow: hidden;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.notification-time {
+  color: #8492a6;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.notification-empty {
+  padding: 28px 20px;
+  color: #8492a6;
+  text-align: center;
 }
 
 @media (max-width: 600px) {

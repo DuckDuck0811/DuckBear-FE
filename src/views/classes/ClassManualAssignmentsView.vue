@@ -87,6 +87,14 @@
                     <strong>{{ t('classManualAssignments.instructions') }}</strong>
                     <p>{{ assignmentDetails[assignment.id].instructions || t('classManualAssignments.noInstructions') }}</p>
                   </div>
+                  <div v-if="assignmentDetails[assignment.id].attachments?.length" class="assignment-attachments mb-4">
+                    <strong>{{ t('classManualAssignments.teacherAttachments') }}</strong>
+                    <div class="submission-files mt-2">
+                      <v-btn v-for="file in assignmentDetails[assignment.id].attachments" :key="file.id" :href="file.fileData" :download="file.fileName" target="_blank" rel="noopener" variant="tonal" color="primary" size="small" prepend-icon="mdi-paperclip">
+                        {{ file.fileName }}
+                      </v-btn>
+                    </div>
+                  </div>
 
                   <template v-if="isTeacher">
                     <div v-if="!assignmentDetails[assignment.id].submissions.length" class="empty-submissions">{{ t('classManualAssignments.noSubmissions') }}</div>
@@ -106,12 +114,17 @@
                         </v-btn>
                       </div>
                       <div class="manual-grade-form">
-                        <v-text-field v-model.number="submission.score" type="number" min="0" max="100" step="0.5" :label="t('classManualAssignments.scoreOutOf100')" variant="outlined" density="compact" hide-details />
-                        <v-textarea v-model="submission.teacherFeedback" :label="t('classManualAssignments.feedback')" variant="outlined" density="compact" rows="2" auto-grow hide-details />
+                        <template v-if="!hasGrade(submission)">
+                          <v-text-field v-model.number="submission.score" type="number" min="0" max="10" step="0.1" :label="t('classManualAssignments.scoreOutOf10')" variant="outlined" density="compact" hide-details />
+                          <v-textarea v-model="submission.teacherFeedback" :label="t('classManualAssignments.feedback')" variant="outlined" density="compact" rows="2" auto-grow hide-details />
+                        </template>
+                        <v-alert v-else type="success" variant="tonal" density="compact" class="grade-locked">
+                          {{ t('classManualAssignments.gradeLocked') }}<span v-if="submission.teacherFeedback"> · {{ submission.teacherFeedback }}</span>
+                        </v-alert>
                       </div>
                       <v-alert v-if="gradeErrors[submission.id]" type="error" variant="tonal" density="compact" class="mt-3">{{ gradeErrors[submission.id] }}</v-alert>
                       <div class="d-flex justify-end mt-3">
-                        <v-btn color="primary" rounded="pill" size="small" prepend-icon="mdi-check-decagram-outline" :loading="gradingId === submission.id" :disabled="!canGrade(submission)" @click="gradeSubmission(submission)">{{ t('classManualAssignments.returnGrade') }}</v-btn>
+                        <v-btn v-if="!hasGrade(submission)" color="primary" rounded="pill" size="small" prepend-icon="mdi-check-decagram-outline" :loading="gradingId === submission.id" :disabled="!canGrade(submission)" @click="gradeSubmission(submission)">{{ t('classManualAssignments.returnGrade') }}</v-btn>
                       </div>
                     </article>
                   </template>
@@ -163,6 +176,25 @@
           <v-text-field v-model="createForm.title" :label="t('classManualAssignments.assignmentName')" variant="outlined" maxlength="150" />
           <v-textarea v-model="createForm.instructions" :label="t('classManualAssignments.instructions')" variant="outlined" rows="4" auto-grow maxlength="5000" />
           <v-text-field v-model="createForm.deadline" type="datetime-local" :label="t('classManualAssignments.deadlineOptional')" variant="outlined" />
+          <v-file-input
+            :label="t('classManualAssignments.teacherAttachments')"
+            :hint="t('classManualAssignments.teacherAttachmentHint')"
+            accept="image/png,image/jpeg,image/webp,application/pdf"
+            multiple
+            prepend-icon="mdi-paperclip"
+            variant="outlined"
+            persistent-hint
+            @update:model-value="addAssignmentFiles"
+          />
+          <div v-if="createForm.attachments.length" class="submission-files mt-2">
+            <v-chip
+              v-for="(file, index) in createForm.attachments"
+              :key="`${file.fileName}-${index}`"
+              closable
+              size="small"
+              @click:close="createForm.attachments.splice(index, 1)"
+            >{{ file.fileName }}</v-chip>
+          </div>
         </v-card-text>
         <v-card-actions class="px-5 pb-5">
           <v-spacer />
@@ -240,7 +272,7 @@ const deleteDialog = ref(false)
 const deleting = ref(false)
 const assignmentToDelete = ref(null)
 const maxAttachmentBytes = 5 * 1024 * 1024
-const createForm = reactive({ title: '', instructions: '', deadline: '' })
+const createForm = reactive({ title: '', instructions: '', deadline: '', attachments: [] })
 
 const filteredAssignments = computed(() => {
   const query = search.value.trim().toLocaleLowerCase()
@@ -315,15 +347,27 @@ function openCreateDialog() {
   createForm.title = ''
   createForm.instructions = ''
   createForm.deadline = ''
+  createForm.attachments = []
   createError.value = ''
   createDialog.value = true
 }
 
-function openEditDialog(assignment) {
+async function openEditDialog(assignment) {
+  let details = assignmentDetails.value[assignment.id]
+  if (!details) {
+    try {
+      details = await api(`/classes/manual-assignments/${assignment.id}`)
+      assignmentDetails.value[assignment.id] = details
+    } catch (error) {
+      showToast(error.message || t('classManualAssignments.loadError'), 'error')
+      return
+    }
+  }
   editingAssignment.value = assignment
   createForm.title = assignment.title
   createForm.instructions = assignment.instructions || ''
   createForm.deadline = assignment.deadline ? toDatetimeLocal(assignment.deadline) : ''
+  createForm.attachments = (details.attachments || []).map(({ fileName, mimeType, fileData }) => ({ fileName, mimeType, fileData }))
   originalDeadlineInput.value = createForm.deadline
   createError.value = ''
   createDialog.value = true
@@ -337,6 +381,7 @@ async function saveAssignment() {
     const body = {
       title: createForm.title.trim(),
       instructions: createForm.instructions.trim() || null,
+      attachments: createForm.attachments,
     }
     if (editingAssignment.value) {
       if (createForm.deadline !== originalDeadlineInput.value) {
@@ -353,6 +398,7 @@ async function saveAssignment() {
         body: {
           ...body,
           instructions: createForm.instructions.trim() || undefined,
+          attachments: createForm.attachments,
           deadline: createForm.deadline ? new Date(createForm.deadline).toISOString() : undefined,
         },
       })
@@ -362,6 +408,7 @@ async function saveAssignment() {
     createForm.title = ''
     createForm.instructions = ''
     createForm.deadline = ''
+    createForm.attachments = []
     editingAssignment.value = null
     originalDeadlineInput.value = ''
     createDialog.value = false
@@ -369,6 +416,35 @@ async function saveAssignment() {
     createError.value = error.message || t(editingAssignment.value ? 'classManualAssignments.updateError' : 'classManualAssignments.createError')
   } finally {
     creating.value = false
+  }
+}
+
+async function addAssignmentFiles(selection) {
+  const selectedFiles = (Array.isArray(selection) ? selection : selection ? [selection] : []).filter(Boolean)
+  const current = createForm.attachments || []
+  if (current.length + selectedFiles.length > 5) {
+    createError.value = t('classManualAssignments.fileSizeError')
+    return
+  }
+  let totalBytes = current.reduce((sum, file) => sum + estimatedDataUrlBytes(file.fileData), 0)
+  const additions = []
+  try {
+    for (const file of selectedFiles) {
+      if (!['image/png', 'image/jpeg', 'image/webp', 'application/pdf'].includes(file.type)) {
+        createError.value = t('classManualAssignments.fileTypeError')
+        return
+      }
+      totalBytes += file.size
+      if (totalBytes > maxAttachmentBytes) {
+        createError.value = t('classManualAssignments.fileSizeError')
+        return
+      }
+      additions.push(await readFile(file))
+    }
+    createForm.attachments.push(...additions)
+    createError.value = ''
+  } catch (error) {
+    createError.value = error.message || t('classManualAssignments.fileReadError')
   }
 }
 
@@ -458,7 +534,11 @@ async function submitWork(assignment) {
 }
 
 function canGrade(submission) {
-  return submission.score !== null && submission.score !== '' && Number.isFinite(Number(submission.score)) && Number(submission.score) >= 0 && Number(submission.score) <= 100
+  return submission.score !== null && submission.score !== '' && Number.isFinite(Number(submission.score)) && Number(submission.score) >= 0 && Number(submission.score) <= 10
+}
+
+function hasGrade(submission) {
+  return submission.score !== null && submission.score !== undefined
 }
 
 async function gradeSubmission(submission) {
@@ -471,6 +551,7 @@ async function gradeSubmission(submission) {
       body: { score: Number(submission.score), feedback: submission.teacherFeedback || '' },
     })
     Object.assign(submission, result)
+    showToast(t('classManualAssignments.gradeSuccess'))
   } catch (error) {
     gradeErrors.value[submission.id] = error.message || t('classManualAssignments.gradeError')
   } finally {
@@ -522,6 +603,7 @@ function showToast(message, color = 'success') {
 .submission-content, .student-previous-submission p { margin: 14px 0; color: #40516a; white-space: pre-wrap; }
 .submission-files { display: flex; flex-wrap: wrap; gap: 8px; }
 .manual-grade-form { display: grid; grid-template-columns: minmax(140px, 190px) minmax(220px, 1fr); gap: 12px; margin-top: 14px; }
+.grade-locked { grid-column: 1 / -1; width: 100%; }
 .student-previous-submission { padding: 14px; border: 1px solid #e2ebf8; border-radius: 12px; background: #f8fbff; }
 .empty-submissions { padding: 24px; color: #7b899e; text-align: center; }
 .manual-toast :deep(.v-snackbar__wrapper) { min-width: min(440px, calc(100vw - 32px)); max-width: min(520px, calc(100vw - 32px)); border-radius: 8px; color: #fff !important; }
