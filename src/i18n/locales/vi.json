@@ -545,7 +545,10 @@
     "relativeDueHours": "Còn {hours} giờ",
     "relativeDuePast": "Đã hết hạn",
     "noUpcomingAssignments": "Không có bài tập nào sắp đến hạn",
-    "dayAssignmentsTitle": "Bài tập trong ngày"
+    "dayAssignmentsTitle": "Bài tập trong ngày",
+    "createAssignmentShort": "Giao bài",
+    "selectDayPrompt": "Chọn ngày để xem chi tiết",
+    "lessonCountTooltip": "{count} bài học"
   },
   "assignmentHub": {
     "backToSubmissions": "Quay lại danh sách bài nộp",

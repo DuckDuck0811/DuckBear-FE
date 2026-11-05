@@ -102,38 +102,21 @@
           v-if="isTeacher && !loading && !errorMessage"
           class="teacher-schedule-stats mb-3"
         >
-          <article class="teacher-stat-card">
-            <v-icon icon="mdi-clock-fast" color="warning" size="20" />
-            <div>
-              <span>{{ t("schedule.upcomingSevenDays") }}</span
-              ><strong>{{ upcomingSevenDaysCount }}</strong>
-            </div>
-          </article>
-          <article class="teacher-stat-card">
-            <v-icon icon="mdi-alert-circle-outline" color="error" size="20" />
-            <div>
-              <span>{{ t("schedule.overdueIncomplete") }}</span
-              ><strong>{{
-                overdueIncompleteCount === null
-                  ? t("schedule.unavailableValue")
-                  : overdueIncompleteCount
-              }}</strong
-              ><small v-if="overdueIncompleteCount === null">{{
-                t("schedule.progressUnavailable")
-              }}</small>
-            </div>
-          </article>
-          <article class="teacher-stat-card">
-            <v-icon
-              icon="mdi-calendar-month-outline"
-              color="primary"
-              size="20"
-            />
-            <div>
-              <span>{{ t("schedule.assignmentsThisMonth") }}</span
-              ><strong>{{ monthEvents.length }}</strong>
-            </div>
-          </article>
+          <div class="stat-chip">
+            <v-icon icon="mdi-clock-fast" color="warning" size="15" />
+            <span class="stat-chip-label">{{ t("schedule.upcomingSevenDays") }}</span>
+            <strong class="stat-chip-value">{{ upcomingSevenDaysCount }}</strong>
+          </div>
+          <div v-if="overdueIncompleteCount !== null" class="stat-chip stat-chip--error">
+            <v-icon icon="mdi-alert-circle-outline" color="error" size="15" />
+            <span class="stat-chip-label">{{ t("schedule.overdueIncomplete") }}</span>
+            <strong class="stat-chip-value">{{ overdueIncompleteCount }}</strong>
+          </div>
+          <div class="stat-chip stat-chip--primary">
+            <v-icon icon="mdi-calendar-month-outline" color="primary" size="15" />
+            <span class="stat-chip-label">{{ t("schedule.assignmentsThisMonth") }}</span>
+            <strong class="stat-chip-value">{{ monthEvents.length }}</strong>
+          </div>
         </div>
 
         <v-card
@@ -339,7 +322,10 @@
                     >
                       {{ book.error }}
                     </v-alert>
-                    <div v-else-if="book.chapters?.length" class="chapter-list">
+                    <div
+                      v-else-if="filteredChapters(book).length"
+                      class="chapter-list"
+                    >
                       <section
                         v-for="chapter in filteredChapters(book)"
                         :key="chapter.id"
@@ -365,12 +351,16 @@
                         <button
                           type="button"
                           class="chapter-toggle"
-                          :aria-expanded="expandedChapters.includes(chapterKey(book, chapter))"
+                          :aria-expanded="
+                            expandedChapters.includes(chapterKey(book, chapter))
+                          "
                           @click.stop="toggleChapter(book, chapter)"
                         >
                           <v-icon
                             :icon="
-                              expandedChapters.includes(chapterKey(book, chapter))
+                              expandedChapters.includes(
+                                chapterKey(book, chapter),
+                              )
                                 ? 'mdi-chevron-down'
                                 : 'mdi-chevron-right'
                             "
@@ -380,9 +370,16 @@
                           <span class="curriculum-node-title">{{
                             chapter.title
                           }}</span>
-                          <v-chip size="x-small" variant="tonal">{{
-                            filteredLessons(chapter).length
-                          }}</v-chip>
+                          <v-tooltip
+                            :text="t('schedule.lessonCountTooltip', { count: filteredLessons(chapter).length })"
+                            location="top"
+                          >
+                            <template #activator="{ props: tp }">
+                              <v-chip v-bind="tp" size="x-small" variant="tonal" class="chapter-lesson-badge">{{
+                                filteredLessons(chapter).length
+                              }}</v-chip>
+                            </template>
+                          </v-tooltip>
                         </button>
                         <v-btn
                           v-if="isMobile"
@@ -406,67 +403,79 @@
                           >{{ t("schedule.assign") }}</v-btn
                         >
                         <div
-                          v-if="expandedChapters.includes(chapterKey(book, chapter))"
+                          v-if="
+                            expandedChapters.includes(chapterKey(book, chapter))
+                          "
                           class="lesson-list"
                         >
-                          <div
-                            v-for="lesson in filteredLessons(chapter)"
-                            :key="lesson.id"
-                            class="curriculum-lesson"
-                            :class="{
-                              'curriculum-drop-source':
-                                draggedCurriculum?.type === 'lesson' &&
-                                draggedCurriculum.id === lesson.id,
-                              'curriculum-keyboard-selected':
-                                keyboardLesson?.id === lesson.id,
-                            }"
-                            :draggable="!isMobile"
-                            tabindex="0"
-                            @click="selectKeyboardLesson(lesson, chapter, book)"
-                            @keydown.enter.prevent="
-                              selectKeyboardLesson(lesson, chapter, book)
-                            "
-                            @dragstart.stop="
-                              startCurriculumDrag($event, {
-                                type: 'lesson',
-                                book,
-                                chapter,
-                                lesson,
-                              })
-                            "
-                            @dragend="
-                              draggedCurriculum = null;
-                              dropTargetKey = '';
-                            "
-                          >
-                            <v-icon
-                              icon="mdi-book-open-blank-variant-outline"
-                              size="16"
-                            />
-                            <span class="curriculum-node-title">{{
-                              lesson.title
-                            }}</span>
-                            <v-btn
-                              v-if="isMobile"
-                              icon="mdi-calendar-plus-outline"
-                              size="x-small"
-                              variant="tonal"
-                              color="primary"
-                              :aria-label="
-                                t('schedule.assignLesson', {
-                                  title: lesson.title,
+                          <template v-if="filteredLessons(chapter).length">
+                            <div
+                              v-for="lesson in filteredLessons(chapter)"
+                              :key="lesson.id"
+                              class="curriculum-lesson"
+                              :class="{
+                                'curriculum-drop-source':
+                                  draggedCurriculum?.type === 'lesson' &&
+                                  draggedCurriculum.id === lesson.id,
+                                'curriculum-keyboard-selected':
+                                  keyboardLesson?.id === lesson.id,
+                              }"
+                              :draggable="!isMobile"
+                              tabindex="0"
+                              @click="
+                                selectKeyboardLesson(lesson, chapter, book)
+                              "
+                              @keydown.enter.prevent="
+                                selectKeyboardLesson(lesson, chapter, book)
+                              "
+                              @dragstart.stop="
+                                startCurriculumDrag($event, {
+                                  type: 'lesson',
+                                  book,
+                                  chapter,
+                                  lesson,
                                 })
                               "
-                              @click.stop="
-                                openCurriculumComposer(
-                                  { type: 'lesson', book, chapter, lesson },
-                                  selectedDay?.date &&
-                                    !isPastDay(selectedDay.date)
-                                    ? selectedDay.date
-                                    : new Date(),
-                                )
+                              @dragend="
+                                draggedCurriculum = null;
+                                dropTargetKey = '';
                               "
-                            />
+                            >
+                              <v-icon
+                                icon="mdi-book-open-blank-variant-outline"
+                                size="16"
+                              />
+                              <span class="curriculum-node-title">{{
+                                lesson.title
+                              }}</span>
+                              <v-btn
+                                v-if="isMobile"
+                                icon="mdi-calendar-plus-outline"
+                                size="x-small"
+                                variant="tonal"
+                                color="primary"
+                                :aria-label="
+                                  t('schedule.assignLesson', {
+                                    title: lesson.title,
+                                  })
+                                "
+                                @click.stop="
+                                  openCurriculumComposer(
+                                    { type: 'lesson', book, chapter, lesson },
+                                    selectedDay?.date &&
+                                      !isPastDay(selectedDay.date)
+                                      ? selectedDay.date
+                                      : new Date(),
+                                  )
+                                "
+                              />
+                            </div>
+                          </template>
+                          <div
+                            v-else
+                            class="curriculum-state compact-state text-medium-emphasis"
+                          >
+                            {{ t("schedule.noLessonsInChapter") }}
                           </div>
                         </div>
                       </section>
@@ -475,7 +484,11 @@
                       v-else
                       class="curriculum-state compact-state text-medium-emphasis"
                     >
-                      {{ t("schedule.noChapters") }}
+                      {{
+                        book.chapters?.length
+                          ? t("schedule.noCurriculumMatch")
+                          : t("schedule.noChapters")
+                      }}
                     </div>
                   </v-expansion-panel-text>
                 </v-expansion-panel>
@@ -570,39 +583,53 @@
                       class="keyboard-drop-hint"
                       >{{ t("schedule.pressEnterToAssign") }}</span
                     >
-                    <span class="month-day-event-list">
-                      <span
-                        v-for="event in day.events.slice(0, 2)"
-                        :key="event.id"
-                        class="month-event-pill"
-                        :class="[
-                          `month-event-${event.status}`,
-                          { 'month-event-draggable': isTeacher },
-                        ]"
-                        :style="eventClassStyle(event)"
-                        :draggable="isTeacher"
-                        role="button"
-                        tabindex="0"
-                        @click.stop="openEventDrawer(event)"
-                        @keydown.enter.stop="openEventDrawer(event)"
-                        @keydown.space.prevent.stop="openEventDrawer(event)"
-                        @dragstart.stop="startDrag($event, event)"
-                        @dragend="dropTargetKey = ''"
-                        :title="`${formatTime(event.deadline)} · ${event.title}`"
-                      >
-                        <span class="month-event-time">{{
-                          formatTime(event.deadline)
-                        }}</span>
-                        <span class="month-event-title">{{ event.title }}</span>
+                      <span class="month-day-event-list">
+                        <span
+                          v-for="event in day.events.slice(0, 2)"
+                          :key="event.id"
+                          class="month-event-pill"
+                          :class="[
+                            `month-event-${event.status}`,
+                            { 'month-event-draggable': isTeacher },
+                          ]"
+                          :style="eventClassStyle(event)"
+                          :draggable="isTeacher"
+                          role="button"
+                          tabindex="0"
+                          @click.stop="openEventDrawer(event)"
+                          @keydown.enter.stop="openEventDrawer(event)"
+                          @keydown.space.prevent.stop="openEventDrawer(event)"
+                          @dragstart.stop="startDrag($event, event)"
+                          @dragend="dropTargetKey = ''"
+                          :title="`${formatTime(event.deadline)} · ${event.title}`"
+                        >
+                          <span class="month-event-time">{{
+                            formatTime(event.deadline)
+                          }}</span>
+                          <span class="month-event-status-icon">
+                            <v-icon
+                              v-if="event.status === 'submitted'"
+                              icon="mdi-check-circle"
+                              size="10"
+                            />
+                            <v-icon
+                              v-else-if="event.status === 'overdue'"
+                              icon="mdi-alert-circle"
+                              size="10"
+                            />
+                          </span>
+                          <span class="month-event-title">{{ event.title }}</span>
+                        </span>
+                        <button
+                          v-if="day.events.length > 2"
+                          type="button"
+                          class="month-event-more"
+                          @click.stop="selectCalendarDay(day)"
+                        >
+                          +{{ day.events.length - 2 }}
+                          {{ t("schedule.moreEvents") }}
+                        </button>
                       </span>
-                      <span
-                        v-if="day.events.length > 2"
-                        class="month-event-more"
-                      >
-                        +{{ day.events.length - 2 }}
-                        {{ t("schedule.moreEvents") }}
-                      </span>
-                    </span>
                     <span
                       v-if="day.events.length"
                       class="month-day-mobile-count"
@@ -727,32 +754,41 @@
           >
             <header class="agenda-heading">
               <div class="day-detail-heading-copy">
-                <div class="agenda-eyebrow">{{ selectedDay?.weekday }}</div>
-                <h2>{{ selectedDay?.shortDate || selectedDay?.longDate }}</h2>
+                <h2 class="day-detail-heading-title">
+                  <span v-if="selectedDay?.isToday" class="day-detail-today-badge">{{ t("schedule.today") }}</span>
+                  <span>{{ selectedDay ? `${selectedDay.weekday}, ${selectedDay.shortDate || selectedDay.longDate}` : t('schedule.selectDayPrompt') }}</span>
+                </h2>
               </div>
               <div class="day-detail-actions">
-                <v-chip
-                  v-if="selectedDay?.isToday"
-                  color="primary"
-                  variant="tonal"
-                  size="small"
-                  class="font-weight-bold"
-                >{{ t("schedule.today") }}</v-chip>
-                <v-btn
-                  v-if="selectedDay && !isPastDay(selectedDay.date)"
-                  icon="mdi-plus"
-                  variant="text"
-                  size="small"
-                  :aria-label="t('schedule.quickCreateTitle')"
-                  @click="openQuickCreate(selectedDay)"
-                />
-                <v-btn
-                  icon="mdi-close"
-                  variant="text"
-                  size="small"
-                  :aria-label="t('schedule.closeDetails')"
-                  @click="dayDetailExpanded = false"
-                />
+                <v-tooltip :text="t('schedule.createAssignmentShort')" location="bottom">
+                  <template #activator="{ props: tp }">
+                    <v-btn
+                      v-if="selectedDay && !isPastDay(selectedDay.date)"
+                      v-bind="tp"
+                      icon="mdi-plus"
+                      variant="text"
+                      density="compact"
+                      :size="32"
+                      :aria-label="t('schedule.quickCreateTitle')"
+                      class="day-detail-action-btn"
+                      @click="openQuickCreate(selectedDay)"
+                    />
+                  </template>
+                </v-tooltip>
+                <v-tooltip :text="t('schedule.closeDetails')" location="bottom">
+                  <template #activator="{ props: tp }">
+                    <v-btn
+                      v-bind="tp"
+                      icon="mdi-close"
+                      variant="text"
+                      density="compact"
+                      :size="32"
+                      :aria-label="t('schedule.closeDetails')"
+                      class="day-detail-action-btn"
+                      @click="dayDetailExpanded = false"
+                    />
+                  </template>
+                </v-tooltip>
               </div>
             </header>
 
@@ -761,7 +797,12 @@
               <div v-if="selectedDayEvents.length" class="agenda-section mb-3">
                 <div class="agenda-section-title">
                   <span>{{ t("schedule.dayAssignmentsTitle") }}</span>
-                  <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
+                  <v-chip
+                    size="x-small"
+                    color="primary"
+                    variant="tonal"
+                    class="font-weight-bold"
+                  >
                     {{ selectedDayEvents.length }}
                   </v-chip>
                 </div>
@@ -799,7 +840,11 @@
                         <span v-if="event.class?.name" class="class-badge">
                           <span
                             class="class-color-dot"
-                            :style="{ backgroundColor: classColor(event.classId || event.class?.id) }"
+                            :style="{
+                              backgroundColor: classColor(
+                                event.classId || event.class?.id,
+                              ),
+                            }"
                           ></span>
                           {{ event.class.name }}
                         </span>
@@ -814,15 +859,26 @@
                     </div>
                     <!-- Tiến độ nộp nếu có dữ liệu -->
                     <div
-                      v-if="event.submittedCount !== undefined && event.totalStudents"
+                      v-if="
+                        event.submittedCount !== undefined &&
+                        event.totalStudents
+                      "
                       class="agenda-event-progress mt-1"
                     >
-                      <div class="d-flex justify-space-between text-caption text-medium-emphasis">
+                      <div
+                        class="d-flex justify-space-between text-caption text-medium-emphasis"
+                      >
                         <span>{{ t("schedule.submissionProgress") }}</span>
-                        <strong>{{ event.submittedCount }}/{{ event.totalStudents }}</strong>
+                        <strong
+                          >{{ event.submittedCount }}/{{
+                            event.totalStudents
+                          }}</strong
+                        >
                       </div>
                       <v-progress-linear
-                        :model-value="(event.submittedCount / event.totalStudents) * 100"
+                        :model-value="
+                          (event.submittedCount / event.totalStudents) * 100
+                        "
                         color="success"
                         height="4"
                         rounded
@@ -845,13 +901,21 @@
               </div>
 
               <!-- Danh sách bài Sắp đến hạn -->
-              <div v-if="upcomingDisplayEvents.length" class="agenda-section upcoming-section">
+              <div
+                v-if="upcomingDisplayEvents.length"
+                class="agenda-section upcoming-section"
+              >
                 <div class="agenda-section-title">
                   <div class="upcoming-section-label">
                     <v-icon icon="mdi-clock-fast" size="15" color="warning" />
                     <span>{{ t("schedule.upcomingAssignmentsTitle") }}</span>
                   </div>
-                  <v-chip size="x-small" color="warning" variant="tonal" class="font-weight-bold">
+                  <v-chip
+                    size="x-small"
+                    color="warning"
+                    variant="tonal"
+                    class="font-weight-bold"
+                  >
                     {{ upcomingDisplayEvents.length }}
                   </v-chip>
                 </div>
@@ -869,12 +933,18 @@
                     <div class="upcoming-item-left">
                       <span
                         class="class-color-dot"
-                        :style="{ backgroundColor: classColor(item.classId || item.class?.id) }"
+                        :style="{
+                          backgroundColor: classColor(
+                            item.classId || item.class?.id,
+                          ),
+                        }"
                       ></span>
                       <div class="upcoming-item-info">
                         <div class="upcoming-item-title">{{ item.title }}</div>
                         <div class="upcoming-item-meta">
-                          <span class="upcoming-item-class">{{ item.class?.name || item.className }}</span>
+                          <span class="upcoming-item-class">{{
+                            item.class?.name || item.className
+                          }}</span>
                           <span class="upcoming-item-dot">·</span>
                           <span class="upcoming-item-deadline font-weight-bold">
                             {{ getRelativeDeadlineText(item.deadlineDate) }}
@@ -882,16 +952,17 @@
                         </div>
                       </div>
                     </div>
-                    <v-icon icon="mdi-chevron-right" size="16" class="upcoming-item-arrow" />
+                    <v-icon
+                      icon="mdi-chevron-right"
+                      size="16"
+                      class="upcoming-item-arrow"
+                    />
                   </div>
                 </div>
               </div>
 
               <!-- Trạng thái rỗng: Chỉ hiện khi cả ngày chọn không có bài VÀ không có bài sắp tới -->
-              <div
-                v-else-if="!selectedDayEvents.length"
-                class="agenda-empty"
-              >
+              <div v-else-if="!selectedDayEvents.length" class="agenda-empty">
                 <v-icon icon="mdi-calendar-blank-outline" size="28" />
                 <div>
                   <strong>{{ t("schedule.noDayEvents") }}</strong>
@@ -1057,7 +1128,9 @@
       width="320"
       class="compact-drawer curriculum-compact-drawer"
     >
-        <div class="drawer-header pa-3 d-flex align-center justify-space-between border-b">
+      <div
+        class="drawer-header pa-3 d-flex align-center justify-space-between border-b"
+      >
         <span class="text-subtitle-1 font-weight-bold">{{
           t("schedule.curriculumDrawerTitle")
         }}</span>
@@ -1105,7 +1178,6 @@
         <v-expansion-panels
           v-else
           v-model="expandedBooks"
-          multiple
           variant="accordion"
           class="curriculum-tree"
         >
@@ -1134,7 +1206,10 @@
               >
                 {{ book.error }}
               </v-alert>
-              <div v-else-if="book.chapters?.length" class="chapter-list">
+              <div
+                v-else-if="filteredChapters(book).length"
+                class="chapter-list"
+              >
                 <section
                   v-for="chapter in filteredChapters(book)"
                   :key="chapter.id"
@@ -1143,7 +1218,9 @@
                   <button
                     type="button"
                     class="chapter-toggle"
-                    :aria-expanded="expandedChapters.includes(chapterKey(book, chapter))"
+                    :aria-expanded="
+                      expandedChapters.includes(chapterKey(book, chapter))
+                    "
                     @click.stop="toggleChapter(book, chapter)"
                   >
                     <v-icon
@@ -1185,39 +1262,57 @@
                     v-if="expandedChapters.includes(chapterKey(book, chapter))"
                     class="lesson-list"
                   >
+                    <template v-if="filteredLessons(chapter).length">
+                      <div
+                        v-for="lesson in filteredLessons(chapter)"
+                        :key="lesson.id"
+                        class="curriculum-lesson"
+                      >
+                        <v-icon
+                          icon="mdi-book-open-blank-variant-outline"
+                          size="16"
+                        />
+                        <span class="curriculum-node-title">{{
+                          lesson.title
+                        }}</span>
+                        <v-btn
+                          icon="mdi-calendar-plus-outline"
+                          size="x-small"
+                          variant="tonal"
+                          color="primary"
+                          :aria-label="
+                            t('schedule.assignLesson', { title: lesson.title })
+                          "
+                          @click.stop="
+                            openCurriculumComposer(
+                              { type: 'lesson', book, chapter, lesson },
+                              selectedDay?.date && !isPastDay(selectedDay.date)
+                                ? selectedDay.date
+                                : new Date(),
+                            );
+                            curriculumMobileDrawer = false;
+                          "
+                        />
+                      </div>
+                    </template>
                     <div
-                      v-for="lesson in filteredLessons(chapter)"
-                      :key="lesson.id"
-                      class="curriculum-lesson"
+                      v-else
+                      class="curriculum-state compact-state text-medium-emphasis"
                     >
-                      <v-icon
-                        icon="mdi-book-open-blank-variant-outline"
-                        size="16"
-                      />
-                      <span class="curriculum-node-title">{{
-                        lesson.title
-                      }}</span>
-                      <v-btn
-                        icon="mdi-calendar-plus-outline"
-                        size="x-small"
-                        variant="tonal"
-                        color="primary"
-                        :aria-label="
-                          t('schedule.assignLesson', { title: lesson.title })
-                        "
-                        @click.stop="
-                          openCurriculumComposer(
-                            { type: 'lesson', book, chapter, lesson },
-                            selectedDay?.date && !isPastDay(selectedDay.date)
-                              ? selectedDay.date
-                              : new Date(),
-                          );
-                          curriculumMobileDrawer = false;
-                        "
-                      />
+                      {{ t("schedule.noLessonsInChapter") }}
                     </div>
                   </div>
                 </section>
+              </div>
+              <div
+                v-else
+                class="curriculum-state compact-state text-medium-emphasis"
+              >
+                {{
+                  book.chapters?.length
+                    ? t("schedule.noCurriculumMatch")
+                    : t("schedule.noChapters")
+                }}
               </div>
             </v-expansion-panel-text>
           </v-expansion-panel>
@@ -1251,7 +1346,10 @@
             variant="text"
             size="small"
             :aria-label="t('schedule.quickCreateTitle')"
-            @click="openQuickCreate(selectedDay); dayDetailMobileDrawer = false"
+            @click="
+              openQuickCreate(selectedDay);
+              dayDetailMobileDrawer = false;
+            "
           />
           <v-btn
             icon="mdi-close"
@@ -1266,7 +1364,12 @@
         <div v-if="selectedDayEvents.length" class="agenda-section mb-3">
           <div class="agenda-section-title">
             <span>{{ t("schedule.dayAssignmentsTitle") }}</span>
-            <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
+            <v-chip
+              size="x-small"
+              color="primary"
+              variant="tonal"
+              class="font-weight-bold"
+            >
               {{ selectedDayEvents.length }}
             </v-chip>
           </div>
@@ -1303,7 +1406,11 @@
                   <span v-if="event.class?.name" class="class-badge">
                     <span
                       class="class-color-dot"
-                      :style="{ backgroundColor: classColor(event.classId || event.class?.id) }"
+                      :style="{
+                        backgroundColor: classColor(
+                          event.classId || event.class?.id,
+                        ),
+                      }"
                     ></span>
                     {{ event.class.name }}
                   </span>
@@ -1332,13 +1439,21 @@
           </div>
         </div>
 
-        <div v-if="upcomingDisplayEvents.length" class="agenda-section upcoming-section">
+        <div
+          v-if="upcomingDisplayEvents.length"
+          class="agenda-section upcoming-section"
+        >
           <div class="agenda-section-title">
             <div class="d-flex align-center gap-1">
               <v-icon icon="mdi-clock-fast" size="15" color="warning" />
               <span>{{ t("schedule.upcomingAssignmentsTitle") }}</span>
             </div>
-            <v-chip size="x-small" color="warning" variant="tonal" class="font-weight-bold">
+            <v-chip
+              size="x-small"
+              color="warning"
+              variant="tonal"
+              class="font-weight-bold"
+            >
               {{ upcomingDisplayEvents.length }}
             </v-chip>
           </div>
@@ -1350,17 +1465,24 @@
               role="button"
               tabindex="0"
               :title="item.title"
-              @click="selectEventDateOnCalendar(item); dayDetailMobileDrawer = false"
+              @click="
+                selectEventDateOnCalendar(item);
+                dayDetailMobileDrawer = false;
+              "
             >
               <div class="upcoming-item-left">
                 <span
                   class="class-color-dot"
-                  :style="{ backgroundColor: classColor(item.classId || item.class?.id) }"
+                  :style="{
+                    backgroundColor: classColor(item.classId || item.class?.id),
+                  }"
                 ></span>
                 <div class="upcoming-item-info">
                   <div class="upcoming-item-title">{{ item.title }}</div>
                   <div class="upcoming-item-meta">
-                    <span class="upcoming-item-class">{{ item.class?.name || item.className }}</span>
+                    <span class="upcoming-item-class">{{
+                      item.class?.name || item.className
+                    }}</span>
                     <span class="upcoming-item-dot">·</span>
                     <span class="upcoming-item-deadline font-weight-bold">
                       {{ getRelativeDeadlineText(item.deadlineDate) }}
@@ -1368,7 +1490,11 @@
                   </div>
                 </div>
               </div>
-              <v-icon icon="mdi-chevron-right" size="16" class="upcoming-item-arrow" />
+              <v-icon
+                icon="mdi-chevron-right"
+                size="16"
+                class="upcoming-item-arrow"
+              />
             </div>
           </div>
         </div>
@@ -1607,7 +1733,15 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import AppHeader from "../../components/shared/AppHeader.vue";
@@ -1657,6 +1791,8 @@ const curriculumBooks = ref([]);
 const curriculumSearch = ref("");
 const expandedBooks = ref(null);
 const expandedChapters = ref([]);
+const CURRICULUM_EXPANSION_KEY = "schedule-curriculum-expansion";
+const curriculumRestored = ref(false);
 const draggedCurriculum = ref(null);
 const keyboardLesson = ref(null);
 const curriculumDialog = ref(false);
@@ -1696,7 +1832,9 @@ const chapterLessonCount = computed(
   () => curriculumSelection.value?.chapter?.lessons?.length || 0,
 );
 const filteredBooks = computed(() => {
-  const query = String(curriculumSearch.value || "").trim().toLocaleLowerCase();
+  const query = String(curriculumSearch.value || "")
+    .trim()
+    .toLocaleLowerCase();
   if (!query) return curriculumBooks.value;
   return curriculumBooks.value.filter((book) => {
     const bookTitle = String(book?.title || "").toLocaleLowerCase();
@@ -1705,32 +1843,47 @@ const filteredBooks = computed(() => {
       const chapterTitle = String(chapter?.title || "").toLocaleLowerCase();
       if (chapterTitle.includes(query)) return true;
       return (chapter?.lessons || []).some((lesson) =>
-        String(lesson?.title || "").toLocaleLowerCase().includes(query),
+        String(lesson?.title || "")
+          .toLocaleLowerCase()
+          .includes(query),
       );
     });
   });
 });
 
 function filteredChapters(book) {
-  const query = String(curriculumSearch.value || "").trim().toLocaleLowerCase();
+  const query = String(curriculumSearch.value || "")
+    .trim()
+    .toLocaleLowerCase();
   const chapters = Array.isArray(book?.chapters) ? book.chapters : [];
   if (!query) return chapters;
   return chapters.filter((chapter) => {
     const chapterTitle = String(chapter?.title || "").toLocaleLowerCase();
     if (chapterTitle.includes(query)) return true;
     return (chapter?.lessons || []).some((lesson) =>
-      String(lesson?.title || "").toLocaleLowerCase().includes(query),
+      String(lesson?.title || "")
+        .toLocaleLowerCase()
+        .includes(query),
     );
   });
 }
 
 function filteredLessons(chapter) {
-  const query = String(curriculumSearch.value || "").trim().toLocaleLowerCase();
+  const query = String(curriculumSearch.value || "")
+    .trim()
+    .toLocaleLowerCase();
   const lessons = Array.isArray(chapter?.lessons) ? chapter.lessons : [];
-  if (!query || String(chapter?.title || "").toLocaleLowerCase().includes(query))
+  if (
+    !query ||
+    String(chapter?.title || "")
+      .toLocaleLowerCase()
+      .includes(query)
+  )
     return lessons;
   return lessons.filter((lesson) =>
-    String(lesson?.title || "").toLocaleLowerCase().includes(query),
+    String(lesson?.title || "")
+      .toLocaleLowerCase()
+      .includes(query),
   );
 }
 
@@ -2125,8 +2278,8 @@ function chapterKey(book, chapter) {
 function toggleChapter(book, chapter) {
   const key = chapterKey(book, chapter);
   expandedChapters.value = expandedChapters.value.includes(key)
-    ? []
-    : [key];
+    ? expandedChapters.value.filter((item) => item !== key)
+    : [...expandedChapters.value, key];
 }
 
 function startCurriculumDrag(event, selection) {
@@ -2685,16 +2838,83 @@ async function loadCurriculumBooks() {
       }),
     );
     curriculumBooks.value = trees;
+    // Keep the teacher's place when the view is recreated (for example, when
+    // changing browser zoom switches between the page sidebar and drawer).
+    try {
+      const saved = JSON.parse(
+        window.localStorage.getItem(CURRICULUM_EXPANSION_KEY) || "null",
+      );
+      const savedBook = trees.find((book) => book.id === saved?.bookId);
+      if (savedBook) {
+        expandedBooks.value = saved.bookId;
+        const savedChapterKeys = Array.isArray(saved.chapterKeys)
+          ? saved.chapterKeys.filter((key) =>
+              (savedBook.chapters || []).some(
+                (chapter) => key === chapterKey(savedBook, chapter),
+              ),
+            )
+          : [];
+        expandedChapters.value = savedChapterKeys.length
+          ? savedChapterKeys
+          : (savedBook.chapters || []).slice(0, 1).map((chapter) =>
+              chapterKey(savedBook, chapter),
+            );
+      } else if (trees.length) {
+        const defaultBook =
+          trees.find((book) => /toán/i.test(String(book.title || ""))) ||
+          trees[0];
+        const defaultChapter =
+          (defaultBook.chapters || []).find((chapter) =>
+            /làm quen/i.test(String(chapter.title || "")),
+          ) || (defaultBook.chapters || [])[0];
+        expandedBooks.value = defaultBook.id;
+        expandedChapters.value = defaultChapter
+          ? [chapterKey(defaultBook, defaultChapter)]
+          : [];
+      }
+    } catch {
+      // Ignore unavailable or malformed saved UI state.
+    }
   } catch (error) {
     curriculumError.value = error?.message || t("schedule.curriculumLoadError");
   } finally {
     curriculumLoading.value = false;
+    curriculumRestored.value = true;
   }
 }
 
 function syncMobileViewport() {
+  const wasCompact = isCompactLayout.value;
   isMobile.value = window.matchMedia("(max-width: 767px)").matches;
-  isCompactLayout.value = window.matchMedia("(max-width: 1279px)").matches;
+  // Keep the curriculum tree in the page at normal desktop zoom. At 1279px,
+  // browser zoom could switch to the compact drawer and reset its expansion
+  // state, hiding the selected book and chapter contents.
+  isCompactLayout.value = window.matchMedia("(max-width: 1099px)").matches;
+  if (wasCompact !== isCompactLayout.value && isTeacher.value) {
+    void nextTick(() => {
+      try {
+        const saved = JSON.parse(
+          window.localStorage.getItem(CURRICULUM_EXPANSION_KEY) || "null",
+        );
+        if (saved?.bookId && expandedBooks.value == null) {
+          const savedBook = curriculumBooks.value.find(
+            (book) => book.id === saved.bookId,
+          );
+          if (savedBook) {
+            expandedBooks.value = saved.bookId;
+            expandedChapters.value = Array.isArray(saved.chapterKeys) &&
+              saved.chapterKeys.length
+              ? saved.chapterKeys
+              : (savedBook.chapters || []).slice(0, 1).map((chapter) =>
+                  chapterKey(savedBook, chapter),
+                );
+          }
+        }
+      } catch {
+        // Ignore unavailable or malformed saved UI state.
+      }
+    });
+  }
 }
 
 function openEvent(event) {
@@ -2709,6 +2929,7 @@ function openEvent(event) {
 }
 
 onMounted(() => {
+  console.log("Schedule mounted");
   syncMobileViewport();
   window.addEventListener("resize", syncMobileViewport);
   void loadAssignments();
@@ -2717,17 +2938,34 @@ onMounted(() => {
 
 onUnmounted(() => window.removeEventListener("resize", syncMobileViewport));
 
-watch(curriculumSearch, (query) => {
+watch(curriculumSearch, (query, previous) => {
   if (!query?.trim()) {
-    expandedBooks.value = null;
-    expandedChapters.value = [];
+    // chỉ reset khi vừa xóa một từ khóa đang có
+    // Keep the current expansion when clearing search.
     return;
   }
 
   expandedBooks.value = filteredBooks.value[0]?.id ?? null;
   expandedChapters.value = filteredBooks.value.flatMap((book) =>
-    filteredChapters(book).slice(0, 1).map((chapter) => chapterKey(book, chapter)),
+    filteredChapters(book)
+      .slice(0, 1)
+      .map((chapter) => chapterKey(book, chapter)),
   );
+});
+
+watch([expandedBooks, expandedChapters], ([bookId, chapterKeys]) => {
+  // chưa khôi phục xong thì không ghi, tránh ghi đè bằng giá trị rỗng
+  if (!curriculumRestored.value) return;
+  // Ignore transient empty models emitted while Vuetify swaps responsive trees.
+  if (bookId == null) return;
+  try {
+    window.localStorage.setItem(
+      CURRICULUM_EXPANSION_KEY,
+      JSON.stringify({ bookId: bookId ?? null, chapterKeys }),
+    );
+  } catch {
+    // bỏ qua nếu không có storage
+  }
 });
 </script>
 
@@ -2789,42 +3027,40 @@ watch(curriculumSearch, (query) => {
 }
 
 .teacher-schedule-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.teacher-stat-card {
   display: flex;
-  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border: 1px solid #e1eaf7;
-  border-radius: 10px;
-  background: #fff;
 }
 
-.teacher-stat-card > div {
-  display: grid;
-  min-width: 0;
-}
-.teacher-stat-card span {
-  overflow: hidden;
-  color: #667085;
-  font-size: 0.72rem;
-  font-weight: 650;
-  text-overflow: ellipsis;
+/* Điểm 4: Chip KPI gọn ngang */
+.stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid #e1eaf7;
+  border-radius: 20px;
+  background: #fff;
   white-space: nowrap;
 }
-.teacher-stat-card strong {
-  color: #172b4d;
-  font-size: 1.05rem;
-  line-height: 1.15;
+.stat-chip--error {
+  border-color: #fecdd3;
+  background: #fff8f8;
 }
-.teacher-stat-card small {
+.stat-chip--primary {
+  border-color: #c7dcfd;
+  background: #f4f8ff;
+}
+.stat-chip-label {
   color: #667085;
-  font-size: 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.stat-chip-value {
+  color: #172b4d;
+  font-size: 0.82rem;
+  font-weight: 800;
 }
 
 .schedule-hero {
@@ -2959,7 +3195,10 @@ watch(curriculumSearch, (query) => {
 }
 
 .teacher-workspace.day-detail-expanded {
-  grid-template-columns: minmax(230px, 260px) minmax(0, 1fr) minmax(280px, 310px);
+  grid-template-columns: minmax(230px, 260px) minmax(0, 1fr) minmax(
+      280px,
+      310px
+    );
 }
 
 .teacher-workspace.curriculum-collapsed {
@@ -2979,9 +3218,11 @@ watch(curriculumSearch, (query) => {
 
 .curriculum-sidebar {
   position: sticky;
-  top: 76px;
-  height: fit-content;
-  max-height: calc(100vh - 92px);
+  /* AppHeader height=70px + 12px gap */
+  top: 82px;
+  /* 100dvh - AppBar(70) - top-gap(12) - bottom-gap(12) */
+  height: calc(100dvh - 94px);
+  max-height: calc(100dvh - 94px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2993,9 +3234,9 @@ watch(curriculumSearch, (query) => {
 
 .day-detail-panel {
   position: sticky;
-  top: 76px;
+  top: 82px;
   height: fit-content;
-  max-height: calc(100vh - 92px);
+  max-height: calc(100dvh - 94px);
   min-height: 180px;
   display: flex;
   flex-direction: column;
@@ -3028,18 +3269,35 @@ watch(curriculumSearch, (query) => {
   gap: 0;
 }
 
-.day-detail-panel .agenda-eyebrow {
+/* Điểm 2: Tiêu đề ngày 1 dòng */
+.day-detail-heading-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
   overflow: hidden;
-  font-size: 0.66rem;
-  text-overflow: ellipsis;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #172b4d;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.day-detail-panel .agenda-heading h2 {
-  overflow: hidden;
-  font-size: 0.9rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.day-detail-today-badge {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: #2f7cf6;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.day-detail-action-btn {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
 }
 
 .day-detail-panel .agenda-content {
@@ -3089,16 +3347,15 @@ watch(curriculumSearch, (query) => {
 }
 
 .curriculum-tree {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-content: flex-start;
-  flex: 0 1 auto;
+  display: block;
+  flex: 1 1 0;
   min-height: 0;
-  max-height: calc(100vh - 210px);
+  max-height: none;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
   padding: 0 6px 8px;
+  scrollbar-width: thin;
 }
 .curriculum-tree :deep(.v-expansion-panel-title) {
   min-height: 34px !important;
@@ -3141,7 +3398,7 @@ watch(curriculumSearch, (query) => {
 }
 .curriculum-chapter {
   min-width: 0;
-  margin-right: 4px;
+  margin-right: 0;
   padding: 2px 0;
   border-radius: 10px;
 }
@@ -3154,8 +3411,9 @@ watch(curriculumSearch, (query) => {
   min-width: 0;
   align-items: center;
   gap: 6px;
-  overflow: hidden;
-  padding: 5px 5px 5px 2px;
+  /* Điểm 5: padding-right đủ để badge không bị mép */
+  padding: 5px 6px 5px 2px;
+  overflow: visible;
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -3163,6 +3421,11 @@ watch(curriculumSearch, (query) => {
   font-size: 0.78rem;
   line-height: 1.3;
   text-align: left;
+}
+/* Điểm 5: badge không bị cắt mép */
+.chapter-lesson-badge {
+  flex: 0 0 auto !important;
+  margin-left: auto;
 }
 .chapter-toggle:hover,
 .curriculum-lesson:hover {
@@ -3172,7 +3435,7 @@ watch(curriculumSearch, (query) => {
   flex: 0 0 auto;
   min-width: 20px;
   height: 20px;
-  margin-right: 3px;
+  margin-right: 0;
   font-size: 0.62rem;
 }
 .chapter-mobile-action {
@@ -3314,7 +3577,9 @@ watch(curriculumSearch, (query) => {
   box-shadow: inset 0 0 0 2px #b8d3ff;
 }
 
-.month-day-cell:focus { outline: none; }
+.month-day-cell:focus {
+  outline: none;
+}
 .month-day-cell:focus-visible {
   z-index: 2;
   outline: 2px solid #2f7cf6;
@@ -3389,16 +3654,16 @@ watch(curriculumSearch, (query) => {
 .month-event-pill {
   display: flex;
   min-width: 0;
-  align-items: center;
+  align-items: flex-start;
   gap: 3px;
-  overflow: hidden;
-  padding: 1px 4px;
+  padding: 2px 4px;
   border-radius: 4px;
   background: #fff5df;
   color: #875b00;
   font-size: 0.62rem;
-  line-height: 1.25;
+  line-height: 1.3;
   border-left: 3px solid var(--class-accent, transparent);
+  cursor: pointer;
 }
 
 .month-event-draggable {
@@ -3426,18 +3691,38 @@ watch(curriculumSearch, (query) => {
   font-weight: 800;
 }
 
+.month-event-status-icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
 .month-event-title {
-  overflow: hidden;
+  min-width: 0;
   font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .month-event-more {
-  padding-left: 5px;
-  color: #667085;
+  display: block;
+  padding: 1px 5px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #2f7cf6;
   font-size: 0.65rem;
   font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.month-event-more:hover {
+  background: #edf5ff;
+  text-decoration: underline;
 }
 
 .month-day-mobile-count {
@@ -3909,7 +4194,7 @@ watch(curriculumSearch, (query) => {
   font-size: 0.8rem;
 }
 
-@media (max-width: 1279px) {
+@media (max-width: 1099px) {
   .compact-drawer {
     inset: auto 0 0 !important;
     width: 100% !important;
@@ -3966,17 +4251,7 @@ watch(curriculumSearch, (query) => {
     justify-content: space-between;
   }
   .teacher-schedule-stats {
-    gap: 6px;
-  }
-  .teacher-stat-card {
-    align-items: flex-start;
-    gap: 6px;
-    flex-direction: column;
-    padding: 9px;
-  }
-  .teacher-stat-card span {
-    font-size: 0.67rem;
-    white-space: normal;
+    gap: 4px;
   }
   .teacher-workspace {
     grid-template-columns: minmax(0, 1fr);
@@ -3987,6 +4262,7 @@ watch(curriculumSearch, (query) => {
   .curriculum-sidebar {
     position: relative;
     top: auto;
+    height: auto;
     max-height: none;
   }
   .curriculum-tree {

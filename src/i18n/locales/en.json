@@ -545,7 +545,10 @@
     "relativeDueHours": "{hours} hours left",
     "relativeDuePast": "Overdue",
     "noUpcomingAssignments": "No upcoming deadlines",
-    "dayAssignmentsTitle": "Assignments for this day"
+    "dayAssignmentsTitle": "Assignments for this day",
+    "createAssignmentShort": "Assign",
+    "selectDayPrompt": "Select a day to see details",
+    "lessonCountTooltip": "{count} lessons"
   },
   "assignmentHub": {
     "backToSubmissions": "Back to submissions",
