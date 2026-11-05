@@ -145,6 +145,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { api } from '../../services/api';
 import { useAuthStore } from '../../stores/auth';
@@ -153,6 +154,7 @@ import TeacherSidebar from '../../components/shared/TeacherSidebar.vue';
 import QuestionBankSection from '../../components/QuestionBankSection.vue';
 
 const { t } = useI18n();
+const route = useRoute();
 const authStore = useAuthStore();
 const books = ref([]);
 const book = ref(null);
@@ -212,7 +214,17 @@ async function loadBookLessons(bookId) {
   }
 }
 
-onMounted(loadBooks);
+onMounted(async () => {
+  await loadBooks();
+  const requestedBookId = Number(route.query.bookId);
+  if (!requestedBookId || !books.value.some((item) => Number(item.id) === requestedBookId)) return;
+  selectedBookId.value = requestedBookId;
+  await loadBookLessons(requestedBookId);
+  const requestedLessonId = Number(route.query.lessonId);
+  if (requestedLessonId && lessons.value.some((lesson) => Number(lesson.id) === requestedLessonId)) {
+    selectedLessonId.value = requestedLessonId;
+  }
+});
 </script>
 
 <style scoped>
