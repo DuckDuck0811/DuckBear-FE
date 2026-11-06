@@ -25,6 +25,13 @@
           {{ t('bookDetail.backToLibrary') }}
         </v-btn>
 
+        <v-alert v-if="loadError" type="error" variant="tonal" class="mb-5" role="alert">
+          <div class="d-flex flex-wrap align-center justify-space-between ga-3">
+            <span>{{ loadError }}</span>
+            <v-btn variant="text" color="primary" @click="goBack">{{ t('bookDetail.backToLibrary') }}</v-btn>
+          </div>
+        </v-alert>
+
         <!-- Hero Showcase Banner Sách Phong Cách SHub Classroom -->
         <v-card
           v-if="book"
@@ -58,7 +65,7 @@
 
             <!-- Nút Thêm Chương Mới cho Teacher -->
             <v-btn
-              v-if="authStore.isTeacher"
+              v-if="canManageBook"
               color="primary"
               size="large"
               rounded="pill"
@@ -89,7 +96,7 @@
             v-if="!book.chapters || book.chapters.length === 0"
             :title="t('bookDetail.noChapters')"
             :description="t('bookDetail.noChaptersHint')"
-            :action-text="authStore.isTeacher ? t('bookDetail.addFirstChapter') : ''"
+            :action-text="canManageBook ? t('bookDetail.addFirstChapter') : ''"
             action-icon="mdi-folder-plus-outline"
             @action="openAddChapterDialog"
           />
@@ -129,7 +136,7 @@
                   </div>
 
                   <!-- Thao tác trên chương (Teacher) -->
-                  <div v-if="authStore.isTeacher" class="d-flex align-center ga-2" @click.stop>
+                  <div v-if="canManageBook" class="d-flex align-center ga-2" @click.stop>
                     <v-btn
                       size="small"
                       color="primary"
@@ -170,7 +177,7 @@
                   class="py-4 text-center text-caption text-secondary"
                 >
                   {{ t('bookDetail.noLessons') }}
-                  <span v-if="authStore.isTeacher">{{ t('bookDetail.noLessonsTeacherHint') }}</span>
+                  <span v-if="canManageBook">{{ t('bookDetail.noLessonsTeacherHint') }}</span>
                 </div>
 
                 <!-- Danh sách các bài học -->
@@ -200,11 +207,11 @@
 
                       <!-- Nút Sửa / Xóa Bài học cho Teacher -->
                       <QuestionBankSection
-                        v-if="authStore.isTeacher"
+                        v-if="canManageBook"
                         :lesson-id="lesson.id"
                         :lesson-title="lesson.title"
                       />
-                      <div v-if="authStore.isTeacher" class="d-flex align-center ga-1" @click.stop>
+                      <div v-if="canManageBook" class="d-flex align-center ga-1" @click.stop>
                         <v-btn
                           icon="mdi-pencil-outline"
                           size="x-small"
@@ -476,7 +483,12 @@ const subjectLabel = computed(() => {
   const key = subjectTranslationKeys[book.value?.subject]
   return key ? t(`booksPage.subjects.${key}`) : book.value?.subject
 })
+const canManageBook = computed(() =>
+  authStore.user?.role === 'ADMIN' ||
+  Number(book.value?.createdById) === Number(authStore.user?.id),
+)
 const isLoading = ref(false)
+const loadError = ref('')
 const openedPanels = ref([])
 
 // Snackbar thông báo
@@ -531,6 +543,7 @@ const requiredRule = [(v) => !!v || t('bookDetail.required')]
 // Lấy chi tiết sách
 async function fetchBookDetail() {
   isLoading.value = true
+  loadError.value = ''
   try {
     const data = await api(`/books/${bookId}`)
     book.value = data
@@ -538,7 +551,7 @@ async function fetchBookDetail() {
       openedPanels.value = data.chapters.map((_, i) => i)
     }
   } catch (err) {
-    showNotice(err.message, 'error')
+    loadError.value = err.status === 403 ? t('bookDetail.accessDenied') : (err.message || t('bookDetail.loadError'))
   } finally {
     isLoading.value = false
   }

@@ -189,11 +189,13 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
+import { useQuestionBankStore } from "../../stores/questionBank";
 import { useNotificationsStore } from "../../stores/notifications";
 import DuckBearMascot from "./DuckBearMascot.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const questionBankStore = useQuestionBankStore();
 const notifications = useNotificationsStore();
 const { t, locale } = useI18n();
 const languageOptions = [
@@ -244,6 +246,7 @@ function setLocale(value) {
 }
 
 function handleLogout() {
+  if (questionBankStore.hasPendingDrafts && !window.confirm(t("questionBank.confirmLogoutWithDrafts"))) return;
   authStore.logout();
   router.push("/login");
 }

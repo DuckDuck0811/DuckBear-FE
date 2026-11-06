@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '../services/api'
+import { useQuestionBankStore } from './questionBank'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -62,6 +63,7 @@ export const useAuthStore = defineStore('auth', {
      * Đăng xuất tài khoản
      */
     logout() {
+      useQuestionBankStore().clearAllDrafts()
       this.token = null
       this.user = null
       localStorage.removeItem('accessToken')
