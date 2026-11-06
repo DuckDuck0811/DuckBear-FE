@@ -37,6 +37,10 @@
           </template>
         </PageHeader>
 
+        <v-alert v-if="loadError" type="error" variant="tonal" class="mb-5" role="alert">
+          {{ loadError }}
+        </v-alert>
+
         <!-- Thanh FilterChips Khối Lớp -->
         <div class="mb-8">
           <FilterChips
@@ -90,7 +94,7 @@
           >
             <BookCard
               :book="book"
-              :can-edit="authStore.isTeacher"
+              :can-edit="authStore.user?.role === 'ADMIN' || Number(book.createdById) === Number(authStore.user?.id)"
               @click="goToDetail"
               @edit="openEditDialog"
               @delete="confirmDeleteBook"
@@ -265,6 +269,7 @@ const booksPage = ref(1);
 const booksPageSize = 20;
 const pagedBooks = computed(() => books.value.slice((booksPage.value - 1) * booksPageSize, booksPage.value * booksPageSize));
 const isLoading = ref(false);
+const loadError = ref('');
 const selectedGrade = ref(null);
 const baseSubjects = [
   "Toán",
@@ -382,12 +387,14 @@ const gradeRule = [
 // Lấy danh sách sách
 async function fetchBooks() {
   isLoading.value = true;
+  loadError.value = '';
   try {
     const path = selectedGrade.value
       ? `/books?gradeLevel=${selectedGrade.value}`
       : "/books";
     books.value = await api(path);
   } catch (err) {
+    loadError.value = err.status === 403 ? t('booksPage.accessDenied') : (err.message || t('booksPage.loadError'));
     showNotice(err.message, "error");
   } finally {
     isLoading.value = false;

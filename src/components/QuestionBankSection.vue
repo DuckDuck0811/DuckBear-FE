@@ -1,6 +1,7 @@
 <template>
-  <div class="question-bank-action" @click.stop>
+  <div class="question-bank-action" :class="{ 'question-bank-action--inline': inline }" @click.stop>
     <v-btn
+      v-if="!inline"
       size="x-small"
       variant="tonal"
       color="primary"
@@ -11,8 +12,12 @@
       {{ t('questionBank.button') }}
     </v-btn>
 
-    <v-dialog v-model="showDialog" max-width="900" scrollable>
-      <v-card class="question-bank-dialog rounded-xl">
+    <component
+      :is="inline ? 'div' : 'v-dialog'"
+      v-bind="inline ? {} : { modelValue: showDialog, maxWidth: 900, scrollable: true }"
+      @update:model-value="showDialog = $event"
+    >
+      <v-card :class="['question-bank-dialog rounded-xl', { 'question-bank-inline-card': inline }]">
         <v-card-title
           class="question-bank-heading d-flex align-start justify-space-between ga-3 pa-5"
         >
@@ -23,6 +28,7 @@
             <h2 class="question-bank-heading-title text-h6 font-weight-black">{{ lessonTitle }}</h2>
           </div>
           <v-btn
+            v-if="!inline"
             icon="mdi-close"
             variant="text"
             :aria-label="t('questionBank.close')"
@@ -192,18 +198,47 @@
                   {{ t('questionBank.listTitle') }}
                 </h3>
                 <p class="text-body-2 text-secondary mb-0">
-                  {{ t('questionBank.count', { count: questions.length }) }}
+                  {{ t('questionBank.count', { count: questionBankCount }) }}
                 </p>
               </div>
               <div class="d-flex flex-wrap ga-2">
-                <v-btn color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = !showGenerator">
+                <v-btn v-if="canManage" color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = !showGenerator">
                   {{ t('questionBank.generateWithAi') }}
                 </v-btn>
-                <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
+                <v-btn v-if="canManage" color="primary" prepend-icon="mdi-plus" @click="openCreate">
                   {{ t('questionBank.createQuestion') }}
                 </v-btn>
               </div>
             </div>
+
+            <v-row dense class="mb-4">
+              <v-col cols="12" sm="6">
+                <v-select
+                  v-model="typeFilter"
+                  :items="typeFilterOptions"
+                  item-title="title"
+                  item-value="value"
+                  :label="t('questionBank.filterType')"
+                  hide-details
+                  density="comfortable"
+                />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-select
+                  v-model="statusFilter"
+                  :items="statusFilterOptions"
+                  item-title="title"
+                  item-value="value"
+                  :label="t('questionBank.filterStatus')"
+                  hide-details
+                  density="comfortable"
+                />
+              </v-col>
+            </v-row>
+
+            <v-alert v-if="!canManage" type="info" variant="tonal" density="comfortable" class="mb-4">
+              {{ t('questionBank.readOnlySharedBook') }}
+            </v-alert>
 
             <v-expand-transition>
               <v-card v-if="showGenerator" class="ai-generator pa-4 pa-md-5 mb-5" rounded="xl" variant="tonal">
@@ -242,16 +277,17 @@
               </v-card>
             </v-expand-transition>
 
-            <div v-if="generatedQuestions.length" class="ai-drafts mb-5">
+            <div v-if="filteredDrafts.length" class="ai-drafts mb-5">
               <div class="d-flex align-center justify-space-between mb-3">
-                <h4 class="text-subtitle-1 font-weight-black">{{ t('questionBank.aiDraftsTitle', { count: generatedQuestions.length }) }}</h4>
-                <v-btn size="small" variant="text" color="error" prepend-icon="mdi-close" @click="generatedQuestions = []">{{ t('questionBank.clearDrafts') }}</v-btn>
+                <h4 class="text-subtitle-1 font-weight-black">{{ t('questionBank.aiDraftsTitle', { count: filteredDrafts.length }) }}</h4>
+                <v-btn size="small" variant="text" color="error" prepend-icon="mdi-close" @click="clearDrafts">{{ t('questionBank.clearDrafts') }}</v-btn>
               </div>
-              <v-card v-for="(draft, index) in generatedQuestions" :key="`draft-${index}`" class="ai-draft-card pa-4 mb-3" rounded="lg">
+              <v-card v-for="draft in filteredDrafts" :key="`draft-${draft.draftIndex}`" class="ai-draft-card pa-4 mb-3" rounded="lg">
                 <div class="d-flex flex-column flex-sm-row align-start justify-space-between ga-3">
                   <div class="min-width-0 flex-grow-1">
                     <div class="d-flex flex-wrap ga-2 mb-2">
                       <v-chip size="x-small" color="deep-purple" variant="tonal">{{ t(`questionBank.types.${draft.type}`) }}</v-chip>
+                      <v-chip size="x-small" color="warning" variant="tonal">{{ t('questionBank.draftStatus') }}</v-chip>
                       <v-chip size="x-small" color="secondary" variant="tonal">{{ t(`questionBank.difficulties.${draft.difficulty}`) }}</v-chip>
                     </div>
                     <p class="text-body-1 font-weight-bold mb-2">{{ draft.content }}</p>
@@ -265,8 +301,8 @@
                     <p v-if="draft.explanation" class="text-body-2 text-secondary mt-1 mb-0"><strong>{{ t('questionBank.explanation') }}:</strong> {{ draft.explanation }}</p>
                   </div>
                   <div class="d-flex flex-wrap ga-1">
-                    <v-btn size="small" variant="text" prepend-icon="mdi-pencil-outline" @click="editDraft(index)">{{ t('questionBank.editDraft') }}</v-btn>
-                    <v-btn size="small" color="success" variant="tonal" prepend-icon="mdi-plus-circle-outline" :loading="savingDraftIndex === index" :disabled="isSavingAllDrafts" @click="saveDraft(index)">{{ t('questionBank.addDraft') }}</v-btn>
+                    <v-btn v-if="canManage" size="small" variant="text" prepend-icon="mdi-pencil-outline" @click="editDraft(draft.draftIndex)">{{ t('questionBank.editDraft') }}</v-btn>
+                    <v-btn v-if="canManage" size="small" color="success" variant="tonal" prepend-icon="mdi-plus-circle-outline" :loading="savingDraftIndex === draft.draftIndex" :disabled="isSavingAllDrafts" @click="saveDraft(draft.draftIndex)">{{ t('questionBank.addDraft') }}</v-btn>
                   </div>
                 </div>
               </v-card>
@@ -279,7 +315,7 @@
               rounded
               class="mb-4"
             />
-            <div v-if="!isLoading && questions.length" class="question-list">
+            <div v-if="!isLoading && filteredQuestions.length" class="question-list">
               <v-card
                 v-for="question in pagedQuestions"
                 :key="question.id"
@@ -294,6 +330,7 @@
                       <v-chip size="x-small" color="primary" variant="tonal">{{
                         t(`questionBank.types.${question.type}`)
                       }}</v-chip>
+                      <v-chip size="x-small" color="success" variant="tonal">{{ t('questionBank.savedStatus') }}</v-chip>
                       <v-chip
                         size="x-small"
                         color="secondary"
@@ -340,6 +377,7 @@
                   </div>
                   <div class="d-flex ga-1">
                     <v-btn
+                      v-if="canManage"
                       icon="mdi-pencil-outline"
                       size="small"
                       variant="text"
@@ -347,6 +385,7 @@
                       @click="openEdit(question)"
                     />
                     <v-btn
+                      v-if="canManage"
                       icon="mdi-trash-can-outline"
                       size="small"
                       variant="text"
@@ -357,10 +396,10 @@
                   </div>
                 </div>
               </v-card>
-              <ListPagination v-model="questionPage" :total="questions.length" />
+              <ListPagination v-model="questionPage" :total="filteredQuestions.length" />
             </div>
             <v-card
-              v-else-if="!isLoading"
+              v-else-if="!isLoading && !filteredDrafts.length"
               class="empty-bank pa-7 text-center"
               rounded="lg"
               variant="tonal"
@@ -372,13 +411,13 @@
                 class="mb-2"
               />
               <p class="text-body-2 text-secondary mb-0">
-                {{ t('questionBank.empty') }}
+                {{ questions.length || generatedQuestions.length ? t('questionBank.noFilteredQuestions') : t('questionBank.empty') }}
               </p>
             </v-card>
           </template>
         </v-card-text>
       </v-card>
-    </v-dialog>
+    </component>
 
     <ConfirmDialog
       v-model="showDeleteConfirm"
@@ -391,18 +430,25 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { api } from '../services/api';
+import { filterQuestionLists } from '../services/questionBankState.js';
+import { useAuthStore } from '../stores/auth';
+import { useQuestionBankStore } from '../stores/questionBank';
 import ConfirmDialog from './shared/ConfirmDialog.vue';
 import ListPagination from './shared/ListPagination.vue';
 
 const props = defineProps({
   lessonId: { type: [Number, String], required: true },
   lessonTitle: { type: String, required: true },
+  inline: { type: Boolean, default: false },
+  canManage: { type: Boolean, default: true },
 });
 
 const { t } = useI18n();
+const authStore = useAuthStore();
+const questionBankStore = useQuestionBankStore();
 
 function displayOptionContent(type, content) {
   if (type !== 'TRUE_FALSE') return content;
@@ -416,12 +462,33 @@ const showGenerator = ref(false);
 const showDeleteConfirm = ref(false);
 const questions = ref([]);
 const questionPage = ref(1);
+const typeFilter = ref('ALL');
+const statusFilter = ref('ALL');
 const pageSize = 20;
-const pagedQuestions = computed(() => questions.value.slice((questionPage.value - 1) * pageSize, questionPage.value * pageSize));
-watch(() => Math.ceil(questions.value.length / pageSize), pageCount => {
+const generatedQuestions = computed(() => questionBankStore.draftsFor(authStore.user?.id, props.lessonId));
+const questionFilters = computed(() => filterQuestionLists(questions.value, generatedQuestions.value, {
+  type: typeFilter.value,
+  status: statusFilter.value,
+}));
+const filteredQuestions = computed(() => questionFilters.value.saved);
+const filteredDrafts = computed(() => questionFilters.value.drafts.map((draft) => ({
+  ...draft,
+  draftIndex: generatedQuestions.value.indexOf(draft),
+})));
+const pagedQuestions = computed(() => filteredQuestions.value.slice((questionPage.value - 1) * pageSize, questionPage.value * pageSize));
+const questionBankCount = computed(() => questions.value.length + generatedQuestions.value.length);
+const typeFilterOptions = computed(() => [
+  { title: t('questionBank.allTypes'), value: 'ALL' },
+  ...questionTypes.value,
+]);
+const statusFilterOptions = computed(() => [
+  { title: t('questionBank.allStatuses'), value: 'ALL' },
+  { title: t('questionBank.draftStatus'), value: 'DRAFT' },
+  { title: t('questionBank.savedStatus'), value: 'SAVED' },
+]);
+watch(() => Math.ceil(filteredQuestions.value.length / pageSize), pageCount => {
   if (questionPage.value > pageCount) questionPage.value = Math.max(1, pageCount);
 });
-const generatedQuestions = ref([]);
 const questionToDelete = ref(null);
 const editingQuestion = ref(null);
 const formRef = ref(null);
@@ -493,6 +560,17 @@ async function loadQuestions() {
     isLoading.value = false;
   }
 }
+
+watch(() => props.lessonId, () => {
+  questionPage.value = 1;
+  showEditor.value = false;
+  editingQuestion.value = null;
+  if (props.inline) void loadQuestions();
+});
+
+onMounted(() => {
+  if (props.inline) void loadQuestions();
+});
 
 async function openDialog() {
   showDialog.value = true;
@@ -622,12 +700,12 @@ async function saveQuestion() {
   try {
     const payload = buildPayload();
     if (draftEditingIndex.value !== null) {
-      generatedQuestions.value[draftEditingIndex.value] = {
+      questionBankStore.updateDraft(authStore.user?.id, props.lessonId, draftEditingIndex.value, {
         ...payload,
         options: payload.options || [],
         answerText: payload.answerText || '',
         explanation: payload.explanation || '',
-      };
+      });
       draftEditingIndex.value = null;
       showEditor.value = false;
       return;
@@ -664,7 +742,15 @@ async function generateQuestions() {
         instructions: aiOptions.instructions.trim() || undefined,
       },
     });
-    generatedQuestions.value = drafts;
+    const identifiedDrafts = drafts.map((draft, index) => ({
+      ...draft,
+      draftKey: `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
+    }));
+    questionBankStore.setDrafts(
+      authStore.user?.id,
+      props.lessonId,
+      [...generatedQuestions.value, ...identifiedDrafts],
+    );
   } catch (error) {
     errorMessage.value = error.message || t('questionBank.aiError');
   } finally {
@@ -690,7 +776,7 @@ async function saveDraft(index) {
   errorMessage.value = '';
   try {
     await api(`/lessons/${props.lessonId}/questions`, { method: 'POST', body: draftPayload(draft) });
-    generatedQuestions.value.splice(index, 1);
+    questionBankStore.removeDraft(authStore.user?.id, props.lessonId, index);
     await loadQuestions();
   } catch (error) {
     errorMessage.value = error.message || t('questionBank.saveError');
@@ -706,7 +792,7 @@ async function saveAllDrafts() {
     while (generatedQuestions.value.length) {
       const draft = generatedQuestions.value[0];
       await api(`/lessons/${props.lessonId}/questions`, { method: 'POST', body: draftPayload(draft) });
-      generatedQuestions.value.shift();
+      questionBankStore.removeDraft(authStore.user?.id, props.lessonId, 0);
     }
     await loadQuestions();
   } catch (error) {
@@ -714,6 +800,10 @@ async function saveAllDrafts() {
   } finally {
     isSavingAllDrafts.value = false;
   }
+}
+
+function clearDrafts() {
+  questionBankStore.clearLesson(authStore.user?.id, props.lessonId);
 }
 
 function escapeHtml(value) {

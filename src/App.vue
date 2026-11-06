@@ -10,12 +10,19 @@ import { useI18n } from "vue-i18n";
 import { API_BASE_URL } from "./services/api";
 import { useAuthStore } from "./stores/auth";
 import { useNotificationsStore } from "./stores/notifications";
+import { useQuestionBankStore } from "./stores/questionBank";
 
 const { t } = useI18n();
 const authStore = useAuthStore();
+const questionBankStore = useQuestionBankStore();
 const notificationsStore = useNotificationsStore();
 let classSocket = null;
 let connectionVersion = 0;
+const handleSessionExpired = () => {
+  questionBankStore.clearAllDrafts();
+  authStore.logout();
+};
+window.addEventListener("auth:session-expired", handleSessionExpired);
 
 watch(
   () => [authStore.token, authStore.user?.role, authStore.user?.id, authStore.user?.userId, authStore.user?.email],
@@ -69,6 +76,7 @@ watch(
 );
 
 onBeforeUnmount(() => {
+  window.removeEventListener("auth:session-expired", handleSessionExpired);
   connectionVersion += 1;
   classSocket?.disconnect();
 });

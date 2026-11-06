@@ -3364,13 +3364,9 @@ async function loadCurriculumBooks() {
   curriculumError.value = "";
   try {
     const books = await api("/books");
-    const ownedBooks = (Array.isArray(books) ? books : []).filter(
-      (book) =>
-        authStore.user?.role === "ADMIN" ||
-        Number(book.createdById) === Number(authStore.user?.id),
-    );
+    const curriculumSourceBooks = Array.isArray(books) ? books : [];
     const trees = await Promise.all(
-      ownedBooks.map(async (book) => {
+      curriculumSourceBooks.map(async (book) => {
         try {
           return {
             ...(await api(`/books/${book.id}`)),

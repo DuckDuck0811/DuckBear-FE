@@ -42,6 +42,7 @@ export async function api(path, { method = 'GET', body, headers = {} } = {}) {
   // 401: Chưa đăng nhập hoặc token hết hạn
   if (response.status === 401) {
     if (!isAuthEndpoint) {
+      window.dispatchEvent(new Event('auth:session-expired'))
       localStorage.removeItem('accessToken')
       localStorage.removeItem('user')
       if (window.location.pathname !== '/login') {
@@ -83,7 +84,9 @@ export async function api(path, { method = 'GET', body, headers = {} } = {}) {
         errorMessage = data.message
       }
     }
-    throw new Error(errorMessage)
+    const error = new Error(errorMessage)
+    error.status = response.status
+    throw error
   }
 
   return data
