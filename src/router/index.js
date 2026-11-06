@@ -98,12 +98,6 @@ const routes = [
     meta: { roles: ["TEACHER", "ADMIN"] },
   },
   {
-    path: "/teacher/overview",
-    name: "teacher-overview",
-    component: () => import("../views/teacher/TeacherOverviewView.vue"),
-    meta: { roles: ["TEACHER", "ADMIN"] },
-  },
-  {
     path: "/schedule",
     name: "schedule",
     component: () => import("../views/schedule/ScheduleView.vue"),
@@ -151,7 +145,7 @@ router.beforeEach((to) => {
     user?.role === "STUDENT"
       ? "/student"
       : user?.role === "TEACHER"
-      ? "/teacher/overview"
+      ? "/"
       : "/";
 
   if (to.path !== "/login" && !to.path.startsWith("/register") && !token) {
