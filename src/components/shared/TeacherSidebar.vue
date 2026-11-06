@@ -50,12 +50,6 @@ const isTeacher = computed(() => authStore.user?.role === "TEACHER");
 
 const groups = computed(() => [
   {
-    title: "sidebar.overview",
-    items: [
-      { label: "sidebar.overviewItem", icon: "mdi-view-dashboard-outline", to: "/teacher/overview", match: ["teacher-overview"] },
-    ],
-  },
-  {
     title: "sidebar.learningSpace",
     items: [
       { label: "sidebar.curriculum", icon: "mdi-bookshelf", to: "/", match: ["books"] },
