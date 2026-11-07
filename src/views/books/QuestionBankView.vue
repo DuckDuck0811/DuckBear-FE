@@ -28,17 +28,15 @@
               :user-id="authStore.user?.id"
               :my-books-only="myBooksOnly"
               :search="treeSearch"
-              :selected-book-id="selectedBookId"
-              :selected-lesson-id="selectedLessonId"
+              :selected-book-id="selectedBookId || openedBookId"
               @update:my-books-only="myBooksOnly = $event"
               @update:search="treeSearch = $event"
-              @expand-book="openBook"
-              @select-lesson="selectLesson"
+              @select-book="selectBook"
             />
           </aside>
 
           <section class="question-bank-content" aria-live="polite">
-            <div class="question-bank-sticky-bar">
+            <div class="question-bank-sticky-bar" :class="{ 'question-bank-sticky-bar--empty': !selectedLesson }">
               <div v-if="selectedLesson" class="min-width-0">
                 <div class="breadcrumb-path text-body-2 font-weight-bold text-primary" :aria-label="t('questionBank.curriculumPath')">
                   <span>{{ selectedLesson.bookTitle }}</span>
@@ -59,29 +57,16 @@
               </v-btn>
             </div>
 
-            <QuestionBankSection
-              v-if="selectedLesson"
-              :key="selectedLesson.id"
-              :lesson-id="selectedLesson.id"
-              :lesson-title="selectedLesson.title"
-              :can-manage="canManageSelectedBook"
-              inline
-            />
-            <v-card v-else class="question-bank-placeholder pa-6 rounded-xl" variant="tonal">
-              <div class="d-flex flex-column align-center text-center ga-2 mb-4">
-                <v-icon icon="mdi-file-tree-outline" size="38" color="primary" />
-                <p class="text-body-2 mb-0">{{ t('questionBank.selectLessonHint') }}</p>
-                <v-btn v-if="recentLesson" color="primary" variant="flat" prepend-icon="mdi-history" @click="continueRecentLesson">{{ t('questionBank.continueLesson', { path: recentLesson.path }) }}</v-btn>
-              </div>
-              <div v-if="selectedBook && selectedBookSummary" class="book-overview text-center">
-                <div class="text-subtitle-2 font-weight-bold mb-2">{{ selectedBook.title }}</div>
-                <div class="text-body-2 text-primary font-weight-medium mb-3">{{ t('questionBank.lessonsWithQuestions', selectedBookSummary) }}</div>
-                <div v-if="selectedBookSummary.emptyLessons.length" class="d-flex flex-wrap justify-center ga-2">
-                  <v-btn v-for="item in selectedBookSummary.emptyLessons" :key="item.lesson.id" size="small" variant="outlined" color="primary" @click="selectLesson({ book: selectedBook, lesson: item.lesson })">{{ item.chapter.title }} › {{ item.lesson.title }}</v-btn>
+            <template v-if="selectedLesson">
+              <div class="lesson-switcher mb-4">
+                <v-btn variant="tonal" color="primary" prepend-icon="mdi-map-outline" @click="backToMap">{{ t('questionBank.backToMap') }}</v-btn>
+                <div v-if="selectedUnit" class="sibling-lessons" :aria-label="t('questionBank.unitLessons', { unit: selectedUnit.title })">
+                  <v-chip v-for="lesson in selectedUnit.lessons" :key="lesson.id" :color="Number(lesson.id) === Number(selectedLesson.id) ? 'primary' : undefined" :variant="Number(lesson.id) === Number(selectedLesson.id) ? 'flat' : 'outlined'" class="sibling-chip" @click="selectLesson({ book: selectedBook, chapter: selectedUnit, lesson })">{{ lesson.title }} · {{ questionCount(lesson) }}</v-chip>
                 </div>
               </div>
-              <div v-else-if="selectedBook" class="text-body-2 text-medium-emphasis text-center">{{ t('questionBank.openBookToLoad') }}</div>
-            </v-card>
+              <QuestionBankSection :key="selectedLesson.id" :lesson-id="selectedLesson.id" :lesson-title="selectedLesson.title" :can-manage="canManageSelectedBook" :start-with-ai="Number(autoAiLessonId) === Number(selectedLesson.id)" inline />
+            </template>
+            <QuestionBankOverview v-else :book="selectedBook" :loading="Boolean(selectedBookId && loadingBookIds[selectedBookId] && !bookDetails[selectedBookId])" :error="selectedBookId ? bookErrors[selectedBookId] : ''" :can-manage="canManageSelectedBook" :recent-lesson="recentLesson" @retry="retryBook" @continue="continueRecentLesson" @select-lesson="selectLesson" @ai="startUnitAi" />
           </section>
         </div>
 
@@ -99,12 +84,10 @@
             :user-id="authStore.user?.id"
             :my-books-only="myBooksOnly"
             :search="treeSearch"
-            :selected-book-id="selectedBookId"
-            :selected-lesson-id="selectedLessonId"
+            :selected-book-id="selectedBookId || openedBookId"
             @update:my-books-only="myBooksOnly = $event"
             @update:search="treeSearch = $event"
-              @expand-book="openBook"
-            @select-lesson="selectLesson"
+            @select-book="selectBook"
           />
         </v-navigation-drawer>
       </v-container>
@@ -123,6 +106,7 @@ import AppHeader from '../../components/shared/AppHeader.vue'
 import TeacherSidebar from '../../components/shared/TeacherSidebar.vue'
 import QuestionBankSection from '../../components/QuestionBankSection.vue'
 import QuestionBankTree from '../../components/question-bank/QuestionBankTree.vue'
+import QuestionBankOverview from '../../components/question-bank/QuestionBankOverview.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -132,6 +116,7 @@ const questionBankStore = useQuestionBankStore()
 const books = ref([])
 const bookDetails = reactive({})
 const loadingBookIds = reactive({})
+const bookErrors = reactive({})
 const pendingBookLoads = new Map()
 const isLoadingBooks = ref(false)
 const hasLoadedBooks = ref(false)
@@ -140,6 +125,7 @@ const drawerOpen = ref(false)
 const myBooksOnly = ref(false)
 const treeSearch = ref('')
 const recentLesson = ref(null)
+const autoAiLessonId = ref(null)
 
 const selectedBookId = computed(() => Number(route.query.bookId) || null)
 const selectedLessonId = computed(() => Number(route.query.lessonId) || null)
@@ -148,11 +134,7 @@ const visibleBooks = computed(() => myBooksOnly.value
   : books.value)
 const openedBookId = ref(null)
 const selectedBook = computed(() => (selectedBookId.value ? bookDetails[selectedBookId.value] : bookDetails[openedBookId.value]) || null)
-const selectedBookSummary = computed(() => {
-  if (!selectedBook.value) return null
-  const lessons = (selectedBook.value.chapters || []).flatMap((chapter) => (chapter.lessons || []).map((lesson) => ({ chapter, lesson })))
-  return { count: lessons.filter(({ lesson }) => Number(lesson?._count?.questions) > 0).length, total: lessons.length, emptyLessons: lessons.filter(({ lesson }) => !(Number(lesson?._count?.questions) > 0)).slice(0, 5) }
-})
+const selectedUnit = computed(() => selectedBook.value?.chapters?.find((chapter) => chapter.lessons?.some((lesson) => Number(lesson.id) === selectedLessonId.value)) || null)
 const selectedLesson = computed(() => {
   if (!selectedBook.value || !selectedLessonId.value) return null
   for (const chapter of selectedBook.value.chapters || []) {
@@ -191,6 +173,7 @@ async function loadBookDetails(bookId) {
   if (pendingBookLoads.has(id)) return pendingBookLoads.get(id)
 
   loadingBookIds[id] = true
+  bookErrors[id] = ''
   const request = api(`/books/${id}`)
     .then((detail) => {
       bookDetails[id] = detail
@@ -198,7 +181,7 @@ async function loadBookDetails(bookId) {
       return detail
     })
     .catch((error) => {
-      errorMessage.value = error.message || t('questionBank.loadError')
+      bookErrors[id] = error.message || t('questionBank.loadError')
       return null
     })
     .finally(() => {
@@ -212,6 +195,34 @@ async function loadBookDetails(bookId) {
 function openBook(bookId) {
   openedBookId.value = Number(bookId)
   void loadBookDetails(bookId)
+}
+
+async function selectBook(book) {
+  drawerOpen.value = false
+  openedBookId.value = Number(book.id)
+  autoAiLessonId.value = null
+  const { lessonId: _lessonId, ...query } = route.query
+  await router.replace({ query: { ...query, bookId: String(book.id) } })
+  await loadBookDetails(book.id)
+}
+
+function questionCount(lesson) { return Number(lesson?._count?.questions) || 0 }
+
+async function backToMap() {
+  autoAiLessonId.value = null
+  await router.replace({ query: { ...route.query, lessonId: undefined } })
+}
+
+async function retryBook() {
+  const id = selectedBookId.value
+  if (id) { delete bookDetails[id]; await loadBookDetails(id) }
+}
+
+async function startUnitAi(chapter) {
+  const lesson = chapter.lessons?.find((item) => !questionCount(item))
+  if (!lesson || !selectedBook.value) return
+  autoAiLessonId.value = Number(lesson.id)
+  await selectLesson({ book: selectedBook.value, chapter, lesson })
 }
 
 async function restoreRouteSelection() {
@@ -248,8 +259,9 @@ async function restoreRecentLesson() {
   const lessonId = Number(saved?.lessonId)
   const book = books.value.find((item) => Number(item.id) === bookId)
   if (!book || !lessonId) return
+  openedBookId.value = bookId
   const detail = bookDetails[bookId]
-  if (!detail) return
+  if (!detail) { void loadBookDetails(bookId); return }
   const chapter = detail?.chapters?.find((item) => item.lessons?.some((lesson) => Number(lesson.id) === lessonId))
   const lesson = chapter?.lessons?.find((item) => Number(item.id) === lessonId)
   if (lesson) recentLesson.value = { book, lesson, path: `${book.title} › ${chapter.title} › ${lesson.title}` }
@@ -290,7 +302,11 @@ onMounted(loadBooks)
 .question-bank-workspace { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); align-items: start; gap: 20px; }
 .question-bank-tree-column { position: sticky; top: 86px; min-width: 0; max-height: calc(100vh - 102px); max-height: calc(100dvh - 102px); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 .question-bank-content { min-width: 0; }
-.question-bank-sticky-bar { position: sticky; top: 70px; z-index: 12; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 70px; margin-bottom: 16px; padding: 12px 16px; border: 1px solid rgba(var(--v-theme-primary), .16); border-radius: 16px; background: rgb(var(--v-theme-surface)); box-shadow: 0 6px 18px rgba(35,72,132,.06); backdrop-filter: blur(8px); }
+.lesson-switcher { display: grid; gap: 10px; }
+.sibling-lessons { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: thin; }
+.sibling-chip { flex: 0 0 auto; min-height: 34px; font-size: 13px; }
+.sibling-chip:focus-visible { outline: 3px solid rgb(var(--v-theme-primary)); outline-offset: 2px; }
+.question-bank-sticky-bar { position: sticky; top: 70px; z-index: 12; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 70px; margin-bottom: 16px; padding: 12px 16px; border: 1px solid rgba(var(--v-theme-primary), .16); border-radius: 16px; background: rgb(var(--v-theme-surface)); box-shadow: 0 6px 18px rgba(var(--v-theme-primary), .06); backdrop-filter: blur(8px); }
 .breadcrumb-path { display: flex; flex-wrap: wrap; align-items: center; min-width: 0; gap: 3px; overflow-wrap: anywhere; }
 .question-bank-placeholder { min-height: 220px; border: 1px dashed rgba(var(--v-theme-primary), .42); background: rgba(var(--v-theme-primary), .045); }
 .question-bank-drawer { display: none; }
@@ -306,6 +322,7 @@ onMounted(loadBooks)
   .question-bank-page *, .question-bank-page *::before, .question-bank-page *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 @media (min-width: 1024px) {
+  .question-bank-sticky-bar--empty { display: none; }
   .question-bank-drawer { display: none !important; }
   .change-lesson-button { display: none; }
 }
