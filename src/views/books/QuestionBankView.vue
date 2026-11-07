@@ -35,14 +35,14 @@
 
           <section class="question-bank-content" aria-live="polite">
             <div class="question-bank-sticky-bar" :class="{ 'question-bank-sticky-bar--empty': !selectedLesson }">
-              <div v-if="selectedLesson" class="min-width-0">
-                <div class="breadcrumb-path text-body-2 font-weight-bold text-primary" :aria-label="t('questionBank.curriculumPath')">
-                  <span>{{ selectedLesson.bookTitle }}</span>
-                  <v-icon icon="mdi-chevron-right" size="16" aria-hidden="true" />
-                  <span>{{ selectedLesson.chapterTitle }}</span>
-                  <v-icon icon="mdi-chevron-right" size="16" aria-hidden="true" />
-                  <span>{{ selectedLesson.title }}</span>
-                </div>
+              <div v-if="selectedLesson" class="breadcrumb-path text-body-2 font-weight-bold text-primary" :aria-label="t('questionBank.curriculumPath')">
+                <v-btn class="back-to-map" variant="text" size="small" prepend-icon="mdi-arrow-left" @click="backToMap">{{ t('questionBank.backToMap') }}</v-btn>
+                <span class="breadcrumb-separator" aria-hidden="true">|</span>
+                <v-tooltip :text="`${selectedLesson.bookTitle} › ${selectedLesson.chapterTitle}`" location="bottom">
+                  <template #activator="{ props: tooltipProps }">
+                    <span v-bind="tooltipProps" class="breadcrumb-label">{{ selectedLesson.bookTitle }} › {{ selectedLesson.chapterTitle }}</span>
+                  </template>
+                </v-tooltip>
               </div>
               <v-btn
                 class="change-lesson-button"
@@ -57,9 +57,8 @@
 
             <template v-if="selectedLesson">
               <div class="lesson-switcher mb-4">
-                <v-btn variant="tonal" color="primary" prepend-icon="mdi-map-outline" @click="backToMap">{{ t('questionBank.backToMap') }}</v-btn>
-                <div v-if="selectedUnit" class="sibling-lessons" :aria-label="t('questionBank.unitLessons', { unit: selectedUnit.title })">
-                  <v-chip v-for="lesson in selectedUnit.lessons" :key="lesson.id" :color="Number(lesson.id) === Number(selectedLesson.id) ? 'primary' : undefined" :variant="Number(lesson.id) === Number(selectedLesson.id) ? 'flat' : 'outlined'" class="sibling-chip" @click="selectLesson({ book: selectedBook, chapter: selectedUnit, lesson })">{{ lesson.title }} · {{ questionCount(lesson) }}</v-chip>
+                <div v-if="selectedUnit" ref="siblingLessonsRef" class="sibling-lessons" :aria-label="t('questionBank.unitLessons', { unit: selectedUnit.title })" @keydown="handleSiblingKeydown">
+                  <v-chip v-for="(lesson, index) in selectedUnit.lessons" :key="lesson.id" :ref="(element) => setSiblingChipRef(element, index)" :color="Number(lesson.id) === Number(selectedLesson.id) ? 'primary' : undefined" :variant="Number(lesson.id) === Number(selectedLesson.id) ? 'flat' : 'outlined'" :class="['sibling-chip', { 'sibling-chip--empty': !questionCount(lesson) }]" :title="lesson.title" :aria-label="t('questionBank.siblingLessonLabel', { title: lesson.title, count: questionCount(lesson) })" :tabindex="Number(lesson.id) === Number(selectedLesson.id) ? 0 : -1" @click="selectLesson({ book: selectedBook, lesson })">{{ t('questionBank.siblingLessonShort', { number: index + 1, count: questionCount(lesson) }) }}</v-chip>
                 </div>
               </div>
               <QuestionBankSection :key="selectedLesson.id" :lesson-id="selectedLesson.id" :lesson-title="selectedLesson.title" :can-manage="canManageSelectedBook" inline />
@@ -95,7 +94,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../services/api'
@@ -125,6 +124,7 @@ const drawerOpen = ref(false)
 const myBooksOnly = ref(false)
 const treeSearch = ref('')
 const recentLesson = ref(null)
+const siblingChipRefs = new Map()
 
 const openedBookId = ref(null)
 const selectedBookId = computed(() => Number(route.query.bookId) || null)
@@ -258,6 +258,35 @@ async function selectLesson({ book, lesson }) {
   })
 }
 
+function setSiblingChipRef(element, index) {
+  if (element) siblingChipRefs.set(index, element.$el || element)
+  else siblingChipRefs.delete(index)
+}
+
+async function centerSelectedSibling() {
+  await nextTick()
+  const index = selectedUnit.value?.lessons?.findIndex((lesson) => Number(lesson.id) === selectedLessonId.value) ?? -1
+  const chip = siblingChipRefs.get(index)
+  if (index < 0 || !chip) return
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  chip.scrollIntoView?.({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest', inline: 'center' })
+}
+
+function handleSiblingKeydown(event) {
+  if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return
+  const lessons = selectedUnit.value?.lessons || []
+  const current = lessons.findIndex((lesson) => Number(lesson.id) === selectedLessonId.value)
+  const next = current + (event.key === 'ArrowRight' ? 1 : -1)
+  if (next < 0 || next >= lessons.length) return
+  event.preventDefault()
+  const chip = siblingChipRefs.get(next)
+  chip?.focus?.()
+  const lesson = lessons[next]
+  void selectLesson({ book: selectedBook.value, lesson })
+}
+
+watch([() => selectedLessonId.value, selectedUnit], centerSelectedSibling, { flush: 'post' })
+
 async function restoreRecentLesson() {
   let saved
   try { saved = JSON.parse(localStorage.getItem('questionBank.lastSelection') || 'null') } catch { return }
@@ -309,21 +338,25 @@ onMounted(loadBooks)
 .question-bank-page { background: rgb(var(--v-theme-background)); }
 .question-bank-container { width: 100%; max-width: 1400px; margin-inline: 0 auto; box-sizing: border-box; }
 .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
-.question-bank-workspace { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); align-items: start; gap: 20px; }
+.question-bank-workspace { display: grid; grid-template-columns: minmax(280px, 300px) minmax(0, 1fr); align-items: start; gap: 20px; }
 .question-bank-tree-column { position: sticky; top: 86px; min-width: 0; max-height: calc(100vh - 102px); max-height: calc(100dvh - 102px); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 .question-bank-content { min-width: 0; }
 .lesson-switcher { display: grid; gap: 10px; }
-.sibling-lessons { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: thin; }
+.sibling-lessons { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: thin; scrollbar-color: rgba(var(--v-theme-primary), .35) transparent; }
 .sibling-chip { flex: 0 0 auto; min-height: 34px; font-size: 13px; }
 .sibling-chip:focus-visible { outline: 3px solid rgb(var(--v-theme-primary)); outline-offset: 2px; }
-.question-bank-sticky-bar { position: sticky; top: 70px; z-index: 12; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 70px; margin-bottom: 16px; padding: 12px 16px; border: 1px solid rgba(var(--v-theme-primary), .16); border-radius: 16px; background: rgb(var(--v-theme-surface)); box-shadow: 0 6px 18px rgba(var(--v-theme-primary), .06); backdrop-filter: blur(8px); }
-.breadcrumb-path { display: flex; flex-wrap: wrap; align-items: center; min-width: 0; gap: 3px; overflow-wrap: anywhere; }
+.sibling-chip--empty { border-style: dashed !important; }
+.question-bank-sticky-bar { position: sticky; top: 70px; z-index: 12; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; margin-bottom: 12px; padding: 4px 8px; border: 1px solid rgba(var(--v-theme-primary), .16); border-radius: 12px; background: rgb(var(--v-theme-surface)); box-shadow: 0 4px 12px rgba(var(--v-theme-primary), .05); backdrop-filter: blur(8px); }
+.breadcrumb-path { display: flex; align-items: center; min-width: 0; gap: 8px; }
+.back-to-map { flex: 0 0 auto; }
+.breadcrumb-separator { color: rgba(var(--v-theme-on-surface), .45); font-weight: 400; }
+.breadcrumb-label { display: block; max-width: min(70vw, 620px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .question-bank-placeholder { min-height: 220px; border: 1px dashed rgba(var(--v-theme-primary), .42); background: rgba(var(--v-theme-primary), .045); }
 .question-bank-drawer { display: none; }
 .min-width-0 { min-width: 0; }
 @media (max-width: 1023.98px) {
-  .question-bank-workspace { display: block; }
-  .question-bank-tree-column { position: static; max-height: none; overflow: visible; }
+  .question-bank-workspace { display: block; height: auto; }
+  .question-bank-sticky-bar { position: static; }
   .question-bank-tree-column { display: none; }
   .question-bank-drawer { display: block; }
   .change-lesson-button { display: inline-flex; }
@@ -338,7 +371,7 @@ onMounted(loadBooks)
 }
 @media (max-width: 600px) {
   .page-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
-  .question-bank-sticky-bar { top: 64px; align-items: flex-start; flex-direction: column; }
+  .question-bank-sticky-bar { align-items: flex-start; flex-direction: column; }
   .change-lesson-button { align-self: stretch; }
 }
 </style>

@@ -104,17 +104,34 @@
         >
           <div class="stat-chip">
             <v-icon icon="mdi-clock-fast" color="warning" size="15" />
-            <span class="stat-chip-label">{{ t("schedule.upcomingSevenDays") }}</span>
-            <strong class="stat-chip-value">{{ upcomingSevenDaysCount }}</strong>
+            <span class="stat-chip-label">{{
+              t("schedule.upcomingSevenDays")
+            }}</span>
+            <strong class="stat-chip-value">{{
+              upcomingSevenDaysCount
+            }}</strong>
           </div>
-          <div v-if="overdueIncompleteCount !== null" class="stat-chip stat-chip--error">
+          <div
+            v-if="overdueIncompleteCount !== null"
+            class="stat-chip stat-chip--error"
+          >
             <v-icon icon="mdi-alert-circle-outline" color="error" size="15" />
-            <span class="stat-chip-label">{{ t("schedule.overdueIncomplete") }}</span>
-            <strong class="stat-chip-value">{{ overdueIncompleteCount }}</strong>
+            <span class="stat-chip-label">{{
+              t("schedule.overdueIncomplete")
+            }}</span>
+            <strong class="stat-chip-value">{{
+              overdueIncompleteCount
+            }}</strong>
           </div>
           <div class="stat-chip stat-chip--primary">
-            <v-icon icon="mdi-calendar-month-outline" color="primary" size="15" />
-            <span class="stat-chip-label">{{ t("schedule.assignmentsThisMonth") }}</span>
+            <v-icon
+              icon="mdi-calendar-month-outline"
+              color="primary"
+              size="15"
+            />
+            <span class="stat-chip-label">{{
+              t("schedule.assignmentsThisMonth")
+            }}</span>
             <strong class="stat-chip-value">{{ monthEvents.length }}</strong>
           </div>
         </div>
@@ -368,13 +385,21 @@
                             chapter.title
                           }}</span>
                           <v-tooltip
-                            :text="t('schedule.lessonCountTooltip', { count: filteredLessons(chapter).length })"
+                            :text="
+                              t('schedule.lessonCountTooltip', {
+                                count: filteredLessons(chapter).length,
+                              })
+                            "
                             location="top"
                           >
                             <template #activator="{ props: tp }">
-                              <v-chip v-bind="tp" size="x-small" variant="tonal" class="chapter-lesson-badge">{{
-                                filteredLessons(chapter).length
-                              }}</v-chip>
+                              <v-chip
+                                v-bind="tp"
+                                size="x-small"
+                                variant="tonal"
+                                class="chapter-lesson-badge"
+                                >{{ filteredLessons(chapter).length }}</v-chip
+                              >
                             </template>
                           </v-tooltip>
                         </button>
@@ -495,7 +520,10 @@
             <!-- Trạng thái ĐÓNG: Rail icon + Flyout -->
             <template v-else>
               <div class="curriculum-rail">
-                <v-tooltip :text="t('schedule.expandCurriculum')" location="right">
+                <v-tooltip
+                  :text="t('schedule.expandCurriculum')"
+                  location="right"
+                >
                   <template #activator="{ props: tp }">
                     <v-btn
                       v-bind="tp"
@@ -525,12 +553,16 @@
                         :style="{
                           borderColor: bookColor(book.id),
                           backgroundColor: `${bookColor(book.id)}15`,
-                          color: bookColor(book.id)
+                          color: bookColor(book.id),
                         }"
-                        :aria-label="t('schedule.openAndSelectBook', { title: book.title })"
+                        :aria-label="
+                          t('schedule.openAndSelectBook', { title: book.title })
+                        "
                         @click="openBookFromRail(book)"
                       >
-                        <span class="curriculum-rail-book-text">{{ bookAcronym(book.title) }}</span>
+                        <span class="curriculum-rail-book-text">{{
+                          bookAcronym(book.title)
+                        }}</span>
                       </button>
                     </template>
                   </v-tooltip>
@@ -546,8 +578,12 @@
               >
                 <div class="curriculum-flyout-header">
                   <div>
-                    <span class="font-weight-bold d-block text-body-2">{{ t("schedule.curriculumTitle") }}</span>
-                    <span class="text-caption text-medium-emphasis">{{ t("schedule.curriculumHint") }}</span>
+                    <span class="font-weight-bold d-block text-body-2">{{
+                      t("schedule.curriculumTitle")
+                    }}</span>
+                    <span class="text-caption text-medium-emphasis">{{
+                      t("schedule.curriculumHint")
+                    }}</span>
                   </div>
                   <v-btn
                     icon="mdi-open-in-new"
@@ -574,7 +610,11 @@
                           class="mr-2"
                           color="primary"
                         />
-                        <span class="curriculum-node-title" :title="book.title">{{ book.title }}</span>
+                        <span
+                          class="curriculum-node-title"
+                          :title="book.title"
+                          >{{ book.title }}</span
+                        >
                       </v-expansion-panel-title>
                       <v-expansion-panel-text>
                         <div
@@ -613,11 +653,17 @@
                               type="button"
                               class="chapter-toggle"
                               :aria-expanded="
-                                expandedChapters.includes(chapterKey(book, chapter))
+                                expandedChapters.includes(
+                                  chapterKey(book, chapter),
+                                )
                               "
                               @click.stop="toggleChapter(book, chapter)"
                             >
-                              <v-icon icon="mdi-drag" size="16" class="curriculum-drag-handle" />
+                              <v-icon
+                                icon="mdi-drag"
+                                size="16"
+                                class="curriculum-drag-handle"
+                              />
                               <v-icon
                                 :icon="
                                   expandedChapters.includes(
@@ -629,16 +675,23 @@
                                 size="18"
                               />
                               <v-icon icon="mdi-folder-outline" size="17" />
-                              <span class="curriculum-node-title" :title="chapter.title">{{
-                                chapter.title
-                              }}</span>
-                              <v-chip size="x-small" variant="tonal" class="chapter-lesson-badge">{{
-                                filteredLessons(chapter).length
-                              }}</v-chip>
+                              <span
+                                class="curriculum-node-title"
+                                :title="chapter.title"
+                                >{{ chapter.title }}</span
+                              >
+                              <v-chip
+                                size="x-small"
+                                variant="tonal"
+                                class="chapter-lesson-badge"
+                                >{{ filteredLessons(chapter).length }}</v-chip
+                              >
                             </button>
                             <div
                               v-if="
-                                expandedChapters.includes(chapterKey(book, chapter))
+                                expandedChapters.includes(
+                                  chapterKey(book, chapter),
+                                )
                               "
                               class="lesson-list"
                             >
@@ -660,14 +713,20 @@
                                   dropTargetKey = '';
                                 "
                               >
-                                <v-icon icon="mdi-drag" size="16" class="curriculum-drag-handle" />
+                                <v-icon
+                                  icon="mdi-drag"
+                                  size="16"
+                                  class="curriculum-drag-handle"
+                                />
                                 <v-icon
                                   icon="mdi-book-open-blank-variant-outline"
                                   size="16"
                                 />
-                                <span class="curriculum-node-title" :title="lesson.title">{{
-                                  lesson.title
-                                }}</span>
+                                <span
+                                  class="curriculum-node-title"
+                                  :title="lesson.title"
+                                  >{{ lesson.title }}</span
+                                >
                               </div>
                             </div>
                           </section>
@@ -767,12 +826,12 @@
                       class="keyboard-drop-hint"
                       >{{ t("schedule.pressEnterToAssign") }}</span
                     >
-                      <span class="month-day-event-list">
-                        <span
-                          v-for="event in day.events.slice(0, 2)"
-                          :key="event.id"
-                          class="month-event-slot"
-                        >
+                    <span class="month-day-event-list">
+                      <span
+                        v-for="event in day.events.slice(0, 2)"
+                        :key="event.id"
+                        class="month-event-slot"
+                      >
                         <v-tooltip
                           :text="event.title"
                           location="top"
@@ -793,12 +852,16 @@
                               :aria-label="eventTooltip(event)"
                               @click.stop="openEventDrawer(event)"
                               @keydown.enter.stop="openEventDrawer(event)"
-                              @keydown.space.prevent.stop="openEventDrawer(event)"
+                              @keydown.space.prevent.stop="
+                                openEventDrawer(event)
+                              "
                               @dragstart.stop="startDrag($event, event)"
                               @dragend="dropTargetKey = ''"
                             >
                               <span class="month-event-meta-row">
-                                <span class="month-event-time">{{ formatTime(event.deadline) }}</span>
+                                <span class="month-event-time">{{
+                                  formatTime(event.deadline)
+                                }}</span>
                                 <v-icon
                                   :icon="eventKindIcon(event)"
                                   size="12"
@@ -806,24 +869,38 @@
                                   :aria-label="eventKindShortLabel(event)"
                                 />
                                 <span class="month-event-status-icon">
-                                  <v-icon v-if="event.status === 'submitted'" icon="mdi-check-circle" size="11" />
-                                  <v-icon v-else-if="event.status === 'overdue'" icon="mdi-alert-circle" size="11" />
+                                  <v-icon
+                                    v-if="event.status === 'submitted'"
+                                    icon="mdi-check-circle"
+                                    size="11"
+                                  />
+                                  <v-icon
+                                    v-else-if="event.status === 'overdue'"
+                                    icon="mdi-alert-circle"
+                                    size="11"
+                                  />
                                 </span>
                               </span>
-                              <span class="month-event-title">{{ event.title }}</span>
+                              <span class="month-event-title">{{
+                                event.title
+                              }}</span>
                             </span>
                           </template>
                         </v-tooltip>
-                        </span>
-                        <button
-                          v-if="day.events.length > 2"
-                          type="button"
-                          class="month-event-more"
-                          @click.stop="selectCalendarDay(day)"
-                        >
-                          {{ t("schedule.moreEventsBtn", { count: day.events.length - 2 }) }}
-                        </button>
                       </span>
+                      <button
+                        v-if="day.events.length > 2"
+                        type="button"
+                        class="month-event-more"
+                        @click.stop="selectCalendarDay(day)"
+                      >
+                        {{
+                          t("schedule.moreEventsBtn", {
+                            count: day.events.length - 2,
+                          })
+                        }}
+                      </button>
+                    </span>
                     <span
                       v-if="day.events.length"
                       class="month-day-mobile-count"
@@ -952,7 +1029,11 @@
                 <div class="day-detail-heading-copy">
                   <h2 class="day-detail-heading-title">
                     <span>{{ formatDayHeading(selectedDay) }}</span>
-                    <span v-if="selectedDay?.isToday" class="day-detail-today-badge">{{ t("schedule.today") }}</span>
+                    <span
+                      v-if="selectedDay?.isToday"
+                      class="day-detail-today-badge"
+                      >{{ t("schedule.today") }}</span
+                    >
                   </h2>
                 </div>
                 <v-tooltip :text="t('schedule.closeDetails')" location="bottom">
@@ -972,7 +1053,10 @@
               </div>
 
               <!-- HÀNG 2: Nút Giao bài có chữ, nổi bật -->
-              <div v-if="selectedDay && !isPastDay(selectedDay.date)" class="day-detail-row-action">
+              <div
+                v-if="selectedDay && !isPastDay(selectedDay.date)"
+                class="day-detail-row-action"
+              >
                 <v-btn
                   variant="flat"
                   color="primary"
@@ -982,7 +1066,7 @@
                   :aria-label="t('schedule.quickCreateTitle')"
                   @click="openQuickCreate(selectedDay)"
                 >
-                  {{ t('schedule.createAssignmentShort') }}
+                  {{ t("schedule.createAssignmentShort") }}
                 </v-btn>
               </div>
             </header>
@@ -1018,7 +1102,11 @@
                     <!-- Dòng 1: Giờ + Nhãn trạng thái (có icon, tương phản cao) -->
                     <div class="agenda-event-top">
                       <div class="agenda-event-time font-weight-bold">
-                        <v-icon icon="mdi-clock-outline" size="14" class="mr-1" />
+                        <v-icon
+                          icon="mdi-clock-outline"
+                          size="14"
+                          class="mr-1"
+                        />
                         <span>{{ formatTime(event.deadline) }}</span>
                       </div>
                       <v-chip
@@ -1039,18 +1127,16 @@
                           size="12"
                           start
                         />
-                        <v-icon
-                          v-else
-                          icon="mdi-clock-fast"
-                          size="12"
-                          start
-                        />
+                        <v-icon v-else icon="mdi-clock-fast" size="12" start />
                         {{ t(`schedule.${event.status}`) }}
                       </v-chip>
                     </div>
 
                     <!-- Dòng 2: Tên bài -->
-                    <div class="agenda-event-title font-weight-bold" :title="event.title">
+                    <div
+                      class="agenda-event-title font-weight-bold"
+                      :title="event.title"
+                    >
                       {{ event.title }}
                     </div>
 
@@ -1125,7 +1211,11 @@
                         prepend-icon="mdi-paperclip"
                         @click.stop="openEventDrawer(event)"
                       >
-                        {{ t("schedule.attachmentsCount", { count: event.attachments?.length || 1 }) }}
+                        {{
+                          t("schedule.attachmentsCount", {
+                            count: event.attachments?.length || 1,
+                          })
+                        }}
                       </v-btn>
                       <v-btn
                         v-else
@@ -1143,9 +1233,18 @@
                 </div>
                 <!-- Ngày trống: Hiện thông báo rõ ràng -->
                 <div v-else class="day-empty-card">
-                  <v-icon icon="mdi-calendar-blank-outline" size="24" color="primary" class="mb-1" />
-                  <div class="day-empty-title">{{ t("schedule.noDayAssignments") }}</div>
-                  <div class="day-empty-sub">{{ t("schedule.dragToAssignHint") }}</div>
+                  <v-icon
+                    icon="mdi-calendar-blank-outline"
+                    size="24"
+                    color="primary"
+                    class="mb-1"
+                  />
+                  <div class="day-empty-title">
+                    {{ t("schedule.noDayAssignments") }}
+                  </div>
+                  <div class="day-empty-sub">
+                    {{ t("schedule.dragToAssignHint") }}
+                  </div>
                 </div>
               </div>
 
@@ -1159,7 +1258,9 @@
                 <div class="agenda-section-title">
                   <div class="upcoming-section-label">
                     <v-icon icon="mdi-clock-fast" size="15" color="warning" />
-                    <span>{{ t("schedule.upcomingOtherAssignmentsTitle") }}</span>
+                    <span>{{
+                      t("schedule.upcomingOtherAssignmentsTitle")
+                    }}</span>
                   </div>
                   <v-chip
                     size="x-small"
@@ -1665,21 +1766,116 @@
                   >
                 </div>
               </div>
-              <v-expansion-panels class="assignment-content-accordion mt-2" @click.stop @update:model-value="(value) => value !== null && loadCalendarContent(event)">
+              <v-expansion-panels
+                class="assignment-content-accordion mt-2"
+                @click.stop
+                @update:model-value="
+                  (value) => value !== null && loadCalendarContent(event)
+                "
+              >
                 <v-expansion-panel value="content">
-                  <v-expansion-panel-title @click.stop>{{ t("schedule.assignmentContent") }}</v-expansion-panel-title>
+                  <v-expansion-panel-title @click.stop>{{
+                    t("schedule.assignmentContent")
+                  }}</v-expansion-panel-title>
                   <v-expansion-panel-text>
-                    <v-progress-linear v-if="calendarContentFor(event).loading" indeterminate color="primary" />
-                    <v-alert v-else-if="calendarContentFor(event).error" type="error" variant="tonal" density="compact">{{ calendarContentFor(event).error }}<v-btn size="small" variant="text" @click.stop="loadCalendarContent(event)">{{ t("schedule.retry") }}</v-btn></v-alert>
-                    <template v-else-if="calendarContentFor(event).loaded && event.type === 'manual'">
-                      <div v-if="calendarContentFor(event).attachments.length" class="assignment-attachment-list"><div v-for="attachment in calendarContentFor(event).attachments" :key="attachment.id" class="d-flex align-center ga-2 py-1"><v-icon icon="mdi-paperclip" size="16" />{{ attachment.fileName }}</div></div>
-                      <div v-else class="text-caption text-medium-emphasis">{{ t("schedule.noAttachments") }}</div>
+                    <v-progress-linear
+                      v-if="calendarContentFor(event).loading"
+                      indeterminate
+                      color="primary"
+                    />
+                    <v-alert
+                      v-else-if="calendarContentFor(event).error"
+                      type="error"
+                      variant="tonal"
+                      density="compact"
+                      >{{ calendarContentFor(event).error
+                      }}<v-btn
+                        size="small"
+                        variant="text"
+                        @click.stop="loadCalendarContent(event)"
+                        >{{ t("schedule.retry") }}</v-btn
+                      ></v-alert
+                    >
+                    <template
+                      v-else-if="
+                        calendarContentFor(event).loaded &&
+                        event.type === 'manual'
+                      "
+                    >
+                      <div
+                        v-if="calendarContentFor(event).attachments.length"
+                        class="assignment-attachment-list"
+                      >
+                        <div
+                          v-for="attachment in calendarContentFor(event)
+                            .attachments"
+                          :key="attachment.id"
+                          class="d-flex align-center ga-2 py-1"
+                        >
+                          <v-icon icon="mdi-paperclip" size="16" />{{
+                            attachment.fileName
+                          }}
+                        </div>
+                      </div>
+                      <div v-else class="text-caption text-medium-emphasis">
+                        {{ t("schedule.noAttachments") }}
+                      </div>
                     </template>
                     <template v-else-if="calendarContentFor(event).loaded">
-                      <v-alert v-if="calendarContentFor(event).hasAttempts" type="info" variant="tonal" density="compact" class="mb-2">{{ t("schedule.questionsLocked") }}</v-alert>
-                      <div v-if="calendarContentFor(event).questions.length" class="assignment-question-list"><div v-for="(item, index) in calendarContentFor(event).questions" :key="item.question.id" class="assignment-question-row"><span class="text-caption font-weight-bold">{{ index + 1 }}.</span><span class="assignment-question-text" :title="item.question.content">{{ item.question.content }}</span><v-chip size="x-small" variant="tonal">{{ t(`schedule.questionTypes.${item.question.type}`) }}</v-chip><span class="text-caption text-medium-emphasis">{{ t("schedule.questionPoints", { points: item.points }) }}</span></div></div>
-                      <v-btn v-if="calendarContentFor(event).hasAttempts" :to="`/submissions/${event.id}`" size="small" variant="tonal" prepend-icon="mdi-eye-outline" class="mt-2" @click.stop>{{ t("schedule.viewExam") }}</v-btn>
-                      <v-btn v-else :to="questionBankTarget(event)" size="small" variant="tonal" prepend-icon="mdi-pencil-outline" class="mt-2" @click.stop>{{ t("schedule.viewEditExam") }}</v-btn>
+                      <v-alert
+                        v-if="calendarContentFor(event).hasAttempts"
+                        type="info"
+                        variant="tonal"
+                        density="compact"
+                        class="mb-2"
+                        >{{ t("schedule.questionsLocked") }}</v-alert
+                      >
+                      <div
+                        v-if="calendarContentFor(event).questions.length"
+                        class="assignment-question-list"
+                      >
+                        <div
+                          v-for="(item, index) in calendarContentFor(event)
+                            .questions"
+                          :key="item.question.id"
+                          class="assignment-question-row"
+                        >
+                          <span class="text-caption font-weight-bold"
+                            >{{ index + 1 }}.</span
+                          ><span
+                            class="assignment-question-text"
+                            :title="item.question.content"
+                            >{{ item.question.content }}</span
+                          ><v-chip size="x-small" variant="tonal">{{
+                            t(`schedule.questionTypes.${item.question.type}`)
+                          }}</v-chip
+                          ><span class="text-caption text-medium-emphasis">{{
+                            t("schedule.questionPoints", {
+                              points: item.points,
+                            })
+                          }}</span>
+                        </div>
+                      </div>
+                      <v-btn
+                        v-if="calendarContentFor(event).hasAttempts"
+                        :to="`/submissions/${event.id}`"
+                        size="small"
+                        variant="tonal"
+                        prepend-icon="mdi-eye-outline"
+                        class="mt-2"
+                        @click.stop
+                        >{{ t("schedule.viewExam") }}</v-btn
+                      >
+                      <v-btn
+                        v-else
+                        :to="questionBankTarget(event)"
+                        size="small"
+                        variant="tonal"
+                        prepend-icon="mdi-pencil-outline"
+                        class="mt-2"
+                        @click.stop
+                        >{{ t("schedule.viewEditExam") }}</v-btn
+                      >
                     </template>
                   </v-expansion-panel-text>
                 </v-expansion-panel>
@@ -1846,7 +2042,13 @@
             class="mb-4"
           >
             {{ curriculumDialogError }}
-            <v-btn size="small" variant="text" class="ml-2" @click="reloadCurriculumQuestionPreview">{{ t("schedule.retry") }}</v-btn>
+            <v-btn
+              size="small"
+              variant="text"
+              class="ml-2"
+              @click="reloadCurriculumQuestionPreview"
+              >{{ t("schedule.retry") }}</v-btn
+            >
           </v-alert>
           <div v-if="curriculumSelection" class="curriculum-dialog-source mb-4">
             <v-icon
@@ -1862,49 +2064,189 @@
               <span>{{ curriculumForm.deadline?.replace("T", " ") }}</span>
             </div>
           </div>
-          <v-progress-linear v-if="curriculumQuestionsLoading" indeterminate color="primary" rounded class="mb-4" />
-          <v-alert v-else-if="!curriculumQuestionsLoading && curriculumQuestionLessons.length === 0" type="info" variant="tonal" class="mb-4">
+          <v-progress-linear
+            v-if="curriculumQuestionsLoading"
+            indeterminate
+            color="primary"
+            rounded
+            class="mb-4"
+          />
+          <v-alert
+            v-else-if="
+              !curriculumQuestionsLoading &&
+              curriculumQuestionLessons.length === 0
+            "
+            type="info"
+            variant="tonal"
+            class="mb-4"
+          >
             {{ t("schedule.noCurriculumLessons") }}
           </v-alert>
           <template v-else-if="!curriculumQuestionsLoading">
-            <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-2">
-              <div class="text-body-2 font-weight-bold">{{ t("schedule.selectedQuestionSummary", { count: curriculumSelectedCount, total: curriculumQuestionCount }) }}</div>
-              <v-btn size="small" variant="tonal" @click="toggleAllCurriculumQuestions">{{ curriculumAllSelected ? t("schedule.deselectAllQuestions") : t("schedule.selectAllQuestions") }}</v-btn>
+            <div
+              class="d-flex align-center justify-space-between flex-wrap ga-2 mb-2"
+            >
+              <div class="text-body-2 font-weight-bold">
+                {{
+                  t("schedule.selectedQuestionSummary", {
+                    count: curriculumSelectedCount,
+                    total: curriculumQuestionCount,
+                  })
+                }}
+              </div>
+              <v-btn
+                size="small"
+                variant="tonal"
+                @click="toggleAllCurriculumQuestions"
+                >{{
+                  curriculumAllSelected
+                    ? t("schedule.deselectAllQuestions")
+                    : t("schedule.selectAllQuestions")
+                }}</v-btn
+              >
             </div>
             <div class="d-flex flex-wrap ga-2 mb-3">
-              <v-chip v-for="(count, type) in curriculumSelectedTypeCounts" :key="type" size="small" variant="tonal">{{ t(`schedule.questionTypes.${type}`) }} · {{ count }}</v-chip>
+              <v-chip
+                v-for="(count, type) in curriculumSelectedTypeCounts"
+                :key="type"
+                size="small"
+                variant="tonal"
+                >{{ t(`schedule.questionTypes.${type}`) }} · {{ count }}</v-chip
+              >
             </div>
-            <v-alert v-if="curriculumQuestionLessons.some((lesson) => lesson.questions.length && !curriculumSelectedForLesson(lesson).length)" type="info" variant="tonal" density="compact" class="mb-3">{{ t("schedule.unselectedLessonWillSkip") }}</v-alert>
-            <v-alert v-for="lesson in curriculumQuestionLessons.filter((item) => !item.questions.length)" :key="`empty-${lesson.id}`" type="warning" variant="tonal" density="compact" class="mb-2">
-              {{ t("schedule.lessonHasNoQuestions", { title: lesson.title }) }} {{ t("schedule.emptyLessonWillSkip") }}
+            <v-alert
+              v-if="
+                curriculumQuestionLessons.some(
+                  (lesson) =>
+                    lesson.questions.length &&
+                    !curriculumSelectedForLesson(lesson).length,
+                )
+              "
+              type="info"
+              variant="tonal"
+              density="compact"
+              class="mb-3"
+              >{{ t("schedule.unselectedLessonWillSkip") }}</v-alert
+            >
+            <v-alert
+              v-for="lesson in curriculumQuestionLessons.filter(
+                (item) => !item.questions.length,
+              )"
+              :key="`empty-${lesson.id}`"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              class="mb-2"
+            >
+              {{ t("schedule.lessonHasNoQuestions", { title: lesson.title }) }}
+              {{ t("schedule.emptyLessonWillSkip") }}
             </v-alert>
-            <v-expansion-panels v-if="curriculumSelection?.type === 'chapter'" v-model="expandedCurriculumLessons" multiple class="mb-4">
-              <v-expansion-panel v-for="lesson in curriculumQuestionLessons" :key="lesson.id" :value="lesson.id">
+            <v-expansion-panels
+              v-if="curriculumSelection?.type === 'chapter'"
+              v-model="expandedCurriculumLessons"
+              multiple
+              class="mb-4"
+            >
+              <v-expansion-panel
+                v-for="lesson in curriculumQuestionLessons"
+                :key="lesson.id"
+                :value="lesson.id"
+              >
                 <v-expansion-panel-title>
-                  <span class="flex-grow-1">{{ lesson.title }} · {{ curriculumSelectedForLesson(lesson).length }}/{{ lesson.questions.length }}</span>
-                  <v-text-field v-model="curriculumLessonDates[lesson.id]" type="date" density="compact" hide-details :min="minimumDeadline.slice(0, 10)" class="lesson-date-input mr-3" :aria-label="t('schedule.lessonDeadline', { title: lesson.title })" @click.stop />
+                  <span class="flex-grow-1"
+                    >{{ lesson.title }} ·
+                    {{ curriculumSelectedForLesson(lesson).length }}/{{
+                      lesson.questions.length
+                    }}</span
+                  >
+                  <v-text-field
+                    v-model="curriculumLessonDates[lesson.id]"
+                    type="date"
+                    density="compact"
+                    hide-details
+                    :min="minimumDeadline.slice(0, 10)"
+                    class="lesson-date-input mr-3"
+                    :aria-label="
+                      t('schedule.lessonDeadline', { title: lesson.title })
+                    "
+                    @click.stop
+                  />
                 </v-expansion-panel-title>
                 <v-expansion-panel-text>
-                  <div v-if="lesson.questions.length" class="question-preview-list">
-                    <div v-for="(question, index) in lesson.questions" :key="question.id" class="question-preview-row">
-                      <v-checkbox-btn :model-value="curriculumSelectedIds.includes(Number(question.id))" density="compact" :aria-label="t('schedule.toggleQuestion', { number: index + 1 })" @update:model-value="toggleCurriculumQuestion(question.id, $event)" />
+                  <div
+                    v-if="lesson.questions.length"
+                    class="question-preview-list"
+                  >
+                    <div
+                      v-for="(question, index) in lesson.questions"
+                      :key="question.id"
+                      class="question-preview-row"
+                    >
+                      <v-checkbox-btn
+                        :model-value="
+                          curriculumSelectedIds.includes(Number(question.id))
+                        "
+                        density="compact"
+                        :aria-label="
+                          t('schedule.toggleQuestion', { number: index + 1 })
+                        "
+                        @update:model-value="
+                          toggleCurriculumQuestion(question.id, $event)
+                        "
+                      />
                       <v-tooltip :text="question.content" location="top">
-                      <template #activator="{ props: tooltipProps }"><span v-bind="tooltipProps" class="question-preview-content">{{ index + 1 }}. {{ question.preview || question.content }}</span></template>
+                        <template #activator="{ props: tooltipProps }"
+                          ><span
+                            v-bind="tooltipProps"
+                            class="question-preview-content"
+                            >{{ index + 1 }}.
+                            {{ question.preview || question.content }}</span
+                          ></template
+                        >
                       </v-tooltip>
-                      <v-chip size="x-small" variant="tonal">{{ t(`schedule.questionTypes.${question.type}`) }}</v-chip>
+                      <v-chip size="x-small" variant="tonal">{{
+                        t(`schedule.questionTypes.${question.type}`)
+                      }}</v-chip>
                     </div>
                   </div>
-                  <div v-else class="text-medium-emphasis">{{ t("schedule.noQuestionsInLesson") }}</div>
+                  <div v-else class="text-medium-emphasis">
+                    {{ t("schedule.noQuestionsInLesson") }}
+                  </div>
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
             <div v-else class="question-preview-list mb-4">
-              <div v-for="(question, index) in curriculumQuestionLessons[0]?.questions || []" :key="question.id" class="question-preview-row">
-                <v-checkbox-btn :model-value="curriculumSelectedIds.includes(Number(question.id))" density="compact" :aria-label="t('schedule.toggleQuestion', { number: index + 1 })" @update:model-value="toggleCurriculumQuestion(question.id, $event)" />
+              <div
+                v-for="(question, index) in curriculumQuestionLessons[0]
+                  ?.questions || []"
+                :key="question.id"
+                class="question-preview-row"
+              >
+                <v-checkbox-btn
+                  :model-value="
+                    curriculumSelectedIds.includes(Number(question.id))
+                  "
+                  density="compact"
+                  :aria-label="
+                    t('schedule.toggleQuestion', { number: index + 1 })
+                  "
+                  @update:model-value="
+                    toggleCurriculumQuestion(question.id, $event)
+                  "
+                />
                 <v-tooltip :text="question.content" location="top">
-                  <template #activator="{ props: tooltipProps }"><span v-bind="tooltipProps" class="question-preview-content">{{ index + 1 }}. {{ question.preview || question.content }}</span></template>
+                  <template #activator="{ props: tooltipProps }"
+                    ><span
+                      v-bind="tooltipProps"
+                      class="question-preview-content"
+                      >{{ index + 1 }}.
+                      {{ question.preview || question.content }}</span
+                    ></template
+                  >
                 </v-tooltip>
-                <v-chip size="x-small" variant="tonal">{{ t(`schedule.questionTypes.${question.type}`) }}</v-chip>
+                <v-chip size="x-small" variant="tonal">{{
+                  t(`schedule.questionTypes.${question.type}`)
+                }}</v-chip>
               </div>
             </div>
           </template>
@@ -1965,11 +2307,29 @@
               hide-details
               :disabled="curriculumSubmitting"
             />
-            <v-btn size="small" variant="text" class="mt-1" @click="spreadChapterDates">{{ t("schedule.spreadDates") }}</v-btn>
+            <v-btn
+              size="small"
+              variant="text"
+              class="mt-1"
+              @click="spreadChapterDates"
+              >{{ t("schedule.spreadDates") }}</v-btn
+            >
           </template>
           <v-row dense>
-            <v-col cols="6"><v-switch v-model="curriculumForm.shuffleQuestions" :label="t('schedule.shuffleQuestions')" color="primary" hide-details /></v-col>
-            <v-col cols="6"><v-switch v-model="curriculumForm.shuffleOptions" :label="t('schedule.shuffleOptions')" color="primary" hide-details /></v-col>
+            <v-col cols="6"
+              ><v-switch
+                v-model="curriculumForm.shuffleQuestions"
+                :label="t('schedule.shuffleQuestions')"
+                color="primary"
+                hide-details
+            /></v-col>
+            <v-col cols="6"
+              ><v-switch
+                v-model="curriculumForm.shuffleOptions"
+                :label="t('schedule.shuffleOptions')"
+                color="primary"
+                hide-details
+            /></v-col>
           </v-row>
           <v-progress-linear
             v-if="curriculumSubmitting"
@@ -2003,7 +2363,12 @@
             @click="createCurriculumAssignments"
             >{{
               curriculumSelection?.type === "chapter"
-                ? t("schedule.assignNLessons", { count: curriculumQuestionLessons.filter((lesson) => curriculumSelectedForLesson(lesson).length > 0).length })
+                ? t("schedule.assignNLessons", {
+                    count: curriculumQuestionLessons.filter(
+                      (lesson) =>
+                        curriculumSelectedForLesson(lesson).length > 0,
+                    ).length,
+                  })
                 : t("schedule.createAssignment")
             }}</v-btn
           >
@@ -2179,12 +2544,18 @@ function bookColor(bookId) {
 function bookAcronym(title) {
   if (!title) return "S";
   const mainPart = title.split(/[—–-]/)[0].trim();
-  const gradeMatch = mainPart.match(/l[ớo]p\s*(\d+)/i) || title.match(/l[ớo]p\s*(\d+)/i) || title.match(/(\d+)/);
+  const gradeMatch =
+    mainPart.match(/l[ớo]p\s*(\d+)/i) ||
+    title.match(/l[ớo]p\s*(\d+)/i) ||
+    title.match(/(\d+)/);
   const grade = gradeMatch ? gradeMatch[1] : "";
   const subjectPart = mainPart.replace(/l[ớo]p\s*\d+/gi, "").trim();
   const words = subjectPart.split(/\s+/).filter(Boolean);
   if (!words.length) return (title.slice(0, 2) + grade).toUpperCase();
-  const letters = words.map((w) => w[0]).join("").toUpperCase();
+  const letters = words
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
   const shortLetters = letters.slice(0, 2);
   return `${shortLetters}${grade}`;
 }
@@ -2197,16 +2568,31 @@ const minimumDeadline = computed(() => {
 const curriculumBreadcrumb = computed(() => {
   const selection = curriculumSelection.value;
   if (!selection) return "";
-  return [selection.book?.title, selection.chapter?.title,
-    selection.type === "lesson" ? selection.lesson?.title : null]
-    .filter(Boolean).join(" › ");
+  return [
+    selection.book?.title,
+    selection.chapter?.title,
+    selection.type === "lesson" ? selection.lesson?.title : null,
+  ]
+    .filter(Boolean)
+    .join(" › ");
 });
-const curriculumQuestionById = computed(() => new Map(
-  curriculumQuestionLessons.value.flatMap((lesson) => lesson.questions)
-    .map((question) => [Number(question.id), question]),
-));
-const curriculumSelectedCount = computed(() => curriculumSelectedIds.value.length);
-const curriculumQuestionCount = computed(() => curriculumQuestionLessons.value.reduce((total, lesson) => total + lesson.questions.length, 0));
+const curriculumQuestionById = computed(
+  () =>
+    new Map(
+      curriculumQuestionLessons.value
+        .flatMap((lesson) => lesson.questions)
+        .map((question) => [Number(question.id), question]),
+    ),
+);
+const curriculumSelectedCount = computed(
+  () => curriculumSelectedIds.value.length,
+);
+const curriculumQuestionCount = computed(() =>
+  curriculumQuestionLessons.value.reduce(
+    (total, lesson) => total + lesson.questions.length,
+    0,
+  ),
+);
 const curriculumSelectedTypeCounts = computed(() => {
   const counts = {};
   for (const id of curriculumSelectedIds.value) {
@@ -2216,8 +2602,13 @@ const curriculumSelectedTypeCounts = computed(() => {
   return counts;
 });
 const curriculumAllSelected = computed(() => {
-  const ids = curriculumQuestionLessons.value.flatMap((lesson) => lesson.questions.map((question) => Number(question.id)));
-  return ids.length > 0 && ids.every((id) => curriculumSelectedIds.value.includes(id));
+  const ids = curriculumQuestionLessons.value.flatMap((lesson) =>
+    lesson.questions.map((question) => Number(question.id)),
+  );
+  return (
+    ids.length > 0 &&
+    ids.every((id) => curriculumSelectedIds.value.includes(id))
+  );
 });
 const filteredBooks = computed(() => {
   const query = String(curriculumSearch.value || "")
@@ -2324,11 +2715,15 @@ function eventKindIcon(event) {
 }
 
 function eventSource(event) {
-  if (event.type === "manual") return event.class?.name || t("schedule.manualAssignmentShort");
-  if (event.scope === "BOOK") return event.book?.title || t("schedule.bookSource");
-  return [event.book?.title, event.lesson?.chapter?.title, event.lesson?.title]
-    .filter(Boolean)
-    .join(" › ") || t("schedule.lessonSource");
+  if (event.type === "manual")
+    return event.class?.name || t("schedule.manualAssignmentShort");
+  if (event.scope === "BOOK")
+    return event.book?.title || t("schedule.bookSource");
+  return (
+    [event.book?.title, event.lesson?.chapter?.title, event.lesson?.title]
+      .filter(Boolean)
+      .join(" › ") || t("schedule.lessonSource")
+  );
 }
 
 function eventTooltip(event) {
@@ -2736,17 +3131,19 @@ function startCurriculumDrag(event, selection) {
   );
   const preview = document.createElement("div");
   preview.className = "curriculum-drag-preview";
-  preview.style.cssText = "position:fixed;left:0;top:0;z-index:99999;max-width:360px;padding:10px 14px;border:1px solid rgba(52,124,245,.22);border-radius:12px;background:#fff;color:#193258;font:700 14px/1.35 Arial,sans-serif;box-shadow:0 8px 24px rgba(25,50,88,.18);white-space:nowrap;";
-  preview.textContent = selection.type === "lesson"
-    ? t("schedule.lessonDragPreview", {
-        title: selection.lesson.title,
-        count: lessonQuestionCount(selection.lesson),
-      })
-    : t("schedule.chapterDragPreview", {
-        title: selection.chapter.title,
-        lessons: selection.chapter.lessons?.length || 0,
-        count: chapterQuestionCount(selection.chapter),
-      });
+  preview.style.cssText =
+    "position:fixed;left:0;top:0;z-index:99999;max-width:360px;padding:10px 14px;border:1px solid rgba(52,124,245,.22);border-radius:12px;background:#fff;color:#193258;font:700 14px/1.35 Arial,sans-serif;box-shadow:0 8px 24px rgba(25,50,88,.18);white-space:nowrap;";
+  preview.textContent =
+    selection.type === "lesson"
+      ? t("schedule.lessonDragPreview", {
+          title: selection.lesson.title,
+          count: lessonQuestionCount(selection.lesson),
+        })
+      : t("schedule.chapterDragPreview", {
+          title: selection.chapter.title,
+          lessons: selection.chapter.lessons?.length || 0,
+          count: chapterQuestionCount(selection.chapter),
+        });
   document.body.appendChild(preview);
   event.dataTransfer.setDragImage(preview, 18, 18);
   requestAnimationFrame(() => preview.remove());
@@ -2780,11 +3177,16 @@ function openCurriculumComposer(selection, date) {
   curriculumForm.shuffleOptions = false;
   curriculumQuestionLessons.value = [];
   curriculumSelectedIds.value = [];
-  expandedCurriculumLessons.value = selection.type === "chapter"
-    ? (selection.chapter.lessons || []).map((lesson) => lesson.id)
-    : [];
-  for (const key of Object.keys(curriculumLessonDates)) delete curriculumLessonDates[key];
-  const lessons = selection.type === "lesson" ? [selection.lesson] : selection.chapter.lessons || [];
+  expandedCurriculumLessons.value =
+    selection.type === "chapter"
+      ? (selection.chapter.lessons || []).map((lesson) => lesson.id)
+      : [];
+  for (const key of Object.keys(curriculumLessonDates))
+    delete curriculumLessonDates[key];
+  const lessons =
+    selection.type === "lesson"
+      ? [selection.lesson]
+      : selection.chapter.lessons || [];
   const spreadDates = scheduleChapterDates(date, lessons.length);
   lessons.forEach((lesson, index) => {
     curriculumLessonDates[lesson.id] = dateKey(spreadDates[index] || date);
@@ -2797,13 +3199,21 @@ async function loadCurriculumQuestionPreview(lessons) {
   curriculumQuestionsLoading.value = true;
   curriculumDialogError.value = "";
   try {
-    curriculumQuestionLessons.value = await Promise.all(lessons.map(async (lesson) => {
-      const preview = await api(`/lessons/${lesson.id}/questions-preview`);
-      return { ...lesson, questions: Array.isArray(preview?.questions) ? preview.questions : [] };
-    }));
-    curriculumSelectedIds.value = curriculumQuestionLessons.value.flatMap((lesson) => lesson.questions.map((question) => Number(question.id)));
+    curriculumQuestionLessons.value = await Promise.all(
+      lessons.map(async (lesson) => {
+        const preview = await api(`/lessons/${lesson.id}/questions-preview`);
+        return {
+          ...lesson,
+          questions: Array.isArray(preview?.questions) ? preview.questions : [],
+        };
+      }),
+    );
+    curriculumSelectedIds.value = curriculumQuestionLessons.value.flatMap(
+      (lesson) => lesson.questions.map((question) => Number(question.id)),
+    );
   } catch (error) {
-    curriculumDialogError.value = error?.message || t("schedule.questionPreviewError");
+    curriculumDialogError.value =
+      error?.message || t("schedule.questionPreviewError");
   } finally {
     curriculumQuestionsLoading.value = false;
   }
@@ -2812,12 +3222,17 @@ async function loadCurriculumQuestionPreview(lessons) {
 function reloadCurriculumQuestionPreview() {
   const selection = curriculumSelection.value;
   if (!selection) return;
-  const lessons = selection.type === "lesson" ? [selection.lesson] : selection.chapter.lessons || [];
+  const lessons =
+    selection.type === "lesson"
+      ? [selection.lesson]
+      : selection.chapter.lessons || [];
   loadCurriculumQuestionPreview(lessons);
 }
 
 function curriculumSelectedForLesson(lesson) {
-  return lesson.questions.filter((question) => curriculumSelectedIds.value.includes(Number(question.id)));
+  return lesson.questions.filter((question) =>
+    curriculumSelectedIds.value.includes(Number(question.id)),
+  );
 }
 
 function toggleCurriculumQuestion(questionId, checked) {
@@ -2830,13 +3245,18 @@ function toggleCurriculumQuestion(questionId, checked) {
 function toggleAllCurriculumQuestions() {
   curriculumSelectedIds.value = curriculumAllSelected.value
     ? []
-    : curriculumQuestionLessons.value.flatMap((lesson) => lesson.questions.map((question) => Number(question.id)));
+    : curriculumQuestionLessons.value.flatMap((lesson) =>
+        lesson.questions.map((question) => Number(question.id)),
+      );
 }
 
 function spreadChapterDates() {
   const firstDate = new Date(`${curriculumForm.deadline}:00`);
   if (Number.isNaN(firstDate.getTime())) return;
-  const dates = scheduleChapterDates(firstDate, curriculumQuestionLessons.value.length);
+  const dates = scheduleChapterDates(
+    firstDate,
+    curriculumQuestionLessons.value.length,
+  );
   curriculumQuestionLessons.value.forEach((lesson, index) => {
     curriculumLessonDates[lesson.id] = dateKey(dates[index]);
   });
@@ -2907,18 +3327,27 @@ async function createCurriculumAssignments() {
     );
     const created = [];
     const failures = [];
-    const selectedLessons = lessons.filter((lesson) => curriculumSelectedForLesson(
-      curriculumQuestionLessons.value.find((item) => item.id === lesson.id) || { questions: [] },
-    ).length > 0);
+    const selectedLessons = lessons.filter(
+      (lesson) =>
+        curriculumSelectedForLesson(
+          curriculumQuestionLessons.value.find(
+            (item) => item.id === lesson.id,
+          ) || { questions: [] },
+        ).length > 0,
+    );
     for (const lesson of selectedLessons) {
       const chosenQuestions = curriculumSelectedForLesson(
         curriculumQuestionLessons.value.find((item) => item.id === lesson.id),
       );
-      const lessonDate = curriculumLessonDates[lesson.id] || dateKey(firstDeadline);
+      const lessonDate =
+        curriculumLessonDates[lesson.id] || dateKey(firstDeadline);
       const time = curriculumForm.deadline.slice(11, 16) || "23:59";
       const deadline = new Date(`${lessonDate}T${time}:00`);
       if (Number.isNaN(deadline.getTime()) || deadline <= new Date()) {
-        failures.push({ title: lesson.title, message: t("schedule.deadlineMustBeFuture") });
+        failures.push({
+          title: lesson.title,
+          message: t("schedule.deadlineMustBeFuture"),
+        });
         continue;
       }
       try {
@@ -3065,34 +3494,43 @@ function calendarContentKey(event) {
 }
 
 function calendarContentFor(event) {
-  return calendarContent[calendarContentKey(event)] || {
-    loading: false,
-    loaded: false,
-    error: "",
-    hasAttempts: false,
-    questions: [],
-    attachments: [],
-  };
+  return (
+    calendarContent[calendarContentKey(event)] || {
+      loading: false,
+      loaded: false,
+      error: "",
+      hasAttempts: false,
+      questions: [],
+      attachments: [],
+    }
+  );
 }
 
 async function loadCalendarContent(event) {
   const key = calendarContentKey(event);
-  const current = calendarContent[key] || (calendarContent[key] = {
-    loading: false,
-    loaded: false,
-    error: "",
-    hasAttempts: false,
-    questions: [],
-    attachments: [],
-  });
+  const current =
+    calendarContent[key] ||
+    (calendarContent[key] = {
+      loading: false,
+      loaded: false,
+      error: "",
+      hasAttempts: false,
+      questions: [],
+      attachments: [],
+    });
   if (current.loading || current.loaded) return;
   current.loading = true;
   current.error = "";
   try {
-    const details = event.type === "manual"
-      ? await api(`/classes/manual-assignments/${event.manualAssignmentId}/calendar-details`)
-      : await api(`/assignments/${event.id}/calendar-details`);
-    current.hasAttempts = Boolean(details.hasAttempts || details.hasSubmissions);
+    const details =
+      event.type === "manual"
+        ? await api(
+            `/classes/manual-assignments/${event.manualAssignmentId}/calendar-details`,
+          )
+        : await api(`/assignments/${event.id}/calendar-details`);
+    current.hasAttempts = Boolean(
+      details.hasAttempts || details.hasSubmissions,
+    );
     current.questions = details.questions || [];
     current.attachments = details.attachments || [];
     current.loaded = true;
@@ -3402,9 +3840,9 @@ async function loadCurriculumBooks() {
           : [];
         expandedChapters.value = savedChapterKeys.length
           ? savedChapterKeys
-          : (savedBook.chapters || []).slice(0, 1).map((chapter) =>
-              chapterKey(savedBook, chapter),
-            );
+          : (savedBook.chapters || [])
+              .slice(0, 1)
+              .map((chapter) => chapterKey(savedBook, chapter));
       } else if (trees.length) {
         const defaultBook =
           trees.find((book) => /toán/i.test(String(book.title || ""))) ||
@@ -3448,12 +3886,12 @@ function syncMobileViewport() {
           );
           if (savedBook) {
             expandedBooks.value = saved.bookId;
-            expandedChapters.value = Array.isArray(saved.chapterKeys) &&
-               saved.chapterKeys.length
-              ? saved.chapterKeys
-              : (savedBook.chapters || []).slice(0, 1).map((chapter) =>
-                  chapterKey(savedBook, chapter),
-                );
+            expandedChapters.value =
+              Array.isArray(saved.chapterKeys) && saved.chapterKeys.length
+                ? saved.chapterKeys
+                : (savedBook.chapters || [])
+                    .slice(0, 1)
+                    .map((chapter) => chapterKey(savedBook, chapter));
           }
         }
       } catch {

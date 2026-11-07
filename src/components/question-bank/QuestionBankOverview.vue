@@ -39,14 +39,15 @@
         <section v-for="unit in units" :key="unit.id" class="unit-row">
           <div class="unit-heading">
             <strong>{{ unit.title }}</strong>
-            <span>{{ t('questionBank.unitCoverage', { count: unit.filled, total: unit.lessons.length }) }}</span>
           </div>
+          <span class="unit-coverage">{{ t('questionBank.unitCoverage', { count: unit.filled, total: unit.lessons.length }) }}</span>
           <div class="lesson-map">
             <v-tooltip v-for="(lesson, index) in unit.lessons" :key="lesson.id" :text="lessonTooltip(unit, index, lesson)" location="top">
               <template #activator="{ props: tooltipProps }">
                 <v-btn v-bind="tooltipProps" class="lesson-tile" :class="tileClass(lesson)" :aria-label="lessonAria(unit, index, lesson)" :title="lessonTooltip(unit, index, lesson)" @click="emit('select-lesson', { book, chapter: unit, lesson })">
                   <span class="lesson-tile-number">{{ t('questionBank.lessonNumberShort', { number: index + 1 }) }}</span>
                   <span class="lesson-tile-count">{{ tileText(lesson) }}</span>
+                  <span v-if="isThin(lesson)" class="lesson-thin-mark" aria-hidden="true">!</span>
                   <i v-if="isThin(lesson)" class="lesson-thin-dot" aria-hidden="true" />
                 </v-btn>
               </template>
@@ -98,7 +99,7 @@ function tileClass(lesson) {
   if (count <= 10) return 'lesson-tile--mid'
   return 'lesson-tile--high'
 }
-function tileText(lesson) { return questionCount(lesson) || t('questionBank.emptyMark') }
+function tileText(lesson) { return questionCount(lesson) }
 function lessonAria(unit, index, lesson) { return t('questionBank.lessonTileLabel', { unit: unit.title, number: index + 1, title: lesson.title, count: questionCount(lesson) }) }
 function lessonTooltip(unit, index, lesson) { return isThin(lesson) ? t('questionBank.thinLessonTooltip', { unit: unit.title, number: index + 1, title: lesson.title, count: questionCount(lesson) }) : lessonAria(unit, index, lesson) }
 </script>
@@ -119,14 +120,16 @@ function lessonTooltip(unit, index, lesson) { return isThin(lesson) ? t('questio
 .legend-low { background: rgba(var(--v-theme-success), .22); color: rgb(var(--v-theme-on-surface)); }.legend-mid { background: rgba(var(--v-theme-success), .68); color: rgb(var(--v-theme-on-success)); }.legend-high { background: rgb(var(--v-theme-success)); color: rgb(var(--v-theme-on-success)); }
 .unit-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px 16px; }
 .unit-row { min-width: 0; padding: 8px 2px 10px; border-bottom: 1px solid rgba(var(--v-theme-on-surface), .12); }
-.unit-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 7px; font-size: 14px; }
-.unit-heading span { color: rgba(var(--v-theme-on-surface), .72); font-size: 13px; }
+.unit-heading { min-width: 0; margin-bottom: 0; font-size: 14px; }
+.unit-heading strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.unit-coverage { display: block; min-height: 18px; margin: 3px 0 7px; color: rgba(var(--v-theme-on-surface), .72); font-size: 13px; }
 .lesson-map { display: flex; flex-wrap: wrap; gap: 6px; }
 .lesson-tile { position: relative; width: 42px; min-width: 42px; height: 42px; padding: 0; border: 1px solid transparent; border-radius: 8px; font-size: 14px; font-weight: 800; }
 .lesson-tile :deep(.v-btn__content) { width: 100%; height: 100%; }
 .lesson-tile-number { position: absolute; top: 2px; left: 4px; font-size: 9px; font-weight: 600; line-height: 1; }
 .lesson-tile-count { font-size: 14px; font-weight: 800; line-height: 1; }
-.lesson-thin-dot { position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; border-radius: 50%; background: rgb(var(--v-theme-warning)); }
+.lesson-thin-mark { position: absolute; top: 1px; right: 3px; color: rgb(var(--v-theme-warning)); font-size: 9px; font-weight: 900; line-height: 1; }
+.lesson-thin-dot { position: absolute; top: 12px; right: 4px; width: 5px; height: 5px; border-radius: 50%; background: rgb(var(--v-theme-warning)); }
 .legend-thin { border: 1px solid rgba(var(--v-theme-warning), .7); background: rgba(var(--v-theme-warning), .14); }
 .legend-thin b { width: 7px; height: 7px; border-radius: 50%; background: rgb(var(--v-theme-warning)); }
 .lesson-tile--empty { border: 1px dashed rgb(var(--v-theme-warning)); background: rgba(var(--v-theme-warning), .16); color: rgb(var(--v-theme-on-surface)); }

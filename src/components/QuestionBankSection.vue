@@ -19,13 +19,17 @@
     >
       <v-card :class="['question-bank-dialog rounded-xl', { 'question-bank-inline-card': inline }]">
         <v-card-title
-          class="question-bank-heading d-flex align-start justify-space-between ga-3 pa-5"
+          class="question-bank-heading d-flex flex-wrap align-center justify-space-between ga-3 pa-5"
         >
           <div class="question-bank-heading-copy">
             <div v-if="!inline" class="text-overline text-primary font-weight-bold">
               {{ t('questionBank.eyebrow') }}
             </div>
             <h2 class="question-bank-heading-title text-h6 font-weight-black">{{ lessonTitle }}</h2>
+          </div>
+          <div v-if="inline && canManage" class="d-flex flex-wrap ga-2 question-bank-heading-actions">
+            <v-btn class="question-bank-action-button question-bank-action-button--secondary" size="small" color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = !showGenerator">{{ t('questionBank.generateWithAi') }}</v-btn>
+            <v-btn class="question-bank-action-button" size="small" color="primary" prepend-icon="mdi-plus" @click="openCreate">{{ t('questionBank.createQuestion') }}</v-btn>
           </div>
           <v-btn
             v-if="!inline"
@@ -47,7 +51,7 @@
             {{ errorMessage }}
           </v-alert>
 
-          <template v-if="showEditor">
+          <div v-if="showEditor">
             <div class="d-flex align-center justify-space-between mb-4">
               <h3 class="text-subtitle-1 font-weight-black">
                 {{
@@ -187,54 +191,45 @@
                 </v-btn>
               </div>
             </v-form>
-          </template>
+          </div>
 
           <template v-else>
-            <div
-              class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-3 mb-4"
-            >
+            <div class="question-list-heading mb-3">
               <div>
-                <h3 class="text-subtitle-1 font-weight-black">
+                <h3 class="text-subtitle-1 font-weight-black mb-0">
                   {{ t('questionBank.listTitle') }}
                 </h3>
-                <p class="text-body-2 text-secondary mb-0">
-                  {{ t('questionBank.count', { count: questionBankCount }) }}
-                </p>
               </div>
-              <div class="d-flex flex-wrap ga-2">
-                <v-btn v-if="canManage && questionBankCount" color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = !showGenerator">
-                  {{ t('questionBank.generateWithAi') }}
-                </v-btn>
-                <v-btn v-if="canManage && questionBankCount" color="primary" prepend-icon="mdi-plus" @click="openCreate">
-                  {{ t('questionBank.createQuestion') }}
-                </v-btn>
-              </div>
+              <span class="text-body-2 text-secondary">{{ t('questionBank.count', { count: questionBankCount }) }}</span>
             </div>
 
-            <v-row v-if="questionBankCount" dense class="mb-4">
-              <v-col cols="12" sm="6">
+            <div v-if="questionBankCount" class="question-filters mb-4">
+                <v-text-field class="question-filter-search" v-model="questionSearch" :label="t('questionBank.searchQuestionPlaceholder')" prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details clearable />
                 <v-select
+                  class="question-filter-select"
                   v-model="typeFilter"
                   :items="typeFilterOptions"
                   item-title="title"
                   item-value="value"
                   :label="t('questionBank.filterType')"
                   hide-details
-                  density="comfortable"
+                  density="compact"
                 />
-              </v-col>
-              <v-col cols="12" sm="6">
                 <v-select
+                  class="question-filter-select"
                   v-model="statusFilter"
                   :items="statusFilterOptions"
                   item-title="title"
                   item-value="value"
                   :label="t('questionBank.filterStatus')"
                   hide-details
-                  density="comfortable"
+                  density="compact"
                 />
-              </v-col>
-            </v-row>
+                <v-btn-toggle v-model="compactMode" mandatory color="primary" density="compact" class="question-display-toggle" :aria-label="t('questionBank.displayMode')">
+                  <v-btn size="small" :value="true">{{ t('questionBank.compactMode') }}</v-btn>
+                  <v-btn size="small" :value="false">{{ t('questionBank.fullMode') }}</v-btn>
+                </v-btn-toggle>
+            </div>
 
             <v-alert v-if="!canManage && questionBankCount" type="info" variant="tonal" density="comfortable" class="mb-4">
               {{ t('questionBank.readOnlySharedBook') }}
@@ -319,7 +314,7 @@
               <v-card
                 v-for="question in pagedQuestions"
                 :key="question.id"
-                class="question-item pa-4"
+                class="question-item pa-3"
                 rounded="lg"
               >
                 <div
@@ -330,7 +325,6 @@
                       <v-chip size="x-small" color="primary" variant="tonal">{{
                         t(`questionBank.types.${question.type}`)
                       }}</v-chip>
-                      <v-chip size="x-small" color="success" variant="tonal">{{ t('questionBank.savedStatus') }}</v-chip>
                       <v-chip
                         size="x-small"
                         color="secondary"
@@ -340,11 +334,12 @@
                         }}</v-chip
                       >
                     </div>
-                    <p class="text-body-1 font-weight-bold mb-2">
+                    <p :ref="(element) => setQuestionContentRef(question.id, element)" :class="['question-content', 'text-body-1', 'font-weight-bold', 'mb-1', { 'question-content--clamped': compactMode && !expandedQuestions.has(question.id) }]">
                       {{ question.content }}
                     </p>
+                    <v-btn v-if="compactMode && (truncatedQuestionIds.has(question.id) || question.options?.length || question.answerText || question.explanation)" size="small" variant="text" class="question-expand-button mb-1" @click="toggleQuestionExpanded(question.id)">{{ expandedQuestions.has(question.id) ? t('questionBank.collapseQuestion') : t('questionBank.expandQuestion') }}</v-btn>
                     <ul
-                      v-if="question.options?.length"
+                      v-if="question.options?.length && (!compactMode || expandedQuestions.has(question.id))"
                       class="question-options"
                     >
                       <li v-for="option in question.options" :key="option.id">
@@ -361,21 +356,21 @@
                       </li>
                     </ul>
                     <p
-                      v-if="question.answerText"
+                      v-if="question.answerText && (!compactMode || expandedQuestions.has(question.id))"
                       class="text-body-2 text-secondary mt-2 mb-0"
                     >
                       <strong>{{ t('questionBank.answerText') }}:</strong>
                       {{ question.answerText }}
                     </p>
                     <p
-                      v-if="question.explanation"
+                      v-if="question.explanation && (!compactMode || expandedQuestions.has(question.id))"
                       class="text-body-2 text-secondary mt-1 mb-0"
                     >
                       <strong>{{ t('questionBank.explanation') }}:</strong>
                       {{ question.explanation }}
                     </p>
                   </div>
-                  <div class="d-flex ga-1">
+                  <div class="d-flex ga-2 question-actions">
                     <v-btn
                       v-if="canManage"
                       icon="mdi-pencil-outline"
@@ -396,7 +391,10 @@
                   </div>
                 </div>
               </v-card>
-              <ListPagination v-model="questionPage" :total="filteredQuestions.length" />
+              <div class="question-list-footer">
+                <span class="text-caption text-medium-emphasis">{{ t('questionBank.showingQuestions', { shown: pagedQuestions.length, total: filteredQuestions.length }) }}</span>
+                <v-btn v-if="pagedQuestions.length < filteredQuestions.length" size="small" variant="tonal" color="primary" @click="showMoreQuestions">{{ t('questionBank.showMoreQuestions', { count: Math.min(pageSize, filteredQuestions.length - pagedQuestions.length) }) }}</v-btn>
+              </div>
             </div>
             <v-card
               v-else-if="!isLoading && !filteredDrafts.length"
@@ -416,14 +414,6 @@
               <v-chip v-if="!canManage && !questionBankCount" class="mt-3" color="secondary" variant="tonal" size="small">
                 {{ t('questionBank.readOnlyLabel') }}
               </v-chip>
-              <div v-if="canManage && !questionBankCount" class="d-flex flex-wrap justify-center ga-2 mt-5">
-                <v-btn color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = true">
-                  {{ t('questionBank.generateWithAi') }}
-                </v-btn>
-                <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
-                  {{ t('questionBank.createQuestion') }}
-                </v-btn>
-              </div>
             </v-card>
           </template>
         </v-card-text>
@@ -437,18 +427,18 @@
       :loading="isDeleting"
       @confirm="deleteQuestion"
     />
+    <v-snackbar v-model="deleteToast.show" color="error" timeout="6000" location="bottom">{{ deleteToast.message }}</v-snackbar>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { api } from '../services/api';
 import { filterQuestionLists } from '../services/questionBankState.js';
 import { useAuthStore } from '../stores/auth';
 import { useQuestionBankStore } from '../stores/questionBank';
 import ConfirmDialog from './shared/ConfirmDialog.vue';
-import ListPagination from './shared/ListPagination.vue';
 
 const props = defineProps({
   lessonId: { type: [Number, String], required: true },
@@ -474,21 +464,44 @@ const showGenerator = ref(false);
 watch(() => props.startWithAi, (open) => { if (open && props.canManage) showGenerator.value = true }, { immediate: true });
 const showDeleteConfirm = ref(false);
 const questions = ref([]);
-const questionPage = ref(1);
+const visibleQuestionCount = ref(10);
+const questionSearch = ref('');
+const expandedQuestions = ref(new Set());
+const truncatedQuestionIds = ref(new Set());
+const questionContentElements = new Map();
+const deleteToast = ref({ show: false, message: '' });
+const compactMode = ref(true);
+try { compactMode.value = localStorage.getItem('questionBank.compactMode') !== 'false'; } catch {}
+watch(compactMode, (value) => { try { localStorage.setItem('questionBank.compactMode', String(value)); } catch {} });
 const typeFilter = ref('ALL');
 const statusFilter = ref('ALL');
-const pageSize = 20;
+const pageSize = 10;
 const generatedQuestions = computed(() => questionBankStore.draftsFor(authStore.user?.id, props.lessonId));
 const questionFilters = computed(() => filterQuestionLists(questions.value, generatedQuestions.value, {
   type: typeFilter.value,
   status: statusFilter.value,
 }));
-const filteredQuestions = computed(() => questionFilters.value.saved);
+function normalizeSearch(value) { return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('vi').trim(); }
+const normalizedQuestionSearch = computed(() => normalizeSearch(questionSearch.value));
+const filteredQuestions = computed(() => questionFilters.value.saved.filter((question) => !normalizedQuestionSearch.value || normalizeSearch(question.content).includes(normalizedQuestionSearch.value)));
 const filteredDrafts = computed(() => questionFilters.value.drafts.map((draft) => ({
   ...draft,
   draftIndex: generatedQuestions.value.indexOf(draft),
-})));
-const pagedQuestions = computed(() => filteredQuestions.value.slice((questionPage.value - 1) * pageSize, questionPage.value * pageSize));
+})).filter((draft) => !normalizedQuestionSearch.value || normalizeSearch(draft.content).includes(normalizedQuestionSearch.value)));
+const pagedQuestions = computed(() => filteredQuestions.value.slice(0, visibleQuestionCount.value));
+function setQuestionContentRef(id, element) {
+  if (element) questionContentElements.set(id, element.$el || element);
+  else questionContentElements.delete(id);
+}
+async function refreshTruncatedQuestions() {
+  await nextTick();
+  const truncated = new Set();
+  for (const question of pagedQuestions.value) {
+    const element = questionContentElements.get(question.id);
+    if (element && element.scrollHeight > element.clientHeight + 1) truncated.add(question.id);
+  }
+  truncatedQuestionIds.value = truncated;
+}
 const questionBankCount = computed(() => questions.value.length + generatedQuestions.value.length);
 const typeFilterOptions = computed(() => [
   { title: t('questionBank.allTypes'), value: 'ALL' },
@@ -499,9 +512,14 @@ const statusFilterOptions = computed(() => [
   { title: t('questionBank.draftStatus'), value: 'DRAFT' },
   { title: t('questionBank.savedStatus'), value: 'SAVED' },
 ]);
-watch(() => Math.ceil(filteredQuestions.value.length / pageSize), pageCount => {
-  if (questionPage.value > pageCount) questionPage.value = Math.max(1, pageCount);
-});
+watch([questionSearch, typeFilter, statusFilter], () => { visibleQuestionCount.value = pageSize; expandedQuestions.value = new Set(); });
+watch([pagedQuestions, compactMode], refreshTruncatedQuestions, { flush: 'post', immediate: true });
+function showMoreQuestions() { visibleQuestionCount.value = Math.min(visibleQuestionCount.value + pageSize, filteredQuestions.value.length); }
+function toggleQuestionExpanded(id) {
+  const next = new Set(expandedQuestions.value);
+  next.has(id) ? next.delete(id) : next.add(id);
+  expandedQuestions.value = next;
+}
 const questionToDelete = ref(null);
 const editingQuestion = ref(null);
 const formRef = ref(null);
@@ -575,7 +593,9 @@ async function loadQuestions() {
 }
 
 watch(() => props.lessonId, () => {
-  questionPage.value = 1;
+  visibleQuestionCount.value = pageSize;
+  expandedQuestions.value = new Set();
+  questionSearch.value = '';
   showEditor.value = false;
   editingQuestion.value = null;
   if (props.inline) void loadQuestions();
@@ -583,7 +603,9 @@ watch(() => props.lessonId, () => {
 
 onMounted(() => {
   if (props.inline) void loadQuestions();
+  window.addEventListener('resize', refreshTruncatedQuestions);
 });
+onBeforeUnmount(() => window.removeEventListener('resize', refreshTruncatedQuestions));
 
 async function openDialog() {
   showDialog.value = true;
@@ -853,14 +875,14 @@ async function deleteQuestion() {
   if (!questionToDelete.value) return;
   isDeleting.value = true;
   errorMessage.value = '';
-  showDeleteConfirm.value = false;
   try {
     await api(`/questions/${questionToDelete.value.id}`, { method: 'DELETE' });
     showDeleteConfirm.value = false;
     questionToDelete.value = null;
     await loadQuestions();
   } catch (error) {
-    errorMessage.value = error.message || t('questionBank.deleteError');
+    showDeleteConfirm.value = false;
+    deleteToast.value = { show: true, message: error.message || t('questionBank.deleteError') };
   } finally {
     isDeleting.value = false;
   }
@@ -896,7 +918,7 @@ async function deleteQuestion() {
 .question-bank-heading-title {
   max-width: 100%;
   margin: 0;
-  font-size: clamp(1.15rem, 2.4vw, 1.65rem) !important;
+  font-size: 22px !important;
   line-height: 1.25;
   overflow-wrap: anywhere;
   white-space: normal;
@@ -905,12 +927,32 @@ async function deleteQuestion() {
 .question-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
+.question-list-heading { display: flex; min-height: 28px; align-items: baseline; justify-content: space-between; gap: 12px; }
+.question-filters { display: flex; align-items: center; gap: 8px; }
+.question-filter-search { min-width: 180px; flex: 1 1 auto; }
+.question-filter-select { min-width: 140px; flex: 0 1 160px; }
+.question-filters :deep(.v-field) { min-height: 36px; font-size: 14px; }
+.question-filters :deep(.v-field__input), .question-filters :deep(.v-label) { font-size: 14px; }
+.question-display-toggle { flex: 0 0 auto; white-space: nowrap; }
+.question-display-toggle :deep(.v-btn) { min-height: 36px; padding-inline: 8px; font-size: 13px; }
+.question-list-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 2px; }
+.question-bank-action-button { min-height: 36px; max-height: 36px; font-size: 14px; }
+.question-bank-action-button--secondary { opacity: .86; }
 
 .question-item {
   border: 1px solid #e4ecf7;
-  background: #fff;
+  background: rgb(var(--v-theme-surface));
+}
+.question-content--clamped { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
+.question-actions { flex: 0 0 auto; }
+.question-bank-heading-actions { flex: 0 0 auto; }
+@media (max-width: 1023.98px) {
+  .question-filters { flex-wrap: wrap; }
+  .question-filter-search { flex: 1 1 100%; }
+  .question-filter-select { flex: 1 1 140px; }
+  .question-display-toggle { margin-left: auto; }
 }
 
 .ai-generator {
