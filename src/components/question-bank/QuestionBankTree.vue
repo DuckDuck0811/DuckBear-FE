@@ -14,21 +14,22 @@
         type="button"
         class="book-card"
         :class="{ 'book-card--selected': Number(selectedBookId) === Number(book.id) }"
-        :style="{ '--book-cover': coverColor(book) }"
+        :style="subjectThemeStyle(getSubjectTheme(book.subject, book.gradeLevel))"
+        :ref="(element) => setBookElement(book.id, element)"
         :aria-current="Number(selectedBookId) === Number(book.id) ? 'true' : undefined"
         @click="emit('select-book', book)"
       >
         <span class="book-cover" aria-hidden="true">{{ coverLabel(book) }}</span>
-        <span class="book-card-copy">
+        <div class="book-card-copy">
           <span class="book-card-title">{{ book.title }}</span>
-          <span class="book-card-meta">
-            <span>{{ book.subject }} · {{ t('questionBank.gradeLabel', { grade: book.gradeLevel }) }}</span>
+          <span class="book-card-subject">{{ book.subject }} · {{ t('questionBank.gradeLabel', { grade: book.gradeLevel }) }}</span>
+          <span class="book-card-progress-copy">
             <span v-if="bookDetails[book.id]" class="book-progress-label">{{ t('questionBank.lessonsWithQuestions', bookSummary(bookDetails[book.id])) }}</span>
             <span v-else class="book-progress-label text-medium-emphasis">{{ t('questionBank.selectForProgress') }}</span>
           </span>
           <v-progress-linear v-if="bookDetails[book.id]" :model-value="bookSummary(bookDetails[book.id]).percent" height="4" color="primary" rounded class="book-progress" />
           <span v-if="!isOwnBook(book) && book.createdBy?.fullName" class="book-owner"><v-chip size="x-small" color="secondary" variant="tonal">{{ t('questionBank.readOnlyLabel') }}</v-chip><span>{{ t('questionBank.createdBy', { name: book.createdBy.fullName }) }}</span></span>
-        </span>
+        </div>
         <v-progress-circular v-if="loadingBooks[book.id]" indeterminate size="20" width="2" color="primary" aria-hidden="true" />
       </button>
     </v-card-text>
@@ -36,11 +37,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getSubjectTheme, subjectThemeStyle } from '../../utils/subjectTheme.js'
 
 const props = defineProps({
   books: { type: Array, default: () => [] },
+  allBooks: { type: Array, default: () => [] },
   bookDetails: { type: Object, default: () => ({}) },
   loadingBooks: { type: Object, default: () => ({}) },
   myBooksOnly: { type: Boolean, default: false },
@@ -53,6 +56,16 @@ const { t } = useI18n()
 function normalize(value) { return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('vi') }
 const normalizedSearch = computed(() => normalize(props.search.trim()))
 const shownBooks = computed(() => props.books.filter((book) => !normalizedSearch.value || normalize(book.title).includes(normalizedSearch.value) || (props.bookDetails[book.id]?.chapters || []).some((chapter) => normalize(chapter.title).includes(normalizedSearch.value) || (chapter.lessons || []).some((lesson) => normalize(lesson.title).includes(normalizedSearch.value)))))
+const bookElements = new Map()
+function setBookElement(id, element) { if (element) bookElements.set(Number(id), element); else bookElements.delete(Number(id)) }
+watch([() => props.selectedBookId, shownBooks], async ([id]) => {
+  if (!id) return
+  await nextTick()
+  const element = bookElements.get(Number(id))
+  if (!element) return
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  element.scrollIntoView?.({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' })
+}, { immediate: true })
 function questionCount(lesson) { return Number(lesson?._count?.questions) || 0 }
 function bookSummary(book) {
   const lessons = (book.chapters || []).flatMap((chapter) => chapter.lessons || [])
@@ -61,21 +74,15 @@ function bookSummary(book) {
 }
 function isOwnBook(book) { return Number(book.createdById) === Number(props.userId) }
 function coverLabel(book) {
-  const subject = normalize(book.subject)
-  const match = subject.match(/\d+/)
-  const grade = match?.[0] || String(book.gradeLevel || '').replace(/\D/g, '')
-  const code = subject.includes('anh') ? t('questionBank.coverPrefixes.english') : subject.includes('su') ? t('questionBank.coverPrefixes.history') : subject.includes('dia') ? t('questionBank.coverPrefixes.geography') : subject.includes('van') || subject.includes('ngu') ? t('questionBank.coverPrefixes.literature') : subject.includes('toan') ? t('questionBank.coverPrefixes.math') : subject.slice(0, 1).toLocaleUpperCase('vi')
-  return `${code}${grade}`
-}
-function coverColor(book) {
-  const subject = normalize(book.subject)
-  if (subject.includes('anh')) return 'rgb(var(--v-theme-pink))'
-  if (subject.includes('su')) return 'rgb(var(--v-theme-orange))'
-  if (subject.includes('dia')) return 'rgb(var(--v-theme-green))'
-  if (subject.includes('van') || subject.includes('ngu')) return 'rgb(var(--v-theme-purple))'
-  if (subject.includes('toan')) return 'rgb(var(--v-theme-primary))'
-  const palette = ['rgb(var(--v-theme-primary))', 'rgb(var(--v-theme-pink))', 'rgb(var(--v-theme-orange))', 'rgb(var(--v-theme-green))', 'rgb(var(--v-theme-purple))']
-  return palette[Math.abs(Number(book.id) || 0) % palette.length]
+  const theme = getSubjectTheme(book.subject, book.gradeLevel)
+  const prefix = t(`questionBank.coverPrefixes.${theme.code}`)
+  const grade = String(book.gradeLevel || '').replace(/\D/g, '')
+  const siblings = props.allBooks.filter((item) => normalize(item.subject) === normalize(book.subject) && Number(item.gradeLevel) === Number(book.gradeLevel))
+  if (siblings.length < 2) return `${prefix}${grade}`
+  const volume = String(book.title || '').match(/(?:tập|quyển|volume|vol\.?)[\s-]*(\d+)/i)?.[1]
+  const ordered = [...siblings].sort((a, b) => Number(a.id) - Number(b.id))
+  const suffix = volume || String(ordered.findIndex((item) => Number(item.id) === Number(book.id)) + 1)
+  return `${prefix}${grade}-${suffix}`
 }
 </script>
 
@@ -84,10 +91,10 @@ function coverColor(book) {
 .question-tree-card-body { display: grid; gap: 10px; min-width: 0; }
 .question-tree-tools :deep(.v-label) { font-size: 13px; }
 .book-card { display: flex; width: 100%; min-width: 0; align-items: center; gap: 12px; padding: 10px; border: 1px solid rgba(var(--v-theme-on-surface), .13); border-radius: 14px; background: rgb(var(--v-theme-surface)); color: rgb(var(--v-theme-on-surface)); text-align: left; cursor: pointer; transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease; }
-.book-cover { display: grid; width: 42px; height: 54px; flex: 0 0 42px; place-items: center; border-radius: 6px 10px 10px 6px; background: color-mix(in srgb, var(--book-cover) 55%, rgb(var(--v-theme-secondary))); box-shadow: inset 4px 0 rgba(var(--v-theme-on-surface), .14), 0 2px 5px rgba(var(--v-theme-on-surface), .14); color: rgb(var(--v-theme-on-secondary)); font-size: 13px; font-weight: 800; text-align: center; }
+.book-cover { display: grid; width: 42px; height: 54px; flex: 0 0 42px; place-items: center; border-radius: 6px 10px 10px 6px; background: var(--subject-cover-color); box-shadow: inset 4px 0 rgba(var(--v-theme-on-surface), .14), 0 2px 5px rgba(var(--v-theme-on-surface), .14); color: rgb(var(--v-theme-on-secondary)); font-size: 13px; font-weight: 800; text-align: center; }
 .book-card-copy { display: grid; min-width: 0; flex: 1; gap: 4px; }
 .book-card-title { overflow: hidden; font-size: 14px; font-weight: 750; line-height: 1.3; text-overflow: ellipsis; }
-.book-card-meta { display: flex; flex-wrap: wrap; gap: 2px 6px; color: rgba(var(--v-theme-on-surface), .75); font-size: 13px; line-height: 1.3; }
+.book-card-subject, .book-card-progress-copy { display: block; color: rgba(var(--v-theme-on-surface), .75); font-size: 13px; line-height: 1.3; }
 .book-progress-label { font-weight: 600; }
 .book-progress { max-width: 240px; }
 .book-owner { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; color: rgba(var(--v-theme-on-surface), .72); font-size: 13px; }

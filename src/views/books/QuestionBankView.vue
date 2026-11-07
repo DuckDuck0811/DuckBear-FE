@@ -4,12 +4,9 @@
     <TeacherSidebar />
 
     <v-main class="pb-16">
-      <v-container fluid class="question-bank-container py-6 px-4 px-md-6">
-        <header class="page-heading mb-5">
-          <div>
-            <h1 class="text-h4 font-weight-black text-primary mb-1">{{ t('questionBank.pageTitle') }}</h1>
-            <p class="text-body-1 text-medium-emphasis mb-0">{{ t('questionBank.pageSubtitle') }}</p>
-          </div>
+      <v-container fluid class="question-bank-container py-4 px-4 px-md-6">
+        <header class="page-heading mb-3">
+          <h1 class="text-h5 font-weight-black text-primary mb-0">{{ t('questionBank.pageTitle') }}</h1>
         </header>
 
         <v-alert v-if="errorMessage" type="error" variant="tonal" class="mb-4" role="alert">
@@ -23,6 +20,7 @@
           <aside class="question-bank-tree-column" :aria-label="t('questionBank.curriculumNavigation')">
             <QuestionBankTree
               :books="visibleBooks"
+              :all-books="books"
               :book-details="bookDetails"
               :loading-books="loadingBookIds"
               :user-id="authStore.user?.id"
@@ -64,9 +62,9 @@
                   <v-chip v-for="lesson in selectedUnit.lessons" :key="lesson.id" :color="Number(lesson.id) === Number(selectedLesson.id) ? 'primary' : undefined" :variant="Number(lesson.id) === Number(selectedLesson.id) ? 'flat' : 'outlined'" class="sibling-chip" @click="selectLesson({ book: selectedBook, chapter: selectedUnit, lesson })">{{ lesson.title }} · {{ questionCount(lesson) }}</v-chip>
                 </div>
               </div>
-              <QuestionBankSection :key="selectedLesson.id" :lesson-id="selectedLesson.id" :lesson-title="selectedLesson.title" :can-manage="canManageSelectedBook" :start-with-ai="Number(autoAiLessonId) === Number(selectedLesson.id)" inline />
+              <QuestionBankSection :key="selectedLesson.id" :lesson-id="selectedLesson.id" :lesson-title="selectedLesson.title" :can-manage="canManageSelectedBook" inline />
             </template>
-            <QuestionBankOverview v-else :book="selectedBook" :loading="Boolean(selectedBookId && loadingBookIds[selectedBookId] && !bookDetails[selectedBookId])" :error="selectedBookId ? bookErrors[selectedBookId] : ''" :can-manage="canManageSelectedBook" :recent-lesson="recentLesson" @retry="retryBook" @continue="continueRecentLesson" @select-lesson="selectLesson" @ai="startUnitAi" />
+            <QuestionBankOverview v-else :book="selectedBook" :loading="Boolean(activeBookId && loadingBookIds[activeBookId] && !bookDetails[activeBookId])" :error="activeBookId ? bookErrors[activeBookId] : ''" :can-manage="canManageSelectedBook" :recent-lesson="recentLesson" @retry="retryBook" @continue="continueRecentLesson" @select-lesson="selectLesson" />
           </section>
         </div>
 
@@ -79,6 +77,7 @@
         >
           <QuestionBankTree
             :books="visibleBooks"
+            :all-books="books"
             :book-details="bookDetails"
             :loading-books="loadingBookIds"
             :user-id="authStore.user?.id"
@@ -118,6 +117,7 @@ const bookDetails = reactive({})
 const loadingBookIds = reactive({})
 const bookErrors = reactive({})
 const pendingBookLoads = new Map()
+let prefetchRunId = 0
 const isLoadingBooks = ref(false)
 const hasLoadedBooks = ref(false)
 const errorMessage = ref('')
@@ -125,14 +125,14 @@ const drawerOpen = ref(false)
 const myBooksOnly = ref(false)
 const treeSearch = ref('')
 const recentLesson = ref(null)
-const autoAiLessonId = ref(null)
 
+const openedBookId = ref(null)
 const selectedBookId = computed(() => Number(route.query.bookId) || null)
 const selectedLessonId = computed(() => Number(route.query.lessonId) || null)
+const activeBookId = computed(() => selectedBookId.value || openedBookId.value)
 const visibleBooks = computed(() => myBooksOnly.value
   ? books.value.filter((book) => Number(book.createdById) === Number(authStore.user?.id))
   : books.value)
-const openedBookId = ref(null)
 const selectedBook = computed(() => (selectedBookId.value ? bookDetails[selectedBookId.value] : bookDetails[openedBookId.value]) || null)
 const selectedUnit = computed(() => selectedBook.value?.chapters?.find((chapter) => chapter.lessons?.some((lesson) => Number(lesson.id) === selectedLessonId.value)) || null)
 const selectedLesson = computed(() => {
@@ -158,8 +158,9 @@ async function loadBooks() {
   try {
     books.value = await api('/books')
     hasLoadedBooks.value = true
-    restoreRecentLesson()
+    await restoreRecentLesson()
     await restoreRouteSelection()
+    void prefetchBookDetails()
   } catch (error) {
     errorMessage.value = error.message || t('questionBank.loadError')
   } finally {
@@ -170,37 +171,50 @@ async function loadBooks() {
 async function loadBookDetails(bookId) {
   const id = Number(bookId)
   if (!id || bookDetails[id]) return bookDetails[id]
-  if (pendingBookLoads.has(id)) return pendingBookLoads.get(id)
+  if (pendingBookLoads.has(id)) return pendingBookLoads.get(id).promise
 
   loadingBookIds[id] = true
   bookErrors[id] = ''
-  const request = api(`/books/${id}`)
+  const controller = new AbortController()
+  const request = api(`/books/${id}`, { signal: controller.signal })
     .then((detail) => {
       bookDetails[id] = detail
-      restoreRecentLesson()
+      void restoreRecentLesson()
       return detail
     })
     .catch((error) => {
-      bookErrors[id] = error.message || t('questionBank.loadError')
+      if (error?.name !== 'AbortError') bookErrors[id] = error.message || t('questionBank.loadError')
       return null
     })
     .finally(() => {
       loadingBookIds[id] = false
       pendingBookLoads.delete(id)
     })
-  pendingBookLoads.set(id, request)
+  pendingBookLoads.set(id, { promise: request, controller })
   return request
 }
 
-function openBook(bookId) {
-  openedBookId.value = Number(bookId)
-  void loadBookDetails(bookId)
+async function prefetchBookDetails() {
+  const runId = ++prefetchRunId
+  const pendingIds = books.value.map((book) => Number(book.id)).filter((id) => id && !bookDetails[id] && !pendingBookLoads.has(id))
+  let index = 0
+  const workerCount = Math.min(2, pendingIds.length)
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (runId === prefetchRunId && index < pendingIds.length) {
+      const id = pendingIds[index++]
+      await loadBookDetails(id)
+    }
+  }))
+}
+
+function cancelPendingBookLoads() {
+  prefetchRunId += 1
+  for (const { controller } of pendingBookLoads.values()) controller.abort()
 }
 
 async function selectBook(book) {
   drawerOpen.value = false
   openedBookId.value = Number(book.id)
-  autoAiLessonId.value = null
   const { lessonId: _lessonId, ...query } = route.query
   await router.replace({ query: { ...query, bookId: String(book.id) } })
   await loadBookDetails(book.id)
@@ -209,20 +223,12 @@ async function selectBook(book) {
 function questionCount(lesson) { return Number(lesson?._count?.questions) || 0 }
 
 async function backToMap() {
-  autoAiLessonId.value = null
   await router.replace({ query: { ...route.query, lessonId: undefined } })
 }
 
 async function retryBook() {
-  const id = selectedBookId.value
+  const id = activeBookId.value
   if (id) { delete bookDetails[id]; await loadBookDetails(id) }
-}
-
-async function startUnitAi(chapter) {
-  const lesson = chapter.lessons?.find((item) => !questionCount(item))
-  if (!lesson || !selectedBook.value) return
-  autoAiLessonId.value = Number(lesson.id)
-  await selectLesson({ book: selectedBook.value, chapter, lesson })
 }
 
 async function restoreRouteSelection() {
@@ -260,8 +266,8 @@ async function restoreRecentLesson() {
   const book = books.value.find((item) => Number(item.id) === bookId)
   if (!book || !lessonId) return
   openedBookId.value = bookId
-  const detail = bookDetails[bookId]
-  if (!detail) { void loadBookDetails(bookId); return }
+  const detail = bookDetails[bookId] || await loadBookDetails(bookId)
+  if (!detail) return
   const chapter = detail?.chapters?.find((item) => item.lessons?.some((lesson) => Number(lesson.id) === lessonId))
   const lesson = chapter?.lessons?.find((item) => Number(item.id) === lessonId)
   if (lesson) recentLesson.value = { book, lesson, path: `${book.title} › ${chapter.title} › ${lesson.title}` }
@@ -279,8 +285,9 @@ watch(
 )
 
 onBeforeRouteLeave(() => {
-  if (!questionBankStore.hasPendingDrafts) return true
-  return window.confirm(t('questionBank.confirmLeaveWithDrafts'))
+  if (questionBankStore.hasPendingDrafts && !window.confirm(t('questionBank.confirmLeaveWithDrafts'))) return false
+  cancelPendingBookLoads()
+  return true
 })
 
 function warnBeforeUnload(event) {
@@ -290,7 +297,10 @@ function warnBeforeUnload(event) {
 }
 
 onMounted(() => window.addEventListener('beforeunload', warnBeforeUnload))
-onBeforeUnmount(() => window.removeEventListener('beforeunload', warnBeforeUnload))
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', warnBeforeUnload)
+  cancelPendingBookLoads()
+})
 
 onMounted(loadBooks)
 </script>
