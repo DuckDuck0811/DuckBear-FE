@@ -346,7 +346,7 @@ onMounted(loadBooks)
 .sibling-chip { flex: 0 0 auto; min-height: 34px; font-size: 13px; }
 .sibling-chip:focus-visible { outline: 3px solid rgb(var(--v-theme-primary)); outline-offset: 2px; }
 .sibling-chip--empty { border-style: dashed !important; }
-.question-bank-sticky-bar { position: sticky; top: 70px; z-index: 12; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 70px; margin-bottom: 16px; padding: 12px 16px; border: 1px solid rgba(var(--v-theme-primary), .16); border-radius: 16px; background: rgb(var(--v-theme-surface)); box-shadow: 0 6px 18px rgba(var(--v-theme-primary), .06); backdrop-filter: blur(8px); }
+.question-bank-sticky-bar { position: sticky; top: 70px; z-index: 12; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; margin-bottom: 12px; padding: 4px 8px; border: 1px solid rgba(var(--v-theme-primary), .16); border-radius: 12px; background: rgb(var(--v-theme-surface)); box-shadow: 0 4px 12px rgba(var(--v-theme-primary), .05); backdrop-filter: blur(8px); }
 .breadcrumb-path { display: flex; align-items: center; min-width: 0; gap: 8px; }
 .back-to-map { flex: 0 0 auto; }
 .breadcrumb-separator { color: rgba(var(--v-theme-on-surface), .45); font-weight: 400; }

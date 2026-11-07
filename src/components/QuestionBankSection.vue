@@ -28,8 +28,8 @@
             <h2 class="question-bank-heading-title text-h6 font-weight-black">{{ lessonTitle }}</h2>
           </div>
           <div v-if="inline && canManage" class="d-flex flex-wrap ga-2 question-bank-heading-actions">
-            <v-btn color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = !showGenerator">{{ t('questionBank.generateWithAi') }}</v-btn>
-            <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">{{ t('questionBank.createQuestion') }}</v-btn>
+            <v-btn class="question-bank-action-button question-bank-action-button--secondary" size="small" color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = !showGenerator">{{ t('questionBank.generateWithAi') }}</v-btn>
+            <v-btn class="question-bank-action-button" size="small" color="primary" prepend-icon="mdi-plus" @click="openCreate">{{ t('questionBank.createQuestion') }}</v-btn>
           </div>
           <v-btn
             v-if="!inline"
@@ -194,53 +194,42 @@
           </div>
 
           <template v-else>
-            <div
-              class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-3 mb-4"
-            >
+            <div class="question-list-heading mb-3">
               <div>
-                <h3 class="text-subtitle-1 font-weight-black">
+                <h3 class="text-subtitle-1 font-weight-black mb-0">
                   {{ t('questionBank.listTitle') }}
                 </h3>
-                <p class="text-body-2 text-secondary mb-0">
-                  {{ t('questionBank.count', { count: questionBankCount }) }}
-                </p>
               </div>
+              <span class="text-body-2 text-secondary">{{ t('questionBank.count', { count: questionBankCount }) }}</span>
             </div>
 
-            <v-row v-if="questionBankCount" dense class="mb-4">
-              <v-col cols="12">
-                <v-text-field v-model="questionSearch" :label="t('questionBank.searchQuestionPlaceholder')" prepend-inner-icon="mdi-magnify" variant="outlined" density="comfortable" hide-details clearable />
-              </v-col>
-              <v-col cols="12" sm="6">
+            <div v-if="questionBankCount" class="question-filters mb-4">
+                <v-text-field class="question-filter-search" v-model="questionSearch" :label="t('questionBank.searchQuestionPlaceholder')" prepend-inner-icon="mdi-magnify" variant="outlined" density="compact" hide-details clearable />
                 <v-select
+                  class="question-filter-select"
                   v-model="typeFilter"
                   :items="typeFilterOptions"
                   item-title="title"
                   item-value="value"
                   :label="t('questionBank.filterType')"
                   hide-details
-                  density="comfortable"
+                  density="compact"
                 />
-              </v-col>
-              <v-col cols="12" sm="6">
                 <v-select
+                  class="question-filter-select"
                   v-model="statusFilter"
                   :items="statusFilterOptions"
                   item-title="title"
                   item-value="value"
                   :label="t('questionBank.filterStatus')"
                   hide-details
-                  density="comfortable"
+                  density="compact"
                 />
-              </v-col>
-              <v-col cols="12" class="d-flex align-center justify-space-between flex-wrap ga-2">
-                <span class="text-caption text-medium-emphasis">{{ t('questionBank.displayMode') }}</span>
-                <v-btn-toggle v-model="compactMode" mandatory color="primary" density="compact" :aria-label="t('questionBank.displayMode')">
-                  <v-btn :value="true">{{ t('questionBank.compactMode') }}</v-btn>
-                  <v-btn :value="false">{{ t('questionBank.fullMode') }}</v-btn>
+                <v-btn-toggle v-model="compactMode" mandatory color="primary" density="compact" class="question-display-toggle" :aria-label="t('questionBank.displayMode')">
+                  <v-btn size="small" :value="true">{{ t('questionBank.compactMode') }}</v-btn>
+                  <v-btn size="small" :value="false">{{ t('questionBank.fullMode') }}</v-btn>
                 </v-btn-toggle>
-              </v-col>
-            </v-row>
+            </div>
 
             <v-alert v-if="!canManage && questionBankCount" type="info" variant="tonal" density="comfortable" class="mb-4">
               {{ t('questionBank.readOnlySharedBook') }}
@@ -322,11 +311,10 @@
               class="mb-4"
             />
             <div v-if="!isLoading && filteredQuestions.length" class="question-list">
-              <p class="text-caption text-medium-emphasis mb-0">{{ t('questionBank.showingQuestions', { shown: pagedQuestions.length, total: filteredQuestions.length }) }}</p>
               <v-card
                 v-for="question in pagedQuestions"
                 :key="question.id"
-                class="question-item pa-4"
+                class="question-item pa-3"
                 rounded="lg"
               >
                 <div
@@ -346,12 +334,12 @@
                         }}</v-chip
                       >
                     </div>
-                    <p :class="['question-content', 'text-body-1', 'font-weight-bold', 'mb-1', { 'question-content--clamped': compactMode && !expandedQuestions.has(question.id) }]">
+                    <p :ref="(element) => setQuestionContentRef(question.id, element)" :class="['question-content', 'text-body-1', 'font-weight-bold', 'mb-1', { 'question-content--clamped': compactMode && !expandedQuestions.has(question.id) }]">
                       {{ question.content }}
                     </p>
-                    <v-btn v-if="compactMode" size="small" variant="text" class="question-expand-button mb-2" @click="toggleQuestionExpanded(question.id)">{{ expandedQuestions.has(question.id) ? t('questionBank.collapseQuestion') : t('questionBank.expandQuestion') }}</v-btn>
+                    <v-btn v-if="compactMode && (truncatedQuestionIds.has(question.id) || question.options?.length || question.answerText || question.explanation)" size="small" variant="text" class="question-expand-button mb-1" @click="toggleQuestionExpanded(question.id)">{{ expandedQuestions.has(question.id) ? t('questionBank.collapseQuestion') : t('questionBank.expandQuestion') }}</v-btn>
                     <ul
-                      v-if="question.options?.length"
+                      v-if="question.options?.length && (!compactMode || expandedQuestions.has(question.id))"
                       class="question-options"
                     >
                       <li v-for="option in question.options" :key="option.id">
@@ -368,14 +356,14 @@
                       </li>
                     </ul>
                     <p
-                      v-if="question.answerText"
+                      v-if="question.answerText && (!compactMode || expandedQuestions.has(question.id))"
                       class="text-body-2 text-secondary mt-2 mb-0"
                     >
                       <strong>{{ t('questionBank.answerText') }}:</strong>
                       {{ question.answerText }}
                     </p>
                     <p
-                      v-if="question.explanation"
+                      v-if="question.explanation && (!compactMode || expandedQuestions.has(question.id))"
                       class="text-body-2 text-secondary mt-1 mb-0"
                     >
                       <strong>{{ t('questionBank.explanation') }}:</strong>
@@ -403,8 +391,9 @@
                   </div>
                 </div>
               </v-card>
-              <div v-if="pagedQuestions.length < filteredQuestions.length" class="d-flex justify-center pt-2">
-                <v-btn variant="tonal" color="primary" @click="showMoreQuestions">{{ t('questionBank.showMoreQuestions', { count: Math.min(pageSize, filteredQuestions.length - pagedQuestions.length) }) }}</v-btn>
+              <div class="question-list-footer">
+                <span class="text-caption text-medium-emphasis">{{ t('questionBank.showingQuestions', { shown: pagedQuestions.length, total: filteredQuestions.length }) }}</span>
+                <v-btn v-if="pagedQuestions.length < filteredQuestions.length" size="small" variant="tonal" color="primary" @click="showMoreQuestions">{{ t('questionBank.showMoreQuestions', { count: Math.min(pageSize, filteredQuestions.length - pagedQuestions.length) }) }}</v-btn>
               </div>
             </div>
             <v-card
@@ -443,7 +432,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { api } from '../services/api';
 import { filterQuestionLists } from '../services/questionBankState.js';
@@ -478,6 +467,8 @@ const questions = ref([]);
 const visibleQuestionCount = ref(10);
 const questionSearch = ref('');
 const expandedQuestions = ref(new Set());
+const truncatedQuestionIds = ref(new Set());
+const questionContentElements = new Map();
 const deleteToast = ref({ show: false, message: '' });
 const compactMode = ref(true);
 try { compactMode.value = localStorage.getItem('questionBank.compactMode') !== 'false'; } catch {}
@@ -498,6 +489,19 @@ const filteredDrafts = computed(() => questionFilters.value.drafts.map((draft) =
   draftIndex: generatedQuestions.value.indexOf(draft),
 })).filter((draft) => !normalizedQuestionSearch.value || normalizeSearch(draft.content).includes(normalizedQuestionSearch.value)));
 const pagedQuestions = computed(() => filteredQuestions.value.slice(0, visibleQuestionCount.value));
+function setQuestionContentRef(id, element) {
+  if (element) questionContentElements.set(id, element.$el || element);
+  else questionContentElements.delete(id);
+}
+async function refreshTruncatedQuestions() {
+  await nextTick();
+  const truncated = new Set();
+  for (const question of pagedQuestions.value) {
+    const element = questionContentElements.get(question.id);
+    if (element && element.scrollHeight > element.clientHeight + 1) truncated.add(question.id);
+  }
+  truncatedQuestionIds.value = truncated;
+}
 const questionBankCount = computed(() => questions.value.length + generatedQuestions.value.length);
 const typeFilterOptions = computed(() => [
   { title: t('questionBank.allTypes'), value: 'ALL' },
@@ -509,6 +513,7 @@ const statusFilterOptions = computed(() => [
   { title: t('questionBank.savedStatus'), value: 'SAVED' },
 ]);
 watch([questionSearch, typeFilter, statusFilter], () => { visibleQuestionCount.value = pageSize; expandedQuestions.value = new Set(); });
+watch([pagedQuestions, compactMode], refreshTruncatedQuestions, { flush: 'post', immediate: true });
 function showMoreQuestions() { visibleQuestionCount.value = Math.min(visibleQuestionCount.value + pageSize, filteredQuestions.value.length); }
 function toggleQuestionExpanded(id) {
   const next = new Set(expandedQuestions.value);
@@ -598,7 +603,9 @@ watch(() => props.lessonId, () => {
 
 onMounted(() => {
   if (props.inline) void loadQuestions();
+  window.addEventListener('resize', refreshTruncatedQuestions);
 });
+onBeforeUnmount(() => window.removeEventListener('resize', refreshTruncatedQuestions));
 
 async function openDialog() {
   showDialog.value = true;
@@ -920,8 +927,19 @@ async function deleteQuestion() {
 .question-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
+.question-list-heading { display: flex; min-height: 28px; align-items: baseline; justify-content: space-between; gap: 12px; }
+.question-filters { display: flex; align-items: center; gap: 8px; }
+.question-filter-search { min-width: 180px; flex: 1 1 auto; }
+.question-filter-select { min-width: 140px; flex: 0 1 160px; }
+.question-filters :deep(.v-field) { min-height: 36px; font-size: 14px; }
+.question-filters :deep(.v-field__input), .question-filters :deep(.v-label) { font-size: 14px; }
+.question-display-toggle { flex: 0 0 auto; white-space: nowrap; }
+.question-display-toggle :deep(.v-btn) { min-height: 36px; padding-inline: 8px; font-size: 13px; }
+.question-list-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 2px; }
+.question-bank-action-button { min-height: 36px; max-height: 36px; font-size: 14px; }
+.question-bank-action-button--secondary { opacity: .86; }
 
 .question-item {
   border: 1px solid #e4ecf7;
@@ -930,6 +948,12 @@ async function deleteQuestion() {
 .question-content--clamped { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
 .question-actions { flex: 0 0 auto; }
 .question-bank-heading-actions { flex: 0 0 auto; }
+@media (max-width: 1023.98px) {
+  .question-filters { flex-wrap: wrap; }
+  .question-filter-search { flex: 1 1 100%; }
+  .question-filter-select { flex: 1 1 140px; }
+  .question-display-toggle { margin-left: auto; }
+}
 
 .ai-generator {
   border: 1px solid #e2d8ff;
