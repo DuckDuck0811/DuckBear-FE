@@ -10,7 +10,7 @@
     <!-- Bìa sách Gradient sắc màu tươi sáng -->
     <div
       class="book-card-cover pa-5 position-relative d-flex flex-column justify-space-between"
-      :style="{ background: coverConfig.gradient }"
+      :style="{ ...coverConfig.style, background: coverConfig.gradient }"
     >
       <!-- Họa tiết bong bóng trang trí mờ -->
       <div class="decor-circle-1" />
@@ -28,7 +28,7 @@
           {{ t('booksPage.gradeOption', { grade: book.gradeLevel }) }}
         </v-chip>
 
-        <span class="subject-tag font-weight-bold text-caption text-white">
+        <span class="subject-tag font-weight-bold text-caption">
           {{ subjectLabel }}
         </span>
       </div>
@@ -37,21 +37,21 @@
       <div
         class="cover-icon-center text-center my-auto py-4 position-relative z-1"
       >
-        <v-icon :icon="coverConfig.icon" size="44" color="#FFFFFF" />
+        <v-icon :icon="coverConfig.icon" size="44" class="cover-foreground" />
       </div>
 
       <!-- Footer bìa: Logo nhỏ mờ -->
       <div
-        class="d-flex justify-space-between align-center text-caption text-white-50 position-relative z-1"
+        class="d-flex justify-space-between align-center text-caption cover-muted position-relative z-1"
       >
-        <span>DUCKBEAR CLASSROOM</span>
-        <v-icon icon="mdi-school" size="16" color="#FFFFFF" />
+        <span>{{ t('booksPage.coverBrand') }}</span>
+        <v-icon icon="mdi-school" size="16" class="cover-foreground" />
       </div>
     </div>
 
     <!-- Thân sách: Tên & Thông tin -->
     <v-card-text
-      class="pa-5 d-flex flex-column flex-grow-1 justify-space-between bg-white"
+      class="pa-5 d-flex flex-column flex-grow-1 justify-space-between bg-surface"
     >
       <div>
         <h3 class="book-card-title text-h6 font-weight-bold mb-2 line-clamp-2">
@@ -105,6 +105,7 @@
 <script setup>
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { getSubjectTheme, subjectThemeGradient, subjectThemeStyle } from '../../utils/subjectTheme.js';
 
 const { t, locale } = useI18n();
 
@@ -134,67 +135,9 @@ const subjectLabel = computed(() => {
   return key ? t(`booksPage.subjects.${key}`) : props.book.subject;
 });
 
-// Màu gradient bìa sách tươi sáng theo khối lớp & môn học
 const coverConfig = computed(() => {
-  const grade = Number(props.book.gradeLevel) || 1;
-  const subject = (props.book.subject || "").toLowerCase();
-
-  if (subject.includes("toán")) {
-    return {
-      gradient: "linear-gradient(135deg, #2F7CF6 0%, #1F5FD0 100%)",
-      badgeColor: "#EAF2FF",
-      badgeTextColor: "#2F7CF6",
-      icon: "mdi-calculator-variant",
-    };
-  }
-  if (subject.includes("văn") || subject.includes("tiếng việt")) {
-    return {
-      gradient: "linear-gradient(135deg, #FF9F43 0%, #E07A18 100%)",
-      badgeColor: "#FFF3E8",
-      badgeTextColor: "#E07A18",
-      icon: "mdi-feather",
-    };
-  }
-  if (
-    subject.includes("anh") ||
-    subject.includes("ngoại ngữ") ||
-    subject.includes("english")
-  ) {
-    return {
-      gradient: "linear-gradient(135deg, #2BC48A 0%, #1EA873 100%)",
-      badgeColor: "#E9F9F3",
-      badgeTextColor: "#1EA873",
-      icon: "mdi-translate",
-    };
-  }
-  if (
-    subject.includes("tin") ||
-    subject.includes("công nghệ") ||
-    subject.includes("tin học")
-  ) {
-    return {
-      gradient: "linear-gradient(135deg, #7C5CFC 0%, #6242E6 100%)",
-      badgeColor: "#F2EFFF",
-      badgeTextColor: "#6242E6",
-      icon: "mdi-laptop",
-    };
-  }
-
-  // Phân theo khối lớp nếu môn học khác
-  if (grade <= 5) {
-    return {
-      gradient: "linear-gradient(135deg, #FFC83D 0%, #F5AB00 100%)",
-      badgeColor: "#FFF8E6",
-      badgeTextColor: "#B37D00",
-      icon: "mdi-star-face",
-    };
-  }
-  return {
-    gradient: "linear-gradient(135deg, #FF6B9A 0%, #E54D7E 100%)",
-    badgeColor: "#FFEBF1",
-    badgeTextColor: "#E54D7E",
-    icon: "mdi-book-open-page-variant",
-  };
+  const theme = getSubjectTheme(props.book.subject, props.book.gradeLevel);
+  return { icon: theme.icon, style: subjectThemeStyle(theme), gradient: subjectThemeGradient(theme) };
 });
 
 function formatDate(dateStr) {
@@ -206,8 +149,8 @@ function formatDate(dateStr) {
 <style scoped>
 .shub-book-card {
   border-radius: 20px !important;
-  border: 1px solid #e4ecf7 !important;
-  box-shadow: 0 6px 20px rgba(47, 124, 246, 0.06) !important;
+  border: 1px solid rgba(var(--v-theme-primary), .12) !important;
+  box-shadow: 0 6px 20px rgba(var(--v-theme-primary), .06) !important;
   overflow: hidden;
   cursor: pointer;
   transition:
@@ -217,7 +160,7 @@ function formatDate(dateStr) {
 
 .shub-book-card:hover {
   transform: translateY(-6px) !important;
-  box-shadow: 0 16px 32px rgba(47, 124, 246, 0.14) !important;
+  box-shadow: 0 16px 32px rgba(var(--v-theme-primary), .14) !important;
 }
 
 .book-card-cover {
@@ -231,7 +174,7 @@ function formatDate(dateStr) {
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(var(--v-theme-on-secondary), .12);
   pointer-events: none;
 }
 
@@ -242,34 +185,36 @@ function formatDate(dateStr) {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--v-theme-on-secondary), .08);
   pointer-events: none;
 }
 
 .grade-chip {
-  background: rgba(255, 255, 255, 0.95) !important;
-  color: #1d2939 !important;
+  background: rgba(var(--v-theme-surface), .95) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
   font-size: 0.72rem !important;
 }
 
 .subject-tag {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(var(--v-theme-on-secondary), .15);
+  color: rgb(var(--v-theme-on-secondary));
   padding: 2px 10px;
   border-radius: 12px;
   backdrop-filter: blur(4px);
 }
 
-.text-white-50 {
-  color: rgba(255, 255, 255, 0.7);
+.cover-muted {
+  color: rgba(var(--v-theme-on-secondary), .7);
   letter-spacing: 0.1em;
   font-size: 0.65rem;
   font-weight: 700;
 }
 
 .book-card-title {
-  color: #1d2939;
+  color: rgb(var(--v-theme-on-surface));
   line-height: 1.35;
 }
+.cover-foreground { color: rgb(var(--v-theme-on-secondary)); }
 
 .line-clamp-2 {
   display: -webkit-box;

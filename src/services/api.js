@@ -6,7 +6,7 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localho
  * @param {object} options - Cấu hình { method, body, headers }
  * @returns {Promise<any>}
  */
-export async function api(path, { method = 'GET', body, headers = {} } = {}) {
+export async function api(path, { method = 'GET', body, headers = {}, signal } = {}) {
   const token = localStorage.getItem('accessToken')
 
   const reqHeaders = {
@@ -22,6 +22,7 @@ export async function api(path, { method = 'GET', body, headers = {} } = {}) {
   const options = {
     method,
     headers: reqHeaders,
+    signal,
   }
 
   if (body !== undefined) {
@@ -36,12 +37,14 @@ export async function api(path, { method = 'GET', body, headers = {} } = {}) {
   try {
     response = await fetch(url, options)
   } catch (err) {
+    if (err?.name === 'AbortError') throw err
     throw new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.')
   }
 
   // 401: Chưa đăng nhập hoặc token hết hạn
   if (response.status === 401) {
     if (!isAuthEndpoint) {
+      window.dispatchEvent(new Event('auth:session-expired'))
       localStorage.removeItem('accessToken')
       localStorage.removeItem('user')
       if (window.location.pathname !== '/login') {
@@ -83,7 +86,9 @@ export async function api(path, { method = 'GET', body, headers = {} } = {}) {
         errorMessage = data.message
       }
     }
-    throw new Error(errorMessage)
+    const error = new Error(errorMessage)
+    error.status = response.status
+    throw error
   }
 
   return data

@@ -1009,7 +1009,7 @@ async function loadData() {
     if (!isStudent.value) {
       const [classResult, bookResult] = await Promise.all([api('/classes/mine'), api('/books')])
       classes.value = classResult.classes || []
-      books.value = (bookResult || []).filter((book) => auth.user?.role === 'ADMIN' || book.createdById === auth.user?.id)
+      books.value = bookResult || []
     }
   } catch (error) {
     errorMessage.value = error.message
