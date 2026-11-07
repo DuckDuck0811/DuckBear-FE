@@ -475,7 +475,7 @@ const showGenerator = ref(false);
 watch(() => props.startWithAi, (open) => { if (open && props.canManage) showGenerator.value = true }, { immediate: true });
 const showDeleteConfirm = ref(false);
 const questions = ref([]);
-const visibleQuestionCount = ref(20);
+const visibleQuestionCount = ref(10);
 const questionSearch = ref('');
 const expandedQuestions = ref(new Set());
 const deleteToast = ref({ show: false, message: '' });
@@ -484,7 +484,7 @@ try { compactMode.value = localStorage.getItem('questionBank.compactMode') !== '
 watch(compactMode, (value) => { try { localStorage.setItem('questionBank.compactMode', String(value)); } catch {} });
 const typeFilter = ref('ALL');
 const statusFilter = ref('ALL');
-const pageSize = 20;
+const pageSize = 10;
 const generatedQuestions = computed(() => questionBankStore.draftsFor(authStore.user?.id, props.lessonId));
 const questionFilters = computed(() => filterQuestionLists(questions.value, generatedQuestions.value, {
   type: typeFilter.value,
