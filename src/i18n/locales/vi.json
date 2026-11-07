@@ -416,7 +416,11 @@
     "savedCount": "Số câu đã lưu",
     "emptyLesson": "Bài chưa có câu hỏi",
     "selectLessonHint": "Chọn một bài ở cây giáo trình để xem và quản lý câu hỏi.",
-    "changeLesson": "Đổi bài"
+    "changeLesson": "Đổi bài",
+    "curriculumNavigation": "Điều hướng giáo trình",
+    "curriculumPath": "Đường dẫn giáo trình đến bài học đang chọn",
+    "lessonsWithQuestions": "{count}/{total} bài có câu hỏi",
+    "readOnlyLabel": "Chỉ xem"
   },
   "studentSidebar": {
     "aria": "Điều hướng học sinh",

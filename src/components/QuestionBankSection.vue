@@ -22,7 +22,7 @@
           class="question-bank-heading d-flex align-start justify-space-between ga-3 pa-5"
         >
           <div class="question-bank-heading-copy">
-            <div class="text-overline text-primary font-weight-bold">
+            <div v-if="!inline" class="text-overline text-primary font-weight-bold">
               {{ t('questionBank.eyebrow') }}
             </div>
             <h2 class="question-bank-heading-title text-h6 font-weight-black">{{ lessonTitle }}</h2>
@@ -202,16 +202,16 @@
                 </p>
               </div>
               <div class="d-flex flex-wrap ga-2">
-                <v-btn v-if="canManage" color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = !showGenerator">
+                <v-btn v-if="canManage && questionBankCount" color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = !showGenerator">
                   {{ t('questionBank.generateWithAi') }}
                 </v-btn>
-                <v-btn v-if="canManage" color="primary" prepend-icon="mdi-plus" @click="openCreate">
+                <v-btn v-if="canManage && questionBankCount" color="primary" prepend-icon="mdi-plus" @click="openCreate">
                   {{ t('questionBank.createQuestion') }}
                 </v-btn>
               </div>
             </div>
 
-            <v-row dense class="mb-4">
+            <v-row v-if="questionBankCount" dense class="mb-4">
               <v-col cols="12" sm="6">
                 <v-select
                   v-model="typeFilter"
@@ -236,7 +236,7 @@
               </v-col>
             </v-row>
 
-            <v-alert v-if="!canManage" type="info" variant="tonal" density="comfortable" class="mb-4">
+            <v-alert v-if="!canManage && questionBankCount" type="info" variant="tonal" density="comfortable" class="mb-4">
               {{ t('questionBank.readOnlySharedBook') }}
             </v-alert>
 
@@ -413,6 +413,17 @@
               <p class="text-body-2 text-secondary mb-0">
                 {{ questions.length || generatedQuestions.length ? t('questionBank.noFilteredQuestions') : t('questionBank.empty') }}
               </p>
+              <v-chip v-if="!canManage && !questionBankCount" class="mt-3" color="secondary" variant="tonal" size="small">
+                {{ t('questionBank.readOnlyLabel') }}
+              </v-chip>
+              <div v-if="canManage && !questionBankCount" class="d-flex flex-wrap justify-center ga-2 mt-5">
+                <v-btn color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = true">
+                  {{ t('questionBank.generateWithAi') }}
+                </v-btn>
+                <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">
+                  {{ t('questionBank.createQuestion') }}
+                </v-btn>
+              </div>
             </v-card>
           </template>
         </v-card-text>
@@ -860,10 +871,20 @@ async function deleteQuestion() {
   align-items: center;
 }
 
+.question-bank-action--inline {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
 .question-bank-dialog {
+  width: 100%;
+  max-width: none;
   border: 1px solid #dce7f7;
   box-shadow: 0 16px 40px rgba(30, 64, 120, 0.16);
 }
+
+.question-bank-inline-card { background: rgb(var(--v-theme-surface)); }
 
 .question-bank-heading-copy {
   flex: 1;
@@ -929,7 +950,7 @@ async function deleteQuestion() {
 }
 
 .empty-bank {
-  border: 1px dashed #c5d8ef;
-  background: #f8fbff;
+  border: 1px dashed rgba(var(--v-theme-primary), .32);
+  background: rgba(var(--v-theme-primary), .035) !important;
 }
 </style>

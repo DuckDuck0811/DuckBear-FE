@@ -4,7 +4,7 @@
     <TeacherSidebar />
 
     <v-main class="pb-16">
-      <v-container class="question-bank-container py-6 px-4 px-md-8">
+      <v-container fluid class="question-bank-container py-6 px-4 px-md-6">
         <header class="page-heading mb-5">
           <div>
             <h1 class="text-h4 font-weight-black text-primary mb-1">{{ t('questionBank.pageTitle') }}</h1>
@@ -28,7 +28,7 @@
         </v-alert>
 
         <div class="question-bank-workspace">
-          <aside class="question-bank-tree-column" aria-label="Curriculum navigation">
+          <aside class="question-bank-tree-column" :aria-label="t('questionBank.curriculumNavigation')">
             <QuestionBankTree
               :books="visibleBooks"
               :book-details="bookDetails"
@@ -43,8 +43,7 @@
           <section class="question-bank-content" aria-live="polite">
             <div class="question-bank-sticky-bar">
               <div v-if="selectedLesson" class="min-width-0">
-                <div class="text-caption text-medium-emphasis">{{ t('questionBank.selectedLesson') }}</div>
-                <div class="breadcrumb-path text-body-2 font-weight-bold text-primary" aria-label="Selected book, chapter, and lesson">
+                <div class="breadcrumb-path text-body-2 font-weight-bold text-primary" :aria-label="t('questionBank.curriculumPath')">
                   <span>{{ selectedLesson.bookTitle }}</span>
                   <v-icon icon="mdi-chevron-right" size="16" aria-hidden="true" />
                   <span>{{ selectedLesson.chapterTitle }}</span>
@@ -68,7 +67,7 @@
               v-if="selectedLesson"
               :key="selectedLesson.id"
               :lesson-id="selectedLesson.id"
-              :lesson-title="`${selectedLesson.chapterTitle} — ${selectedLesson.title}`"
+              :lesson-title="selectedLesson.title"
               :can-manage="canManageSelectedBook"
               inline
             />
@@ -84,7 +83,7 @@
           temporary
           width="360"
           class="question-bank-drawer"
-          aria-label="Curriculum navigation"
+          :aria-label="t('questionBank.curriculumNavigation')"
         >
           <QuestionBankTree
             :books="visibleBooks"
@@ -239,23 +238,27 @@ onMounted(loadBooks)
 </script>
 
 <style scoped>
-.question-bank-page { background: #f4f7fd; }
-.question-bank-container { max-width: 1440px; }
+.question-bank-page { background: rgb(var(--v-theme-background)); }
+.question-bank-container { width: 100%; max-width: 1400px; margin-inline: 0 auto; box-sizing: border-box; }
 .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
 .my-books-filter { flex: 0 0 auto; }
 .question-bank-workspace { display: grid; grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); align-items: start; gap: 20px; }
-.question-bank-tree-column { min-width: 0; }
+.question-bank-tree-column { position: sticky; top: 86px; min-width: 0; max-height: calc(100vh - 102px); max-height: calc(100dvh - 102px); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 .question-bank-content { min-width: 0; }
-.question-bank-sticky-bar { position: sticky; top: 70px; z-index: 12; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 70px; margin-bottom: 16px; padding: 12px 16px; border: 1px solid #e4ecf7; border-radius: 16px; background: rgba(255,255,255,.97); box-shadow: 0 6px 18px rgba(35,72,132,.06); backdrop-filter: blur(8px); }
+.question-bank-sticky-bar { position: sticky; top: 70px; z-index: 12; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 70px; margin-bottom: 16px; padding: 12px 16px; border: 1px solid rgba(var(--v-theme-primary), .16); border-radius: 16px; background: rgb(var(--v-theme-surface)); box-shadow: 0 6px 18px rgba(35,72,132,.06); backdrop-filter: blur(8px); }
 .breadcrumb-path { display: flex; flex-wrap: wrap; align-items: center; min-width: 0; gap: 3px; overflow-wrap: anywhere; }
 .question-bank-placeholder { min-height: 220px; border: 1px dashed #c5d8ef; }
 .question-bank-drawer { display: none; }
 .min-width-0 { min-width: 0; }
 @media (max-width: 1023.98px) {
   .question-bank-workspace { display: block; }
+  .question-bank-tree-column { position: static; max-height: none; overflow: visible; }
   .question-bank-tree-column { display: none; }
   .question-bank-drawer { display: block; }
   .change-lesson-button { display: inline-flex; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .question-bank-page *, .question-bank-page *::before, .question-bank-page *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 @media (min-width: 1024px) {
   .question-bank-drawer { display: none !important; }
