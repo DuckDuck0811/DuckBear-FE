@@ -416,7 +416,11 @@
     "savedCount": "Saved question count",
     "emptyLesson": "This lesson has no questions",
     "selectLessonHint": "Select a lesson from the curriculum tree to view and manage its questions.",
-    "changeLesson": "Change lesson"
+    "changeLesson": "Change lesson",
+    "curriculumNavigation": "Curriculum navigation",
+    "curriculumPath": "Curriculum path to the selected lesson",
+    "lessonsWithQuestions": "{count}/{total} lessons have questions",
+    "readOnlyLabel": "View only"
   },
   "studentSidebar": {
     "aria": "Student navigation",
