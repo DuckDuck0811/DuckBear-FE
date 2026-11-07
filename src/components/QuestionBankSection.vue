@@ -455,6 +455,7 @@ const props = defineProps({
   lessonTitle: { type: String, required: true },
   inline: { type: Boolean, default: false },
   canManage: { type: Boolean, default: true },
+  startWithAi: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
@@ -470,6 +471,7 @@ function displayOptionContent(type, content) {
 const showDialog = ref(false);
 const showEditor = ref(false);
 const showGenerator = ref(false);
+watch(() => props.startWithAi, (open) => { if (open && props.canManage) showGenerator.value = true }, { immediate: true });
 const showDeleteConfirm = ref(false);
 const questions = ref([]);
 const questionPage = ref(1);
