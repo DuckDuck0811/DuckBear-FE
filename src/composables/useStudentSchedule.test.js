@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { ref } from 'vue'
 import {
   getLocalDateKey,
   getWeekDates,
@@ -7,6 +8,7 @@ import {
   groupEventsByDate,
   groupUpcomingEvents,
   getStudentEventStatus,
+  useStudentSchedule,
 } from './useStudentSchedule.js'
 
 test('week range starts Monday and contains Sunday at year boundary', () => {
@@ -54,4 +56,21 @@ test('deadline at the current instant is not overdue; submitted status takes pre
   assert.equal(getStudentEventStatus({ deadline: now.toISOString() }, now), 'upcoming')
   assert.equal(getStudentEventStatus({ deadline: new Date(now.getTime() - 1).toISOString() }, now), 'overdue')
   assert.equal(getStudentEventStatus({ deadline: new Date(now.getTime() - 1).toISOString(), myAttempts: [{ submittedAt: now }] }, now), 'submitted')
+})
+
+test('composable defaults to the current week and filters calendar plus due groups by class', () => {
+  const now = new Date(2026, 10, 7, 12)
+  const assignments = ref([
+    { id: 1, title: 'Class one', classId: 1, deadline: new Date(2026, 10, 8, 12).toISOString() },
+    { id: 2, title: 'Class two', classId: 2, deadline: new Date(2026, 10, 9, 12).toISOString() },
+  ])
+  const schedule = useStudentSchedule({ assignments, manualAssignments: ref([]), classes: ref([{ id: 1 }, { id: 2 }]), now: () => now })
+  assert.equal(schedule.viewMode.value, 'week')
+  assert.equal(schedule.calendarDays.value.length, 7)
+  assert.equal(schedule.visibleEvents.value.length, 2)
+  schedule.selectedClassId.value = 1
+  assert.deepEqual(schedule.visibleEvents.value.map((event) => event.id), [1])
+  assert.deepEqual(schedule.upcoming.value.nextThreeDays.map((event) => event.id), [1])
+  schedule.setViewMode('month')
+  assert.equal(schedule.calendarDays.value.length % 7, 0)
 })

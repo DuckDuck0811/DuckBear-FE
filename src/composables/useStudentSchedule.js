@@ -1,7 +1,7 @@
-import { computed, unref } from 'vue'
+import { computed, ref, unref } from 'vue'
 
 function toDate(value) {
-  const date = value instanceof Date ? new Date(value) : new Date(value)
+  const date = new Date(value)
   return Number.isNaN(date.getTime()) ? null : date
 }
 
@@ -106,8 +106,11 @@ export function getStudentEventStatus(assignment, now = new Date()) {
 }
 
 export function useStudentSchedule({ assignments, manualAssignments, classes, now = () => new Date() }) {
+  const viewMode = ref('week')
+  const anchorDate = ref(startOfLocalDay(now()))
+  const selectedClassId = ref(null)
   const events = computed(() => {
-    const quizzes = unref(assignments) || []
+    const quizzes = (unref(assignments) || []).map((assignment) => ({ ...assignment, type: 'quiz' }))
     const manual = (unref(manualAssignments) || []).map((assignment) => ({
       ...assignment,
       type: 'manual',
@@ -123,9 +126,53 @@ export function useStudentSchedule({ assignments, manualAssignments, classes, no
       .filter(Boolean)
       .sort((a, b) => a.deadlineDate - b.deadlineDate)
   })
-  const upcoming = computed(() => groupUpcomingEvents(events.value, now()))
-  const byDay = computed(() => groupEventsByDate(events.value))
+  const visibleEvents = computed(() => events.value.filter((event) =>
+    selectedClassId.value === null || Number(event.classId || event.class?.id) === Number(selectedClassId.value)))
+  const upcoming = computed(() => groupUpcomingEvents(visibleEvents.value, now()))
+  const byDay = computed(() => groupEventsByDate(visibleEvents.value))
   const classOptions = computed(() => unref(classes) || [])
+  const calendarDays = computed(() => {
+    const dates = viewMode.value === 'week' ? getWeekDates(anchorDate.value) : getMonthGrid(anchorDate.value)
+    const todayKey = getLocalDateKey(now())
+    const currentMonth = anchorDate.value.getMonth()
+    return dates.map((date) => ({
+      date,
+      key: getLocalDateKey(date),
+      isToday: getLocalDateKey(date) === todayKey,
+      isCurrentMonth: date.getMonth() === currentMonth,
+      events: byDay.value.get(getLocalDateKey(date)) || [],
+    }))
+  })
 
-  return { events, upcoming, byDay, classOptions }
+  function setViewMode(mode) {
+    if (!['week', 'month'].includes(mode) || mode === viewMode.value) return
+    viewMode.value = mode
+    if (mode === 'month') anchorDate.value = new Date(anchorDate.value.getFullYear(), anchorDate.value.getMonth(), 1)
+  }
+
+  function movePeriod(direction) {
+    const next = new Date(anchorDate.value)
+    if (viewMode.value === 'week') next.setDate(next.getDate() + (direction * 7))
+    else next.setMonth(next.getMonth() + direction)
+    anchorDate.value = next
+  }
+
+  function goToToday() {
+    anchorDate.value = startOfLocalDay(now())
+  }
+
+  return {
+    viewMode,
+    anchorDate,
+    selectedClassId,
+    events,
+    visibleEvents,
+    upcoming,
+    byDay,
+    calendarDays,
+    classOptions,
+    setViewMode,
+    movePeriod,
+    goToToday,
+  }
 }
