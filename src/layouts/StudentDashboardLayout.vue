@@ -23,7 +23,7 @@ defineProps({
 <style scoped>
 .student-dashboard {
   min-height: 100vh;
-  background: #f4f8ff;
+  background: rgb(var(--v-theme-background));
 }
 
 .student-dashboard--primary :deep(.student-welcome) {
