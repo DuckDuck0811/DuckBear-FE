@@ -8,14 +8,9 @@
     class="student-sidebar"
     :aria-label="t('studentSidebar.aria')"
   >
-    <div class="student-sidebar-brand px-5 py-5">
-      <div class="text-overline font-weight-bold">DUCKBEAR CLASSROOM</div>
-      <div class="text-body-2">{{ t('studentSidebar.subtitle') }}</div>
-    </div>
-
     <nav class="px-3 pb-5" :aria-label="t('studentSidebar.menu')">
       <h2 class="student-sidebar-heading px-3 mb-2">
-        {{ t('studentSidebar.learning') }}
+        {{ t("studentSidebar.learning") }}
       </h2>
       <template v-for="item in items" :key="item.label">
         <RouterLink
@@ -36,7 +31,7 @@
         >
           <v-icon :icon="item.icon" size="20" />
           <span class="student-sidebar-link-label">{{ t(item.label) }}</span>
-          <span class="student-coming-soon">{{ t('sidebar.comingSoon') }}</span>
+          <span class="student-coming-soon">{{ t("sidebar.comingSoon") }}</span>
         </div>
       </template>
     </nav>
@@ -57,15 +52,55 @@ const { t } = useI18n();
 const drawerOpen = ref(false);
 const isStudent = computed(() => authStore.user?.role === "STUDENT");
 const items = [
-  { label: "studentSidebar.overview", icon: "mdi-view-dashboard-outline", to: "/student", match: ["student-dashboard"] },
-  { label: "studentSidebar.classes", icon: "mdi-account-group-outline", to: "/classes", match: ["classes"] },
-  { label: "studentSidebar.curriculum", icon: "mdi-bookshelf", to: "/", match: ["books", "book-detail", "lesson-detail"] },
-  { label: "studentSidebar.assignments", icon: "mdi-clipboard-text-outline", to: "/assignments", match: ["assignments"] },
-  { label: "studentSidebar.manualAssignments", icon: "mdi-cloud-upload-outline", to: "/manual-assignments", match: ["manual-assignments", "class-manual-assignments"] },
-  { label: "studentSidebar.schedule", icon: "mdi-calendar-week-outline", to: "/schedule", match: ["schedule"] },
-  { label: "studentSidebar.results", icon: "mdi-chart-box-outline", to: "/results", match: ["results"] },
+  {
+    label: "studentSidebar.overview",
+    icon: "mdi-view-dashboard-outline",
+    to: "/student",
+    match: ["student-dashboard"],
+  },
+  {
+    label: "studentSidebar.classes",
+    icon: "mdi-account-group-outline",
+    to: "/classes",
+    match: ["classes"],
+  },
+  {
+    label: "studentSidebar.curriculum",
+    icon: "mdi-bookshelf",
+    to: "/",
+    match: ["books", "book-detail", "lesson-detail"],
+  },
+  {
+    label: "studentSidebar.assignments",
+    icon: "mdi-clipboard-text-outline",
+    to: "/assignments",
+    match: ["assignments"],
+  },
+  {
+    label: "studentSidebar.manualAssignments",
+    icon: "mdi-cloud-upload-outline",
+    to: "/manual-assignments",
+    match: ["manual-assignments", "class-manual-assignments"],
+  },
+  {
+    label: "studentSidebar.schedule",
+    icon: "mdi-calendar-week-outline",
+    to: "/schedule",
+    match: ["schedule"],
+  },
+  {
+    label: "studentSidebar.results",
+    icon: "mdi-chart-box-outline",
+    to: "/results",
+    match: ["results"],
+  },
   { label: "studentSidebar.chatbot", icon: "mdi-robot-outline" },
-  { label: "studentSidebar.profile", icon: "mdi-account-circle-outline", to: "/profile", match: ["profile"] },
+  {
+    label: "studentSidebar.profile",
+    icon: "mdi-account-circle-outline",
+    to: "/profile",
+    match: ["profile"],
+  },
 ];
 
 function isActive(item) {
@@ -80,12 +115,20 @@ function toggleFromHeader() {
   if (mobile.value && isStudent.value) drawerOpen.value = !drawerOpen.value;
 }
 
-watch(mobile, (isMobile) => {
-  drawerOpen.value = !isMobile;
-}, { immediate: true });
+watch(
+  mobile,
+  (isMobile) => {
+    drawerOpen.value = !isMobile;
+  },
+  { immediate: true },
+);
 
-onMounted(() => window.addEventListener("student-sidebar:toggle", toggleFromHeader));
-onBeforeUnmount(() => window.removeEventListener("student-sidebar:toggle", toggleFromHeader));
+onMounted(() =>
+  window.addEventListener("student-sidebar:toggle", toggleFromHeader),
+);
+onBeforeUnmount(() =>
+  window.removeEventListener("student-sidebar:toggle", toggleFromHeader),
+);
 </script>
 
 <style scoped>
@@ -123,7 +166,9 @@ onBeforeUnmount(() => window.removeEventListener("student-sidebar:toggle", toggl
   font-size: 0.9rem;
   font-weight: 700;
   text-decoration: none;
-  transition: background-color 0.16s ease, color 0.16s ease;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease;
 }
 
 .student-sidebar-link > span {

@@ -134,7 +134,6 @@
     "lessonDeleted": "Lesson deleted."
   },
   "booksPage": {
-    "coverBrand": "DUCKBEAR CLASSROOM",
     "tag": "CLASSROOM",
     "title": "Curriculum library",
     "subtitle": "Explore, create, and organize learning materials for students in grades 1–12.",
@@ -435,7 +434,16 @@
     "coveragePercent": "{percent}% of lessons covered",
     "percentShort": "{percent}%",
     "emptyMark": "!",
-    "coverPrefixes": { "math": "M", "english": "EN", "history": "HI", "geography": "GE", "literature": "LI", "technology": "IT", "science": "SC", "default": "B" },
+    "coverPrefixes": {
+      "math": "M",
+      "english": "EN",
+      "history": "HI",
+      "geography": "GE",
+      "literature": "LI",
+      "technology": "IT",
+      "science": "SC",
+      "default": "B"
+    },
     "goToFirstEmptyLesson": "Go to first empty lesson",
     "lessonNumberShort": "L{number}",
     "thinQuestionsLabel": "Under 5 questions",
@@ -461,7 +469,6 @@
   "studentSidebar": {
     "aria": "Student navigation",
     "menu": "Student menu",
-    "subtitle": "Your learning space",
     "learning": "LEARNING SPACE",
     "overview": "Overview",
     "classes": "My classes",
