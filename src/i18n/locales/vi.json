@@ -237,7 +237,11 @@
     "missing": "Chưa nộp",
     "gradedScore": "Điểm {score}",
     "waitingGrade": "Chờ chấm",
-    "detailLoadError": "Không tải được tiến độ học sinh. Vui lòng thử lại."
+    "detailLoadError": "Không tải được tiến độ học sinh. Vui lòng thử lại.",
+    "remind": "Nhắc nộp",
+    "reminded": "Đã nhắc",
+    "reminderSent": "Đã gửi lời nhắc tới {online}/{pending} học sinh chưa nộp.",
+    "reminderError": "Không gửi được lời nhắc. Vui lòng thử lại."
   },
   "sidebar": {
     "aria": "Điều hướng giáo viên",

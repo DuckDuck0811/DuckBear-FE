@@ -36,7 +36,7 @@
 
           <v-card class="report-card" rounded="xl" variant="flat">
             <div class="report-heading"><div><h2>{{ t('teacherProgress.assignments') }}</h2><p>{{ t('teacherProgress.assignmentsHint') }}</p></div></div>
-            <div v-if="selectedClass.assignments.length" class="assignment-list"><div v-for="assignment in pagedAssignments" :key="`${assignment.type}-${assignment.id}`" class="assignment-row"><div class="assignment-symbol"><v-icon :icon="assignment.type === 'quiz' ? 'mdi-clipboard-text-outline' : 'mdi-cloud-upload-outline'" /></div><div class="assignment-copy"><strong>{{ assignment.title }}</strong><small>{{ assignment.type === 'quiz' ? t('teacherProgress.online') : t('teacherProgress.manual') }}<template v-if="assignment.deadline"> · {{ t('teacherProgress.deadline', { date: formatDate(assignment.deadline) }) }}</template></small></div><v-chip size="small" color="primary" variant="tonal">{{ t('teacherProgress.submittedOf', { submitted: assignment.submittedCount, total: selectedClass.studentCount }) }}</v-chip><v-chip size="small" color="success" variant="tonal">{{ t('teacherProgress.gradedOf', { graded: assignment.gradedCount }) }}</v-chip></div></div>
+            <div v-if="selectedClass.assignments.length" class="assignment-list"><div v-for="assignment in pagedAssignments" :key="`${assignment.type}-${assignment.id}`" class="assignment-row"><div class="assignment-symbol"><v-icon :icon="assignment.type === 'quiz' ? 'mdi-clipboard-text-outline' : 'mdi-cloud-upload-outline'" /></div><div class="assignment-copy"><strong>{{ assignment.title }}</strong><small>{{ assignment.type === 'quiz' ? t('teacherProgress.online') : t('teacherProgress.manual') }}<template v-if="assignment.deadline"> · {{ t('teacherProgress.deadline', { date: formatDate(assignment.deadline) }) }}</template></small></div><v-chip size="small" color="primary" variant="tonal">{{ t('teacherProgress.submittedOf', { submitted: assignment.submittedCount, total: selectedClass.studentCount }) }}</v-chip><v-chip size="small" color="success" variant="tonal">{{ t('teacherProgress.gradedOf', { graded: assignment.gradedCount }) }}</v-chip><v-btn v-if="assignment.submittedCount < selectedClass.studentCount" size="small" variant="tonal" color="primary" prepend-icon="mdi-bell-outline" :loading="remindingId === assignmentKey(assignment)" :disabled="remindedAssignments.has(assignmentKey(assignment))" @click.stop="remindPending(assignment)">{{ remindedAssignments.has(assignmentKey(assignment)) ? t('teacherProgress.reminded') : t('teacherProgress.remind') }}</v-btn></div></div>
             <div v-else class="empty-row">{{ t('teacherProgress.noAssignments') }}</div>
             <ListPagination v-model="assignmentsPage" :total="selectedClass.assignments.length" :page-size="pageSize" />
           </v-card>
@@ -299,6 +299,7 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-snackbar v-model="toast.show" :color="toast.color" timeout="3500" location="top end">{{ toast.message }}</v-snackbar>
   </v-layout>
 </template>
 
@@ -324,6 +325,9 @@ const studentDetail = ref(null)
 const detailLoading = ref(false)
 const detailError = ref('')
 const detailPage = ref(1)
+const remindingId = ref('')
+const remindedAssignments = ref(new Set())
+const toast = ref({ show: false, message: '', color: 'success' })
 const detailSearch = ref('')
 const detailStatusFilter = ref('ALL')
 const pageSize = 10
@@ -425,6 +429,22 @@ async function openStudent(student) {
   try { studentDetail.value = await api(`/teacher/overview/progress/${selectedClass.value.id}/students/${student.id}`) }
   catch (cause) { detailError.value = cause?.message || t('teacherProgress.detailLoadError') }
   finally { detailLoading.value = false }
+}
+function assignmentKey(assignment) { return `${selectedClass.value?.id}-${assignment.type}-${assignment.id}` }
+async function remindPending(assignment) {
+  if (!selectedClass.value || remindingId.value) return
+  const key = assignmentKey(assignment)
+  remindingId.value = key
+  try {
+    const result = await api(`/classes/${selectedClass.value.id}/assignment-reminders`, {
+      method: 'POST',
+      body: { assignmentId: assignment.id, type: assignment.type === 'manual' ? 'MANUAL' : 'QUIZ' },
+    })
+    remindedAssignments.value = new Set(remindedAssignments.value).add(key)
+    toast.value = { show: true, color: 'success', message: t('teacherProgress.reminderSent', { online: result.onlineCount, pending: result.pendingCount }) }
+  } catch (cause) {
+    toast.value = { show: true, color: 'error', message: cause?.message || t('teacherProgress.reminderError') }
+  } finally { remindingId.value = '' }
 }
 </script>
 
