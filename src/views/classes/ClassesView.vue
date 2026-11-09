@@ -430,7 +430,7 @@ const classes = ref([]);
 const requests = ref([]);
 const classesPage = ref(1);
 const requestsPage = ref(1);
-const pageSize = 20;
+const pageSize = 10;
 const pagedClasses = computed(() => classes.value.slice((classesPage.value - 1) * pageSize, classesPage.value * pageSize));
 const pagedRequests = computed(() => requests.value.slice((requestsPage.value - 1) * pageSize, requestsPage.value * pageSize));
 watch(() => Math.ceil(classes.value.length / pageSize), count => { if (classesPage.value > count) classesPage.value = Math.max(1, count); });

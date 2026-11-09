@@ -469,7 +469,7 @@ const bookId = route.params.id
 const book = ref(null)
 const chaptersPage = ref(1)
 const lessonPages = ref({})
-const pageSize = 20
+const pageSize = 10
 const pagedChapters = computed(() => (book.value?.chapters || []).slice((chaptersPage.value - 1) * pageSize, chaptersPage.value * pageSize))
 watch(() => Math.ceil((book.value?.chapters?.length || 0) / pageSize), count => { if (chaptersPage.value > count) chaptersPage.value = Math.max(1, count) })
 function pagedLessons(chapter) {

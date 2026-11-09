@@ -75,7 +75,7 @@ const groups = computed(() => [
     title: "sidebar.progress",
     items: [
       { label: "sidebar.submissions", icon: "mdi-cloud-upload-outline", to: "/manual-assignments", match: ["manual-assignments", "class-manual-assignments"] },
-      { label: "sidebar.results", icon: "mdi-chart-box-outline" },
+      { label: "sidebar.results", icon: "mdi-chart-box-outline", to: "/teacher/progress", match: ["teacher-progress"] },
       { label: "sidebar.activityLog", icon: "mdi-history", to: "/activity-log", match: ["activity-log"] },
     ],
   },

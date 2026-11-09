@@ -106,7 +106,7 @@ defineEmits(['retry'])
 const { t } = useI18n()
 const classesPage = ref(1)
 const requestsPage = ref(1)
-const pageSize = 20
+const pageSize = 10
 const pagedClasses = computed(() => props.classes.slice((classesPage.value - 1) * pageSize, classesPage.value * pageSize))
 const pagedRequests = computed(() => props.pendingRequests.slice((requestsPage.value - 1) * pageSize, requestsPage.value * pageSize))
 watch(() => Math.ceil(props.classes.length / pageSize), count => { if (classesPage.value > count) classesPage.value = Math.max(1, count) })

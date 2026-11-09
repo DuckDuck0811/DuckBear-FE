@@ -110,6 +110,12 @@ const routes = [
     meta: { roles: ["TEACHER"] },
   },
   {
+    path: "/teacher/progress",
+    name: "teacher-progress",
+    component: () => import("../views/teacher/TeacherProgressView.vue"),
+    meta: { roles: ["TEACHER", "ADMIN"] },
+  },
+  {
     path: "/assignments/:id/do",
     name: "assignment-take",
     component: () => import("../views/assignments/AssignmentTakeView.vue"),
