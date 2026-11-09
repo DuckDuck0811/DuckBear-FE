@@ -195,6 +195,7 @@
 
                 <!-- Nút Xóa nhanh ở góc -->
                 <v-btn
+                  v-if="ownsTemplate(template)"
                   icon="mdi-trash-can-outline"
                   size="x-small"
                   variant="text"
@@ -210,6 +211,10 @@
                 <h2 class="template-title font-weight-black mb-1" :title="template.title">
                   {{ template.title }}
                 </h2>
+                <div class="d-flex align-center ga-2 mb-2">
+                  <v-chip size="x-small" :color="template.isPublic ? 'success' : 'secondary'" variant="tonal">{{ t(template.isPublic ? 'examBank.public' : 'examBank.private') }}</v-chip>
+                  <v-btn v-if="ownsTemplate(template)" size="x-small" variant="text" :loading="visibilityUpdatingId === template.id" @click="setTemplatePublic(template, !template.isPublic)">{{ t(template.isPublic ? 'examBank.makePrivate' : 'examBank.makePublic') }}</v-btn>
+                </div>
                 <div class="d-flex align-center ga-1 text-caption text-secondary text-truncate">
                   <v-icon icon="mdi-book-open-page-variant-outline" size="14" class="text-primary flex-shrink-0" />
                   <span class="text-truncate font-weight-medium">{{ template.lesson.chapter.book.title }}</span>
@@ -358,6 +363,16 @@
                 <td class="text-right">
                   <div class="d-flex align-center justify-end ga-1">
                     <v-btn
+                      v-if="ownsTemplate(template)"
+                      :icon="template.isPublic ? 'mdi-eye-off-outline' : 'mdi-earth'"
+                      size="small"
+                      variant="text"
+                      :color="template.isPublic ? 'secondary' : 'success'"
+                      :title="t(template.isPublic ? 'examBank.makePrivate' : 'examBank.makePublic')"
+                      :loading="visibilityUpdatingId === template.id"
+                      @click="setTemplatePublic(template, !template.isPublic)"
+                    />
+                    <v-btn
                       icon="mdi-eye-outline"
                       size="small"
                       variant="text"
@@ -376,6 +391,7 @@
                       {{ t('examBank.use') }}
                     </v-btn>
                     <v-btn
+                      v-if="ownsTemplate(template)"
                       icon="mdi-trash-can-outline"
                       size="small"
                       variant="text"
@@ -570,18 +586,21 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { api } from '../../services/api'
+import { useAuthStore } from '../../stores/auth'
 import AppHeader from '../../components/shared/AppHeader.vue'
 import TeacherSidebar from '../../components/shared/TeacherSidebar.vue'
 import ListPagination from '../../components/shared/ListPagination.vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
+const authStore = useAuthStore()
 
 const templates = ref([])
 const templatesPage = ref(1)
 const pageSize = 20
 const loading = ref(false)
 const deleting = ref(false)
+const visibilityUpdatingId = ref(null)
 const errorMessage = ref('')
 const deleteDialog = ref(false)
 const selectedTemplate = ref(null)
@@ -706,6 +725,22 @@ function useTemplate(template) {
   if (!template) return
   if (previewDialog.value) previewDialog.value = false
   router.push({ name: 'assignments', query: { templateId: template.id } })
+}
+
+function ownsTemplate(template) {
+  return authStore.user?.role === 'ADMIN' || Number(template.createdById) === Number(authStore.user?.id)
+}
+
+async function setTemplatePublic(template, isPublic) {
+  visibilityUpdatingId.value = template.id
+  try {
+    const updated = await api(`/assignments/templates/${template.id}/public`, { method: 'PATCH', body: { isPublic } })
+    template.isPublic = updated.isPublic
+  } catch (error) {
+    errorMessage.value = error.message
+  } finally {
+    visibilityUpdatingId.value = null
+  }
 }
 
 function openPreview(template) {

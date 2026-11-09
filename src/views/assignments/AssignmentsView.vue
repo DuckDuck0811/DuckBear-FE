@@ -399,9 +399,14 @@
           </v-avatar>
           <div class="text-h6 font-weight-bold mb-1">{{ isStudent ? t('assignmentHub.noStudentAssignments') : t('assignmentHub.noTeacherAssignments') }}</div>
           <p class="text-body-2 text-secondary mb-4">{{ isStudent ? t('assignmentHub.studentSubtitle') : t('assignmentHub.teacherSubtitle') }}</p>
-          <v-btn v-if="!isStudent" color="primary" rounded="pill" prepend-icon="mdi-plus" @click="openCreateDialog">
-            {{ t('assignmentHub.newAssignment') }}
-          </v-btn>
+          <div v-if="!isStudent" class="d-flex flex-wrap ga-2">
+            <v-btn color="primary" variant="outlined" rounded="pill" prepend-icon="mdi-file-import-outline" @click="openWordAssignmentDialog">
+              {{ t('assignmentHub.importAssignment') }}
+            </v-btn>
+            <v-btn color="primary" rounded="pill" prepend-icon="mdi-plus" @click="openCreateDialog">
+              {{ t('assignmentHub.newAssignment') }}
+            </v-btn>
+          </div>
         </v-card>
       </v-container>
     </v-main>
@@ -416,7 +421,9 @@
         <v-card-text class="create-dialog-body">
           <v-alert v-if="formError" type="error" variant="tonal" class="mb-4">{{ formError }}</v-alert>
           <v-alert v-if="formSuccess" type="success" variant="tonal" class="mb-4">{{ formSuccess }}</v-alert>
+          <v-checkbox v-if="!isStudent" v-model="form.publishTemplate" :label="t('examBank.publishTemplate')" :hint="t('examBank.publishTemplateHint')" persistent-hint color="primary" class="mb-3" />
           <v-text-field v-model="form.title" :label="t('assignmentHub.title')" variant="outlined" class="mb-2" prepend-inner-icon="mdi-format-title" />
+          <v-btn v-if="!isStudent" variant="tonal" color="primary" prepend-icon="mdi-file-import-outline" class="mb-4" @click="openWordAssignmentIntoComposer">{{ t('assignmentHub.importAssignment') }}</v-btn>
           <div class="form-section-title"><span>1</span>{{ t('assignmentHub.selectClassAndLesson') }}</div>
           <v-row>
             <v-col cols="12" md="4"><v-select v-model="form.classId" :items="classes" item-title="name" item-value="id" :label="t('assignmentHub.class')" variant="outlined" hide-details /></v-col>
@@ -666,6 +673,47 @@
       </v-card>
     </v-dialog>
 
+    <v-dialog v-model="wordAssignmentDialog" max-width="760" scrollable>
+      <v-card rounded="xl">
+        <v-card-title class="pa-5 d-flex align-center ga-3">
+          <v-avatar color="primary" variant="tonal" rounded="lg"><v-icon icon="mdi-file-word-outline" /></v-avatar>
+          <div><h2 class="text-h6 font-weight-black">{{ t('assignmentHub.importAssignment') }}</h2><p class="text-body-2 text-secondary mb-0">{{ t(wordAssignmentReturnToComposer ? 'assignmentHub.importIntoDraftHint' : 'assignmentHub.importAssignmentHint') }}</p></div>
+        </v-card-title>
+        <v-card-text class="px-5 pb-2">
+          <v-alert v-if="wordAssignmentError" type="error" variant="tonal" class="mb-4">{{ wordAssignmentError }}</v-alert>
+          <v-file-input
+            accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            :label="t('assignmentHub.importAssignmentFile')"
+            prepend-icon="mdi-paperclip"
+            variant="outlined"
+            show-size
+            :disabled="wordAssignmentSaving"
+            @update:model-value="readWordAssignmentFile"
+          />
+          <v-text-field v-model="wordAssignmentForm.title" :label="t('assignmentHub.title')" variant="outlined" />
+          <v-row>
+            <v-col cols="12" sm="4"><v-select v-model="wordAssignmentForm.classId" :items="classes" item-title="name" item-value="id" :label="t('assignmentHub.class')" variant="outlined" /></v-col>
+            <v-col cols="12" sm="4"><v-select v-model="wordAssignmentForm.bookId" :items="books" item-title="title" item-value="id" :label="t('assignmentHub.book')" variant="outlined" @update:model-value="loadWordAssignmentBook" /></v-col>
+            <v-col cols="12" sm="4"><v-select v-model="wordAssignmentForm.lessonId" :items="wordAssignmentLessonOptions" item-title="title" item-value="id" :label="t('assignmentHub.lesson')" variant="outlined" :disabled="!wordAssignmentForm.bookId" @update:model-value="loadWordAssignmentQuestions" /></v-col>
+            <template v-if="!wordAssignmentReturnToComposer">
+              <v-col cols="12" sm="6"><v-text-field v-model="wordAssignmentForm.deadline" type="datetime-local" :min="minDeadline" :label="t('assignmentHub.deadlineOptional')" variant="outlined" /></v-col>
+              <v-col cols="6" sm="3"><v-text-field v-model.number="wordAssignmentForm.durationMinutes" type="number" min="1" max="300" :label="t('assignmentHub.duration')" variant="outlined" /></v-col>
+              <v-col cols="6" sm="3"><v-text-field v-model.number="wordAssignmentForm.maxAttempts" type="number" min="0" :label="t('assignmentHub.maxAttempts')" variant="outlined" /></v-col>
+            </template>
+          </v-row>
+          <v-alert v-if="wordAssignmentQuestions.length" type="success" variant="tonal" density="comfortable" class="mb-3">
+            {{ t('assignmentHub.importAssignmentPreview', { count: wordAssignmentQuestions.length }) }}
+          </v-alert>
+          <v-progress-linear v-if="wordAssignmentSaving" indeterminate color="primary" rounded class="mb-3" />
+        </v-card-text>
+        <v-card-actions class="pa-5 pt-0">
+          <v-spacer />
+          <v-btn variant="text" @click="wordAssignmentDialog = false">{{ t('assignmentHub.cancel') }}</v-btn>
+          <v-btn color="primary" rounded="pill" prepend-icon="mdi-file-import-outline" :loading="wordAssignmentSaving" :disabled="!wordAssignmentQuestions.length || !wordAssignmentForm.classId || !wordAssignmentForm.lessonId || (wordAssignmentForm.lessonId === 'ALL' && wordAssignmentQuestions.length !== 40)" @click="createAssignmentFromWord">{{ t(wordAssignmentReturnToComposer ? 'assignmentHub.importIntoDraft' : 'assignmentHub.importAndCreate') }}</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Dialog Xem bài nộp -->
     <v-dialog v-model="submissionsDialog" max-width="900" scrollable>
       <v-card rounded="xl">
@@ -733,6 +781,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { api } from '../../services/api'
+import { parseWordQuestionFile } from '../../services/wordQuestionImport.js'
 import { useAuthStore } from '../../stores/auth'
 import AppHeader from '../../components/shared/AppHeader.vue'
 import TeacherSidebar from '../../components/shared/TeacherSidebar.vue'
@@ -749,6 +798,14 @@ const saving = ref(false)
 const savingTemplate = ref(false)
 const questionsLoading = ref(false)
 const createDialog = ref(false)
+const wordAssignmentDialog = ref(false)
+const wordAssignmentReturnToComposer = ref(false)
+const wordAssignmentSaving = ref(false)
+const wordAssignmentError = ref('')
+const wordAssignmentQuestions = ref([])
+const wordAssignmentQuestionPool = ref([])
+const wordAssignmentBookDetails = ref(null)
+const wordAssignmentForm = reactive({ title: '', classId: null, bookId: null, lessonId: null, deadline: '', durationMinutes: null, maxAttempts: 0 })
 const submissionsDialog = ref(false)
 const loadingSubmissions = ref(false)
 const selectedAssignment = ref(null)
@@ -783,6 +840,227 @@ const questionDifficultyFilter = ref('ALL')
 const questionSelectionFilter = ref('ALL')
 const questionPage = ref(1)
 const questionPageSize = 20
+const wordAssignmentLessonOptions = computed(() => {
+  const lessons = (wordAssignmentBookDetails.value?.chapters || []).flatMap((chapter) =>
+    (chapter.lessons || []).map((lesson) => ({ ...lesson, title: `${chapter.title} · ${lesson.title}` })),
+  )
+  return lessons.length ? [{ id: 'ALL', title: t('assignmentHub.allLessons') }, ...lessons] : []
+})
+
+function openWordAssignmentDialog() {
+  wordAssignmentReturnToComposer.value = false
+  wordAssignmentError.value = ''
+  wordAssignmentQuestions.value = []
+  wordAssignmentQuestionPool.value = []
+  wordAssignmentBookDetails.value = null
+  Object.assign(wordAssignmentForm, { title: '', classId: null, bookId: null, lessonId: null, deadline: '', durationMinutes: null, maxAttempts: 0 })
+  wordAssignmentDialog.value = true
+}
+
+async function openWordAssignmentIntoComposer() {
+  openWordAssignmentDialog()
+  wordAssignmentReturnToComposer.value = true
+  wordAssignmentForm.title = form.title
+  wordAssignmentForm.classId = form.classId
+  wordAssignmentForm.bookId = form.bookId
+  if (form.bookId) {
+    await loadWordAssignmentBook(form.bookId)
+    if (form.lessonId === 'ALL') {
+      wordAssignmentForm.lessonId = 'ALL'
+      await loadWordAssignmentQuestions('ALL')
+    } else if (form.lessonId) {
+      wordAssignmentForm.lessonId = form.lessonId
+      await loadWordAssignmentQuestions(form.lessonId)
+    }
+  }
+}
+
+async function readWordAssignmentFile(value) {
+  const file = Array.isArray(value) ? value[0] : value
+  wordAssignmentError.value = ''
+  wordAssignmentQuestions.value = []
+  if (!file) return
+  if (!file.name.toLowerCase().endsWith('.docx')) {
+    wordAssignmentError.value = t('questionBank.wordFormatError')
+    return
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    wordAssignmentError.value = t('questionBank.wordTooLarge')
+    return
+  }
+  try {
+    wordAssignmentQuestions.value = await parseWordQuestionFile(file)
+    if (!wordAssignmentQuestions.value.length) throw new Error(t('questionBank.wordNoQuestions'))
+    if (wordAssignmentQuestions.value.length > 100) throw new Error(t('questionBank.wordTooManyQuestions'))
+    if (!wordAssignmentForm.title) wordAssignmentForm.title = file.name.replace(/\.docx$/i, '').slice(0, 150)
+  } catch (error) {
+    wordAssignmentError.value = error.message || t('questionBank.wordImportError')
+  }
+}
+
+async function loadWordAssignmentBook(bookId) {
+  wordAssignmentForm.lessonId = null
+  wordAssignmentQuestionPool.value = []
+  wordAssignmentBookDetails.value = null
+  if (!bookId) return
+  try {
+    wordAssignmentBookDetails.value = await api(`/books/${bookId}`)
+  } catch (error) {
+    wordAssignmentError.value = error.message
+  }
+}
+
+async function loadWordAssignmentQuestions(lessonId) {
+  wordAssignmentQuestionPool.value = []
+  if (!lessonId) return
+  try {
+    if (lessonId === 'ALL') {
+      const lessonQuestionSets = await Promise.all(wordAssignmentLessonOptions.value.filter((lesson) => lesson.id !== 'ALL').map(async (lesson) => ({
+        lesson,
+        questions: await api(`/lessons/${lesson.id}/questions`),
+      })))
+      wordAssignmentQuestionPool.value = lessonQuestionSets.flatMap(({ lesson, questions: lessonQuestions }) => lessonQuestions.map((question) => ({
+        ...question,
+        lessonId: question.lessonId || lesson.id,
+        lessonTitle: lesson.title,
+      })))
+    } else {
+      wordAssignmentQuestionPool.value = await api(`/lessons/${lessonId}/questions`)
+    }
+  } catch (error) {
+    wordAssignmentError.value = error.message
+  }
+}
+
+async function createAssignmentFromWord() {
+  wordAssignmentError.value = ''
+  if (!wordAssignmentForm.classId || !wordAssignmentForm.bookId || !wordAssignmentForm.lessonId || !wordAssignmentQuestions.value.length || (wordAssignmentForm.lessonId === 'ALL' && wordAssignmentQuestions.value.length !== 40)) {
+    wordAssignmentError.value = t('assignmentHub.requiredSelection')
+    return
+  }
+  if (wordAssignmentForm.deadline && new Date(wordAssignmentForm.deadline).getTime() <= Date.now()) {
+    wordAssignmentError.value = t('assignmentHub.deadlinePast')
+    return
+  }
+  wordAssignmentSaving.value = true
+  try {
+    const questionIds = []
+    const failedQuestions = []
+    for (const [index, question] of wordAssignmentQuestions.value.entries()) {
+      const existing = findExistingImportedQuestion(question, wordAssignmentQuestionPool.value)
+      if (existing) {
+        questionIds.push(Number(existing.id))
+        continue
+      }
+      const legacy = findUnlabeledImportedQuestion(question, wordAssignmentQuestionPool.value)
+      if (legacy) {
+        try {
+          await api(`/questions/${legacy.id}`, { method: 'PATCH', body: { content: question.content } })
+          legacy.content = question.content
+          questionIds.push(Number(legacy.id))
+          continue
+        } catch (error) {
+          if (error.status === 409) {
+            questionIds.push(Number(legacy.id))
+            continue
+          }
+          failedQuestions.push({ number: index + 1, message: error.message })
+          continue
+        }
+      }
+      const targetLesson = wordAssignmentForm.lessonId === 'ALL'
+        ? wordAssignmentLessonOptions.value.filter((lesson) => lesson.id !== 'ALL')[index % (wordAssignmentLessonOptions.value.length - 1)]
+        : wordAssignmentLessonOptions.value.find((lesson) => Number(lesson.id) === Number(wordAssignmentForm.lessonId))
+      if (!targetLesson) {
+        failedQuestions.push({ number: index + 1, message: t('assignmentHub.requiredSelection') })
+        continue
+      }
+      try {
+        const created = await api(`/lessons/${targetLesson.id}/questions`, { method: 'POST', body: question })
+        wordAssignmentQuestionPool.value.unshift({ ...created, lessonId: created.lessonId || targetLesson.id, lessonTitle: targetLesson.title })
+        questionIds.push(Number(created.id))
+      } catch (error) {
+        if (error.status === 409) {
+          try {
+            if (wordAssignmentForm.lessonId === 'ALL') await loadWordAssignmentQuestions('ALL')
+            else wordAssignmentQuestionPool.value = await api(`/lessons/${targetLesson.id}/questions`)
+            const duplicate = findExistingImportedQuestion(question, wordAssignmentQuestionPool.value)
+            if (duplicate) questionIds.push(Number(duplicate.id))
+            else failedQuestions.push({ number: index + 1, message: error.message })
+          } catch {
+            failedQuestions.push({ number: index + 1, message: error.message })
+          }
+        } else {
+          failedQuestions.push({ number: index + 1, message: error.message })
+        }
+      }
+    }
+    if (failedQuestions.length || questionIds.length !== wordAssignmentQuestions.value.length) {
+      const details = failedQuestions.slice(0, 3).map(({ number, message }) => t('questionBank.wordImportFailureDetails', { number, reason: message })).join(' ')
+      throw new Error(t('assignmentHub.importAssignmentQuestionsFailed', { count: failedQuestions.length }) + (details ? ` ${details}` : ''))
+    }
+
+    if (wordAssignmentReturnToComposer.value) {
+      const importedQuestions = questionIds.map((id) => wordAssignmentQuestionPool.value.find((question) => Number(question.id) === id)).filter(Boolean)
+      form.title = wordAssignmentForm.title.trim() || form.title
+      form.classId = wordAssignmentForm.classId
+      form.bookId = wordAssignmentForm.bookId
+      bookDetails.value = wordAssignmentBookDetails.value
+      form.lessonId = wordAssignmentForm.lessonId
+      form.questionIds = [...new Set(questionIds)]
+      questions.value = importedQuestions.map((question) => ({
+        ...question,
+        lessonTitle: question.lessonTitle || wordAssignmentLessonOptions.value.find((lesson) => Number(lesson.id) === Number(question.lessonId))?.title,
+      }))
+      formSuccess.value = t('assignmentHub.importedIntoComposer', { count: form.questionIds.length })
+      wordAssignmentDialog.value = false
+      wordAssignmentReturnToComposer.value = false
+      return
+    }
+
+    await api('/assignments', {
+      method: 'POST',
+      body: {
+        title: (wordAssignmentForm.title.trim() || t('assignmentHub.defaultTitle')).slice(0, 150),
+        classId: Number(wordAssignmentForm.classId),
+        ...(wordAssignmentForm.lessonId === 'ALL'
+          ? { scope: 'BOOK', bookId: Number(wordAssignmentForm.bookId) }
+          : { scope: 'LESSON', lessonId: Number(wordAssignmentForm.lessonId) }),
+        questionIds,
+        deadline: wordAssignmentForm.deadline ? new Date(wordAssignmentForm.deadline).toISOString() : undefined,
+        durationMinutes: wordAssignmentForm.durationMinutes ? Number(wordAssignmentForm.durationMinutes) : undefined,
+        maxAttempts: Number(wordAssignmentForm.maxAttempts || 0),
+        shuffleQuestions: false,
+        shuffleOptions: false,
+      },
+    })
+    wordAssignmentDialog.value = false
+    await loadData()
+  } catch (error) {
+    wordAssignmentError.value = error.message || t('questionBank.wordImportError')
+  } finally {
+    wordAssignmentSaving.value = false
+  }
+}
+
+function importedQuestionOptionsSignature(options) {
+  return (options || []).map(({ content, isCorrect, matchContent }) => `${String(content || '').trim()}|${Boolean(isCorrect)}|${String(matchContent || '').trim()}`).sort().join('::')
+}
+
+function findExistingImportedQuestion(question, pool = questions.value) {
+  const normalizeContent = (value) => String(value || '').replace(/\s+/g, ' ').trim()
+  const optionSignature = importedQuestionOptionsSignature(question.options)
+  return pool.find((existing) => existing.type === question.type && normalizeContent(existing.content) === normalizeContent(question.content) && importedQuestionOptionsSignature(existing.options) === optionSignature) || null
+}
+
+function findUnlabeledImportedQuestion(question, pool = questions.value) {
+  const label = question.content.match(/^Question \d+\.\n\n/)
+  if (!label) return null
+  const previousContent = question.content.slice(label[0].length)
+  const normalizeContent = (value) => String(value || '').replace(/\s+/g, ' ').trim()
+  const optionSignature = importedQuestionOptionsSignature(question.options)
+  return pool.find((existing) => existing.type === question.type && normalizeContent(existing.content) === normalizeContent(previousContent) && importedQuestionOptionsSignature(existing.options) === optionSignature) || null
+}
 
 function setViewMode(mode) {
   viewMode.value = mode
@@ -985,7 +1263,7 @@ watch(() => Math.ceil(filteredAssignments.value.length / assignmentPageSize), pa
   if (assignmentsPage.value > pageCount) assignmentsPage.value = Math.max(1, pageCount)
 })
 
-const form = reactive({ title: '', classId: null, bookId: null, lessonId: null, questionIds: [], deadline: '', durationMinutes: null, maxAttempts: 0, shuffleQuestions: false, shuffleOptions: false })
+const form = reactive({ title: '', classId: null, bookId: null, lessonId: null, questionIds: [], deadline: '', durationMinutes: null, maxAttempts: 0, shuffleQuestions: false, shuffleOptions: false, publishTemplate: false })
 const selectedBook = computed(() => bookDetails.value)
 const lessons = computed(() => (selectedBook.value?.chapters || []).flatMap((chapter) => chapter.lessons.map((lesson) => ({ ...lesson, title: `${chapter.title} · ${lesson.title}` }))))
 const lessonOptions = computed(() => [
@@ -1143,6 +1421,7 @@ async function saveTemplate() {
         title: form.title.trim() || lessons.value.find((lesson) => lesson.id === form.lessonId)?.title || t('assignmentHub.defaultTitle'),
         lessonId: Number(form.lessonId),
         questionIds: form.questionIds.map(Number),
+        isPublic: form.publishTemplate,
       },
     })
     formSuccess.value = t('examBank.templateSaved')
