@@ -52,14 +52,13 @@ const groups = computed(() => [
   {
     title: "sidebar.learningSpace",
     items: [
-      { label: "sidebar.curriculum", icon: "mdi-bookshelf", to: "/", match: ["books"] },
+      { label: "sidebar.curriculum", icon: "mdi-bookshelf", to: "/", match: ["books", "book-detail", "lesson-detail"] },
       { label: "sidebar.classes", icon: "mdi-account-group-outline", to: "/classes", match: ["classes", "class-detail"] },
     ],
   },
   {
     title: "sidebar.materials",
     items: [
-      { label: "sidebar.chapters", icon: "mdi-book-open-page-variant", to: "/", match: ["book-detail", "lesson-detail"] },
       { label: "sidebar.questionBank", icon: "mdi-comment-question-outline", to: "/question-bank", match: ["question-bank"] },
     ],
   },
