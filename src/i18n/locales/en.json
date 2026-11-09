@@ -204,7 +204,8 @@
     "eyebrow": "LEARNING PROGRESS", "title": "Learning progress", "subtitle": "Track submissions, grading and results across your classes.", "selectClass": "Select a class", "grade": "Grade {grade}", "studentCount": "Students", "assignmentCount": "Assignments", "completion": "Submission rate", "gradedTotal": "Graded submissions",
     "students": "Progress by student", "studentsHint": "Average scores include graded work only.", "search": "Search students", "student": "Student", "submitted": "Submitted", "graded": "Graded", "quizAverage": "Online average", "manualAverage": "Manual average",
     "assignments": "Assignment progress", "assignmentsHint": "Students who submitted and work that has been graded.", "online": "Online assignment", "manual": "Manual assignment", "deadline": "Due {date}", "submittedOf": "{submitted}/{total} submitted", "gradedOf": "{graded} graded",
-    "noStudents": "There are no students in this class.", "noAssignments": "There are no assignments for this class.", "noClasses": "No classes to report yet", "noClassesHint": "Create a class and assign work to start tracking progress.", "loadError": "Could not load the progress report. Please try again."
+    "noStudents": "There are no students in this class.", "noAssignments": "There are no assignments for this class.", "noClasses": "No classes to report yet", "noClassesHint": "Create a class and assign work to start tracking progress.", "loadError": "Could not load the progress report. Please try again.",
+    "studentDetail": "Student progress details", "close": "Close", "submittedStatus": "Submitted", "missing": "Missing", "gradedScore": "Score {score}", "waitingGrade": "Awaiting grade", "detailLoadError": "Could not load this student's progress. Please try again."
   },
   "sidebar": {
     "aria": "Teacher navigation",

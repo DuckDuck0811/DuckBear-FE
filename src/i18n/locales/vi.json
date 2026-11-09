@@ -230,7 +230,14 @@
     "noAssignments": "Lớp chưa có bài tập nào.",
     "noClasses": "Chưa có lớp để báo cáo",
     "noClassesHint": "Tạo lớp và giao bài để bắt đầu theo dõi tiến độ.",
-    "loadError": "Không tải được báo cáo tiến độ. Vui lòng thử lại."
+    "loadError": "Không tải được báo cáo tiến độ. Vui lòng thử lại.",
+    "studentDetail": "Chi tiết tiến độ học sinh",
+    "close": "Đóng",
+    "submittedStatus": "Đã nộp",
+    "missing": "Chưa nộp",
+    "gradedScore": "Điểm {score}",
+    "waitingGrade": "Chờ chấm",
+    "detailLoadError": "Không tải được tiến độ học sinh. Vui lòng thử lại."
   },
   "sidebar": {
     "aria": "Điều hướng giáo viên",
