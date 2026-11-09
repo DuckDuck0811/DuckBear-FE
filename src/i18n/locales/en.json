@@ -336,6 +336,7 @@
     "aiInstructionsHint": "For example: include real life examples",
     "aiMixed": "Mixed",
     "aiReviewNote": "Review AI generated answers before saving or printing.",
+    "aiProgress": "Created {completed}/{total} questions...",
     "aiPrivacyNote": "Lesson content is sent to GG only when you generate questions.",
     "generateNow": "Generate drafts",
     "aiDraftsTitle": "AI suggested questions ({count})",

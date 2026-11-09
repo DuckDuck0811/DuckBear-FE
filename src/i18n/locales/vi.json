@@ -337,6 +337,7 @@
     "aiInstructionsHint": "Ví dụ: thêm câu hỏi gắn với đời sống",
     "aiMixed": "Kết hợp",
     "aiReviewNote": "Hãy xem lại đáp án AI tạo trước khi lưu hoặc in.",
+    "aiProgress": "Đã tạo {completed}/{total} câu...",
     "aiPrivacyNote": "Chỉ nội dung bài học được gửi tới GG khi bạn bấm tạo.",
     "generateNow": "Tạo bản nháp",
     "aiDraftsTitle": "Câu hỏi AI gợi ý ({count})",
