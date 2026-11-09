@@ -105,7 +105,7 @@ const loading = ref(true)
 const error = ref('')
 const search = ref('')
 const page = ref(1)
-const pageSize = 20
+const pageSize = 10
 const gradingAttemptId = ref(null)
 const gradeErrors = ref({})
 const allSubmittedAttempts = computed(() => (assignment.value?.attempts || []).filter((attempt) => attempt.submittedAt))

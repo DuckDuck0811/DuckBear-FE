@@ -15,7 +15,7 @@
 defineProps({
   modelValue: { type: Number, required: true },
   total: { type: Number, required: true },
-  pageSize: { type: Number, default: 20 },
+  pageSize: { type: Number, default: 10 },
 })
 defineEmits(['update:modelValue'])
 </script>

@@ -597,7 +597,7 @@ const authStore = useAuthStore()
 
 const templates = ref([])
 const templatesPage = ref(1)
-const pageSize = 20
+const pageSize = 10
 const loading = ref(false)
 const deleting = ref(false)
 const visibilityUpdatingId = ref(null)

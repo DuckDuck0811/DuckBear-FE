@@ -180,7 +180,7 @@ const historyError = ref('');
 const selectedHistory = ref(null);
 const historyPage = ref(1);
 const expandedScreenLogs = ref({});
-const pageSize = 20;
+const pageSize = 10;
 const pagedStudents = computed(() => (schoolClass.value?.students || []).slice((studentsPage.value - 1) * pageSize, studentsPage.value * pageSize));
 const pagedStudentAttempts = computed(() => (selectedHistory.value?.attempts || []).slice((historyPage.value - 1) * pageSize, historyPage.value * pageSize));
 watch(() => Math.ceil((schoolClass.value?.students.length || 0) / pageSize), count => { if (studentsPage.value > count) studentsPage.value = Math.max(1, count); });

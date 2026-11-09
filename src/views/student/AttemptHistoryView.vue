@@ -109,7 +109,7 @@ const openResultId = ref(null)
 const loadingResultId = ref(null)
 const resultError = ref('')
 const attemptResults = ref({})
-const pageSize = 20
+const pageSize = 10
 const filters = computed(() => [
   { title: t('attemptHistory.all'), value: 'all' },
   { title: t('attemptHistory.completed'), value: 'completed' },

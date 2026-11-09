@@ -414,25 +414,137 @@
     <!-- Dialog Tạo bài tập -->
     <v-dialog v-model="createDialog" max-width="880" scrollable>
       <v-card class="create-dialog" rounded="xl">
-        <v-card-title class="dialog-heading">
-          <v-avatar color="primary" variant="tonal" rounded="lg"><v-icon icon="mdi-clipboard-plus-outline" /></v-avatar>
-          <div><h2>{{ t('assignmentHub.newAssignment') }}</h2><p>{{ t('assignmentHub.dialogSubtitle') }}</p></div>
+        <v-card-title class="dialog-heading d-flex align-center justify-space-between">
+          <div class="d-flex align-center ga-3">
+            <v-avatar color="primary" variant="tonal" rounded="lg" size="42">
+              <v-icon icon="mdi-clipboard-plus-outline" size="22" />
+            </v-avatar>
+            <div>
+              <h2>{{ t('assignmentHub.newAssignment') }}</h2>
+              <p>{{ t('assignmentHub.dialogSubtitle') }}</p>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" @click="createDialog = false" />
         </v-card-title>
-        <v-card-text class="create-dialog-body">
-          <v-alert v-if="formError" type="error" variant="tonal" class="mb-4">{{ formError }}</v-alert>
-          <v-alert v-if="formSuccess" type="success" variant="tonal" class="mb-4">{{ formSuccess }}</v-alert>
-          <v-checkbox v-if="!isStudent" v-model="form.publishTemplate" :label="t('examBank.publishTemplate')" :hint="t('examBank.publishTemplateHint')" persistent-hint color="primary" class="mb-3" />
-          <v-text-field v-model="form.title" :label="t('assignmentHub.title')" variant="outlined" class="mb-2" prepend-inner-icon="mdi-format-title" />
-          <v-btn v-if="!isStudent" variant="tonal" color="primary" prepend-icon="mdi-file-import-outline" class="mb-4" @click="openWordAssignmentIntoComposer">{{ t('assignmentHub.importAssignment') }}</v-btn>
-          <div class="form-section-title"><span>1</span>{{ t('assignmentHub.selectClassAndLesson') }}</div>
-          <v-row>
-            <v-col cols="12" md="4"><v-select v-model="form.classId" :items="classes" item-title="name" item-value="id" :label="t('assignmentHub.class')" variant="outlined" hide-details /></v-col>
-            <v-col cols="12" md="4"><v-select v-model="form.bookId" :items="books" item-title="title" item-value="id" :label="t('assignmentHub.book')" variant="outlined" hide-details @update:model-value="selectBook" /></v-col>
-            <v-col cols="12" md="4"><v-select v-model="form.lessonId" :items="lessonOptions" item-title="title" item-value="id" :label="t('assignmentHub.lesson')" variant="outlined" hide-details :disabled="!form.bookId" @update:model-value="loadQuestions" /></v-col>
-          </v-row>
-          <v-alert v-if="form.lessonId === 'ALL'" type="info" variant="tonal" density="comfortable" class="mt-3">
-            {{ t('assignmentHub.bookExamHint', { count: form.questionIds.length }) }}
-          </v-alert>
+        <v-card-text class="create-dialog-body pa-5">
+          <v-alert v-if="formError" type="error" variant="tonal" rounded="lg" class="mb-4">{{ formError }}</v-alert>
+          <v-alert v-if="formSuccess" type="success" variant="tonal" rounded="lg" class="mb-4">{{ formSuccess }}</v-alert>
+
+          <!-- Tên bài tập & Nút nhập file Word -->
+          <div class="d-flex align-center ga-3 mb-3">
+            <div class="flex-grow-1">
+              <v-text-field
+                v-model="form.title"
+                :label="t('assignmentHub.title')"
+                placeholder="Nhập tên bài tập..."
+                variant="outlined"
+                rounded="lg"
+                density="comfortable"
+                prepend-inner-icon="mdi-format-title"
+                hide-details
+                class="modern-input"
+              />
+            </div>
+            <v-btn
+              v-if="!isStudent"
+              variant="tonal"
+              color="primary"
+              rounded="pill"
+              prepend-icon="mdi-file-word-outline"
+              size="default"
+              class="text-none font-weight-bold flex-shrink-0 px-4"
+              @click="openWordAssignmentIntoComposer"
+            >
+              {{ t('assignmentHub.importAssignment') }}
+            </v-btn>
+          </div>
+
+          <!-- Banner công khai đề cho giáo viên khác -->
+          <div
+            v-if="!isStudent"
+            class="publish-banner pa-3 px-4 rounded-xl border d-flex align-center justify-space-between mb-4 cursor-pointer"
+            :class="{ 'publish-banner--active': form.publishTemplate }"
+            @click="form.publishTemplate = !form.publishTemplate"
+          >
+            <div class="d-flex align-center ga-3 min-w-0">
+              <v-avatar size="36" :color="form.publishTemplate ? 'primary' : 'grey-lighten-3'" :variant="form.publishTemplate ? 'flat' : 'tonal'" rounded="lg">
+                <v-icon icon="mdi-earth" size="20" :color="form.publishTemplate ? 'white' : 'secondary'" />
+              </v-avatar>
+              <div class="min-w-0">
+                <div class="font-weight-bold text-body-2 text-slate-800">{{ t('examBank.publishTemplate') }}</div>
+                <div class="text-caption text-secondary text-truncate">{{ t('examBank.publishTemplateHint') }}</div>
+              </div>
+            </div>
+            <v-switch v-model="form.publishTemplate" color="primary" hide-details density="compact" @click.stop />
+          </div>
+
+          <!-- Section 1: Chọn lớp và bài học -->
+          <div class="form-section-card pa-4 rounded-xl border mb-4">
+            <div class="form-section-title mb-3"><span>1</span>{{ t('assignmentHub.selectClassAndLesson') }}</div>
+            <v-row dense>
+              <v-col cols="12" md="4">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-google-classroom" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.class') }}
+                </div>
+                <v-select
+                  v-model="form.classId"
+                  :items="classes"
+                  item-title="name"
+                  item-value="id"
+                  placeholder="Chọn lớp học"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  menu-icon="mdi-chevron-down"
+                  hide-details
+                  class="modern-select"
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-book-open-page-variant-outline" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.book') }}
+                </div>
+                <v-select
+                  v-model="form.bookId"
+                  :items="books"
+                  item-title="title"
+                  item-value="id"
+                  placeholder="Chọn giáo trình"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  menu-icon="mdi-chevron-down"
+                  hide-details
+                  class="modern-select"
+                  @update:model-value="selectBook"
+                />
+              </v-col>
+              <v-col cols="12" md="4">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-bookmark-outline" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.lesson') }}
+                </div>
+                <v-select
+                  v-model="form.lessonId"
+                  :items="lessonOptions"
+                  item-title="title"
+                  item-value="id"
+                  placeholder="Chọn bài học"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  menu-icon="mdi-chevron-down"
+                  hide-details
+                  class="modern-select"
+                  :disabled="!form.bookId"
+                  @update:model-value="loadQuestions"
+                />
+              </v-col>
+            </v-row>
+            <v-alert v-if="form.lessonId === 'ALL'" type="info" variant="tonal" density="comfortable" class="mt-3" rounded="lg">
+              {{ t('assignmentHub.bookExamHint', { count: form.questionIds.length }) }}
+            </v-alert>
+          </div>
+
           <!-- PHẦN 2: CHỌN CÂU HỎI (COMPACT QUESTION PICKER) -->
           <div v-if="form.lessonId" class="question-section mb-5">
             <div class="d-flex align-center justify-space-between mb-2">
@@ -655,61 +767,323 @@
             </div>
           </div>
           <ListPagination v-model="questionPage" :total="filteredQuestions.length" :page-size="questionPageSize" />
-          <div class="form-section-title"><span>{{ form.lessonId ? 3 : 2 }}</span>{{ t('assignmentHub.conditions') }}</div>
-          <v-row>
-            <v-col cols="12" md="6"><v-text-field v-model="form.deadline" type="datetime-local" :min="minDeadline" :label="t('assignmentHub.deadlineOptional')" :hint="t('assignmentHub.deadlineHint')" persistent-hint variant="outlined" /></v-col>
-            <v-col cols="6" md="3"><v-text-field v-model.number="form.durationMinutes" type="number" min="1" max="300" :label="t('assignmentHub.duration')" variant="outlined" /></v-col>
-            <v-col cols="6" md="3"><v-text-field v-model.number="form.maxAttempts" type="number" min="0" :label="t('assignmentHub.maxAttempts')" :hint="t('assignmentHub.unlimitedAttemptsHint')" persistent-hint variant="outlined" /></v-col>
-            <v-col cols="12" sm="6"><v-checkbox v-model="form.shuffleQuestions" :label="t('assignmentHub.shuffleQuestions')" :hint="t('assignmentHub.shuffleQuestionsHint')" persistent-hint hide-details="auto" color="primary" /></v-col>
-            <v-col cols="12" sm="6"><v-checkbox v-model="form.shuffleOptions" :label="t('assignmentHub.shuffleOptions')" :hint="t('assignmentHub.shuffleOptionsHint')" persistent-hint hide-details="auto" color="primary" /></v-col>
-          </v-row>
+
+          <!-- Section 2 / 3: Điều kiện bài tập -->
+          <div class="form-section-card pa-4 rounded-xl border mb-3">
+            <div class="form-section-title mb-3"><span>{{ form.lessonId ? 3 : 2 }}</span>{{ t('assignmentHub.conditions') }}</div>
+            <v-row dense class="mb-3">
+              <v-col cols="12" md="6">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-calendar-clock" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.deadlineOptional') }}
+                </div>
+                <v-text-field
+                  v-model="form.deadline"
+                  type="datetime-local"
+                  :min="minDeadline"
+                  placeholder="Chọn thời hạn nộp bài"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  hide-details
+                  class="modern-input"
+                />
+              </v-col>
+              <v-col cols="6" md="3">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-clock-outline" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.duration') }}
+                </div>
+                <v-text-field
+                  v-model.number="form.durationMinutes"
+                  type="number"
+                  min="1"
+                  max="300"
+                  suffix="phút"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  hide-details
+                  class="modern-input"
+                />
+              </v-col>
+              <v-col cols="6" md="3">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-repeat" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.maxAttempts') }}
+                </div>
+                <v-text-field
+                  v-model.number="form.maxAttempts"
+                  type="number"
+                  min="0"
+                  placeholder="0 = Vô hạn"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  hide-details
+                  class="modern-input"
+                />
+              </v-col>
+            </v-row>
+
+            <!-- Hai thẻ tùy chọn tráo câu hỏi / đáp án -->
+            <v-row dense>
+              <v-col cols="12" sm="6">
+                <div
+                  class="shuffle-toggle-card pa-3 px-4 rounded-xl border d-flex align-center justify-space-between cursor-pointer"
+                  :class="{ 'shuffle-toggle-card--active': form.shuffleQuestions }"
+                  @click="form.shuffleQuestions = !form.shuffleQuestions"
+                >
+                  <div class="d-flex align-center ga-3">
+                    <v-avatar size="34" :color="form.shuffleQuestions ? 'primary' : 'grey-lighten-3'" :variant="form.shuffleQuestions ? 'flat' : 'tonal'" rounded="lg">
+                      <v-icon icon="mdi-shuffle-variant" size="18" :color="form.shuffleQuestions ? 'white' : 'secondary'" />
+                    </v-avatar>
+                    <div>
+                      <div class="font-weight-bold text-body-2 text-slate-800">{{ t('assignmentHub.shuffleQuestions') }}</div>
+                      <div class="text-caption text-secondary">Đổi thứ tự câu hỏi giữa các học sinh</div>
+                    </div>
+                  </div>
+                  <v-switch v-model="form.shuffleQuestions" color="primary" hide-details density="compact" @click.stop />
+                </div>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <div
+                  class="shuffle-toggle-card pa-3 px-4 rounded-xl border d-flex align-center justify-space-between cursor-pointer"
+                  :class="{ 'shuffle-toggle-card--active': form.shuffleOptions }"
+                  @click="form.shuffleOptions = !form.shuffleOptions"
+                >
+                  <div class="d-flex align-center ga-3">
+                    <v-avatar size="34" :color="form.shuffleOptions ? 'primary' : 'grey-lighten-3'" :variant="form.shuffleOptions ? 'flat' : 'tonal'" rounded="lg">
+                      <v-icon icon="mdi-format-list-bulleted-type" size="18" :color="form.shuffleOptions ? 'white' : 'secondary'" />
+                    </v-avatar>
+                    <div>
+                      <div class="font-weight-bold text-body-2 text-slate-800">{{ t('assignmentHub.shuffleOptions') }}</div>
+                      <div class="text-caption text-secondary">Đổi vị trí các đáp án A, B, C, D</div>
+                    </div>
+                  </div>
+                  <v-switch v-model="form.shuffleOptions" color="primary" hide-details density="compact" @click.stop />
+                </div>
+              </v-col>
+            </v-row>
+          </div>
         </v-card-text>
-        <v-card-actions class="pa-5 pt-0">
+        <v-card-actions class="create-dialog-footer pa-5 pt-3">
           <v-spacer />
-          <v-btn variant="text" @click="createDialog = false">{{ t('assignmentHub.cancel') }}</v-btn>
-          <v-btn v-if="!isStudent && form.lessonId !== 'ALL'" variant="tonal" color="primary" prepend-icon="mdi-content-save-outline" :loading="savingTemplate" @click="saveTemplate">{{ t('examBank.saveTemplate') }}</v-btn>
-          <v-btn color="primary" rounded="pill" prepend-icon="mdi-send-outline" :loading="saving" :disabled="form.lessonId === 'ALL' && form.questionIds.length !== 40" @click="saveAssignment">{{ t('assignmentHub.assign') }}</v-btn>
+          <v-btn variant="text" class="text-none font-weight-bold px-4" @click="createDialog = false">{{ t('assignmentHub.cancel') }}</v-btn>
+          <v-btn v-if="!isStudent && form.lessonId !== 'ALL'" variant="tonal" color="primary" rounded="pill" prepend-icon="mdi-content-save-outline" class="text-none font-weight-bold px-4" :loading="savingTemplate" @click="saveTemplate">{{ t('examBank.saveTemplate') }}</v-btn>
+          <v-btn color="primary" rounded="pill" prepend-icon="mdi-send-outline" class="text-none font-weight-bold px-5" :loading="saving" :disabled="form.lessonId === 'ALL' && form.questionIds.length !== 40" @click="saveAssignment">{{ t('assignmentHub.assign') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="wordAssignmentDialog" max-width="760" scrollable>
-      <v-card rounded="xl">
-        <v-card-title class="pa-5 d-flex align-center ga-3">
-          <v-avatar color="primary" variant="tonal" rounded="lg"><v-icon icon="mdi-file-word-outline" /></v-avatar>
-          <div><h2 class="text-h6 font-weight-black">{{ t('assignmentHub.importAssignment') }}</h2><p class="text-body-2 text-secondary mb-0">{{ t(wordAssignmentReturnToComposer ? 'assignmentHub.importIntoDraftHint' : 'assignmentHub.importAssignmentHint') }}</p></div>
+    <!-- Dialog Nhập bài tập từ file Word -->
+    <v-dialog v-model="wordAssignmentDialog" max-width="820" scrollable>
+      <v-card class="import-dialog" rounded="xl">
+        <!-- Header -->
+        <v-card-title class="dialog-heading d-flex align-center justify-space-between">
+          <div class="d-flex align-center ga-3">
+            <v-avatar color="primary" variant="tonal" rounded="lg" size="42">
+              <v-icon icon="mdi-file-word-outline" size="22" />
+            </v-avatar>
+            <div>
+              <h2>{{ t('assignmentHub.importAssignment') }}</h2>
+              <p>{{ t(wordAssignmentReturnToComposer ? 'assignmentHub.importIntoDraftHint' : 'assignmentHub.importAssignmentHint') }}</p>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" @click="wordAssignmentDialog = false" />
         </v-card-title>
-        <v-card-text class="px-5 pb-2">
-          <v-alert v-if="wordAssignmentError" type="error" variant="tonal" class="mb-4">{{ wordAssignmentError }}</v-alert>
-          <v-file-input
-            accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            :label="t('assignmentHub.importAssignmentFile')"
-            prepend-icon="mdi-paperclip"
-            variant="outlined"
-            show-size
-            :disabled="wordAssignmentSaving"
-            @update:model-value="readWordAssignmentFile"
-          />
-          <v-text-field v-model="wordAssignmentForm.title" :label="t('assignmentHub.title')" variant="outlined" />
-          <v-row>
-            <v-col cols="12" sm="4"><v-select v-model="wordAssignmentForm.classId" :items="classes" item-title="name" item-value="id" :label="t('assignmentHub.class')" variant="outlined" /></v-col>
-            <v-col cols="12" sm="4"><v-select v-model="wordAssignmentForm.bookId" :items="books" item-title="title" item-value="id" :label="t('assignmentHub.book')" variant="outlined" @update:model-value="loadWordAssignmentBook" /></v-col>
-            <v-col cols="12" sm="4"><v-select v-model="wordAssignmentForm.lessonId" :items="wordAssignmentLessonOptions" item-title="title" item-value="id" :label="t('assignmentHub.lesson')" variant="outlined" :disabled="!wordAssignmentForm.bookId" @update:model-value="loadWordAssignmentQuestions" /></v-col>
-            <template v-if="!wordAssignmentReturnToComposer">
-              <v-col cols="12" sm="6"><v-text-field v-model="wordAssignmentForm.deadline" type="datetime-local" :min="minDeadline" :label="t('assignmentHub.deadlineOptional')" variant="outlined" /></v-col>
-              <v-col cols="6" sm="3"><v-text-field v-model.number="wordAssignmentForm.durationMinutes" type="number" min="1" max="300" :label="t('assignmentHub.duration')" variant="outlined" /></v-col>
-              <v-col cols="6" sm="3"><v-text-field v-model.number="wordAssignmentForm.maxAttempts" type="number" min="0" :label="t('assignmentHub.maxAttempts')" variant="outlined" /></v-col>
-            </template>
-          </v-row>
-          <v-alert v-if="wordAssignmentQuestions.length" type="success" variant="tonal" density="comfortable" class="mb-3">
-            {{ t('assignmentHub.importAssignmentPreview', { count: wordAssignmentQuestions.length }) }}
-          </v-alert>
-          <v-progress-linear v-if="wordAssignmentSaving" indeterminate color="primary" rounded class="mb-3" />
+
+        <v-card-text class="import-dialog-body pa-5">
+          <v-alert v-if="wordAssignmentError" type="error" variant="tonal" class="mb-4" rounded="lg">{{ wordAssignmentError }}</v-alert>
+
+          <!-- Upload Box -->
+          <div class="import-upload-zone mb-4" :class="{ 'import-upload-zone--has-file': wordAssignmentQuestions.length }">
+            <div class="d-flex align-center ga-3 mb-3">
+              <v-avatar :color="wordAssignmentQuestions.length ? 'success' : 'primary'" variant="tonal" size="42" rounded="lg">
+                <v-icon :icon="wordAssignmentQuestions.length ? 'mdi-file-check-outline' : 'mdi-file-word-box'" size="24" />
+              </v-avatar>
+              <div class="flex-grow-1 min-w-0">
+                <div class="text-body-2 font-weight-bold text-slate-800">
+                  {{ wordAssignmentQuestions.length ? t('assignmentHub.importAssignmentPreview', { count: wordAssignmentQuestions.length }) : 'Chọn tệp đề thi Word (.docx)' }}
+                </div>
+                <div class="text-caption text-secondary">
+                  Hỗ trợ định dạng file Microsoft Word (.docx), tối đa 100 câu hỏi
+                </div>
+              </div>
+              <v-chip v-if="wordAssignmentQuestions.length" color="success" size="small" class="font-weight-bold">
+                {{ wordAssignmentQuestions.length }} câu hợp lệ
+              </v-chip>
+            </div>
+
+            <v-file-input
+              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              :label="t('assignmentHub.importAssignmentFile')"
+              prepend-inner-icon="mdi-paperclip"
+              prepend-icon=""
+              variant="outlined"
+              density="comfortable"
+              show-size
+              rounded="lg"
+              color="primary"
+              hide-details="auto"
+              class="bg-white modern-input"
+              :disabled="wordAssignmentSaving"
+              @update:model-value="readWordAssignmentFile"
+            />
+          </div>
+
+          <!-- Assignment Name -->
+          <div class="mb-4">
+            <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+              <v-icon icon="mdi-format-title" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.title') }}
+            </div>
+            <v-text-field
+              v-model="wordAssignmentForm.title"
+              placeholder="Tên bài tập (không bắt buộc)"
+              variant="outlined"
+              rounded="lg"
+              density="comfortable"
+              hide-details="auto"
+              class="modern-input"
+            />
+          </div>
+
+          <!-- Section 1: Chọn lớp & bài học -->
+          <div class="form-section-card pa-4 rounded-xl border mb-4">
+            <div class="form-section-title mb-3"><span>1</span>{{ t('assignmentHub.selectClassAndLesson') }}</div>
+            <v-row dense>
+              <v-col cols="12" sm="4">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-google-classroom" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.class') }}
+                </div>
+                <v-select
+                  v-model="wordAssignmentForm.classId"
+                  :items="classes"
+                  item-title="name"
+                  item-value="id"
+                  placeholder="Chọn lớp"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  menu-icon="mdi-chevron-down"
+                  hide-details
+                  class="modern-select"
+                />
+              </v-col>
+              <v-col cols="12" sm="4">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-book-open-page-variant-outline" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.book') }}
+                </div>
+                <v-select
+                  v-model="wordAssignmentForm.bookId"
+                  :items="books"
+                  item-title="title"
+                  item-value="id"
+                  placeholder="Chọn giáo trình"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  menu-icon="mdi-chevron-down"
+                  hide-details
+                  class="modern-select"
+                  @update:model-value="loadWordAssignmentBook"
+                />
+              </v-col>
+              <v-col cols="12" sm="4">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-bookmark-outline" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.lesson') }}
+                </div>
+                <v-select
+                  v-model="wordAssignmentForm.lessonId"
+                  :items="wordAssignmentLessonOptions"
+                  item-title="title"
+                  item-value="id"
+                  placeholder="Chọn bài học"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  menu-icon="mdi-chevron-down"
+                  hide-details
+                  class="modern-select"
+                  :disabled="!wordAssignmentForm.bookId"
+                  @update:model-value="loadWordAssignmentQuestions"
+                />
+              </v-col>
+            </v-row>
+          </div>
+
+          <!-- Section 2: Điều kiện (chỉ hiện khi giao bài trực tiếp) -->
+          <template v-if="!wordAssignmentReturnToComposer">
+            <div class="form-section-card pa-4 rounded-xl border mb-3">
+              <div class="form-section-title mb-3"><span>2</span>{{ t('assignmentHub.conditions') }}</div>
+              <v-row dense>
+                <v-col cols="12" sm="6">
+                  <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                    <v-icon icon="mdi-calendar-clock" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.deadlineOptional') }}
+                  </div>
+                  <v-text-field
+                    v-model="wordAssignmentForm.deadline"
+                    type="datetime-local"
+                    :min="minDeadline"
+                    placeholder="Chọn hạn nộp"
+                    variant="outlined"
+                    rounded="lg"
+                    density="comfortable"
+                    hide-details="auto"
+                    class="modern-input"
+                  />
+                </v-col>
+                <v-col cols="6" sm="3">
+                  <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                    <v-icon icon="mdi-clock-outline" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.duration') }}
+                  </div>
+                  <v-text-field
+                    v-model.number="wordAssignmentForm.durationMinutes"
+                    type="number"
+                    min="1"
+                    max="300"
+                    suffix="phút"
+                    variant="outlined"
+                    rounded="lg"
+                    density="comfortable"
+                    hide-details="auto"
+                    class="modern-input"
+                  />
+                </v-col>
+                <v-col cols="6" sm="3">
+                  <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                    <v-icon icon="mdi-repeat" size="14" class="mr-1 text-primary" />{{ t('assignmentHub.maxAttempts') }}
+                  </div>
+                  <v-text-field
+                    v-model.number="wordAssignmentForm.maxAttempts"
+                    type="number"
+                    min="0"
+                    placeholder="0 = Vô hạn"
+                    variant="outlined"
+                    rounded="lg"
+                    density="comfortable"
+                    hide-details="auto"
+                    class="modern-input"
+                  />
+                </v-col>
+              </v-row>
+            </div>
+          </template>
+
+          <v-progress-linear v-if="wordAssignmentSaving" indeterminate color="primary" rounded class="mt-4" />
         </v-card-text>
-        <v-card-actions class="pa-5 pt-0">
+
+        <v-card-actions class="import-dialog-actions pa-5 pt-3">
           <v-spacer />
-          <v-btn variant="text" @click="wordAssignmentDialog = false">{{ t('assignmentHub.cancel') }}</v-btn>
-          <v-btn color="primary" rounded="pill" prepend-icon="mdi-file-import-outline" :loading="wordAssignmentSaving" :disabled="!wordAssignmentQuestions.length || !wordAssignmentForm.classId || !wordAssignmentForm.lessonId || (wordAssignmentForm.lessonId === 'ALL' && wordAssignmentQuestions.length !== 40)" @click="createAssignmentFromWord">{{ t(wordAssignmentReturnToComposer ? 'assignmentHub.importIntoDraft' : 'assignmentHub.importAndCreate') }}</v-btn>
+          <v-btn variant="text" class="text-none font-weight-bold px-4" @click="wordAssignmentDialog = false">{{ t('assignmentHub.cancel') }}</v-btn>
+          <v-btn
+            color="primary"
+            rounded="pill"
+            prepend-icon="mdi-file-import-outline"
+            class="text-none font-weight-bold px-5"
+            :loading="wordAssignmentSaving"
+            :disabled="!wordAssignmentQuestions.length || !wordAssignmentForm.classId || !wordAssignmentForm.lessonId || (wordAssignmentForm.lessonId === 'ALL' && wordAssignmentQuestions.length !== 40)"
+            @click="createAssignmentFromWord"
+          >
+            {{ t(wordAssignmentReturnToComposer ? 'assignmentHub.importIntoDraft' : 'assignmentHub.importAndCreate') }}
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1705,6 +2079,88 @@ async function saveAttemptGrade(attempt) {
   overflow-y: auto !important;
   overflow-x: hidden;
 }
+.create-dialog-footer {
+  border-top: 1px solid #edf1f7;
+}
+
+/* Modern Inputs & Selects */
+.modern-input :deep(.v-field),
+.modern-select :deep(.v-field) {
+  background: #f8fafc !important;
+  border-radius: 12px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1.5px solid #e2e8f0 !important;
+}
+.modern-input :deep(.v-field__outline),
+.modern-select :deep(.v-field__outline) {
+  display: none !important;
+}
+.modern-input :deep(.v-field:hover),
+.modern-select :deep(.v-field:hover) {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+.modern-input :deep(.v-field--focused),
+.modern-select :deep(.v-field--focused) {
+  background: #ffffff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3.5px rgba(59, 130, 246, 0.14), 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+}
+.modern-input :deep(input),
+.modern-select :deep(.v-select__selection-text) {
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  color: #1e293b !important;
+}
+.modern-input :deep(.v-field__prepend-inner .v-icon),
+.modern-select :deep(.v-field__prepend-inner .v-icon) {
+  color: #64748b !important;
+  opacity: 0.9;
+}
+.modern-input :deep(.v-field--focused .v-field__prepend-inner .v-icon),
+.modern-select :deep(.v-field--focused .v-field__prepend-inner .v-icon) {
+  color: #3b82f6 !important;
+}
+
+/* Form Section Card */
+.form-section-card {
+  background: #fbfcfe;
+  border: 1px solid #e8f0fc !important;
+}
+
+/* Banner Công khai đề */
+.publish-banner {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.2s ease;
+}
+.publish-banner:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1 !important;
+}
+.publish-banner--active {
+  background: #eff6ff !important;
+  border-color: #93c5fd !important;
+}
+
+/* Toggle Card Tráo câu hỏi / đáp án */
+.shuffle-toggle-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.2s ease;
+}
+.shuffle-toggle-card:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1 !important;
+}
+.shuffle-toggle-card--active {
+  background: #eff6ff !important;
+  border-color: #93c5fd !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
 .dialog-heading { display: flex; align-items: center; gap: 14px; padding: 20px 24px 16px; border-bottom: 1px solid #edf1f7; white-space: normal; }
 .dialog-heading h2 { margin: 0; color: #1c2c46; font-size: 1.25rem; font-weight: 850; }
 .dialog-heading p { margin: 4px 0 0; color: #728097; font-size: .86rem; font-weight: 400; }
@@ -1864,6 +2320,40 @@ async function saveAttemptGrade(attempt) {
   background: #eff6ff !important;
 }
 
+/* Import Dialog */
+.import-dialog {
+  display: flex;
+  max-height: 90vh;
+  max-height: 90dvh;
+  flex-direction: column;
+  overflow: hidden;
+}
+.import-dialog-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+}
+.import-upload-zone {
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 2px dashed #c7d7f0;
+  background: #f8fbff;
+  transition: border-color .2s ease, background .2s ease;
+}
+.import-upload-zone:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+.import-upload-zone--has-file {
+  border-color: #86efac;
+  border-style: solid;
+  background: #f0fdf4;
+}
+.import-dialog-actions {
+  border-top: 1px solid #edf1f7;
+}
+
 /* Legacy classes kept for safety (no longer actively used) */
 .question-list { padding: 2px 6px 2px 2px; }
 .question-choice { cursor: pointer; border-color: #e0e8f3; transition: background .16s ease, border-color .16s ease; }
@@ -1875,5 +2365,6 @@ async function saveAttemptGrade(attempt) {
   .assignment-hero { min-height: 0; flex-direction: column; align-items: flex-start; padding: 18px 20px; }
   .hero-action { align-self: stretch; }
   .essay-grade-fields { grid-template-columns: 1fr; }
+  .create-dialog-options { grid-template-columns: 1fr; }
 }
 </style>

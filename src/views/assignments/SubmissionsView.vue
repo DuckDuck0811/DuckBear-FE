@@ -75,7 +75,7 @@ const loading = ref(false)
 const error = ref('')
 const search = ref('')
 const page = ref(1)
-const pageSize = 20
+const pageSize = 10
 
 const filteredAssignments = computed(() => {
   const query = search.value.trim().toLocaleLowerCase()

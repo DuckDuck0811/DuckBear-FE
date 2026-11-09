@@ -187,7 +187,7 @@ const studentSearch = ref('')
 const assignmentPage = ref(1)
 const studentPage = ref(1)
 const expandedStudents = ref({})
-const pageSize = 20
+const pageSize = 10
 let activityRefreshTimer = null
 let activityRequestVersion = 0
 
