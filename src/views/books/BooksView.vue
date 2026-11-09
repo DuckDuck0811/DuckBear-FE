@@ -32,12 +32,18 @@
               prepend-icon="mdi-plus"
               @click="openCreateDialog"
             >
-              {{ t('booksPage.addBook') }}
+              {{ t("booksPage.addBook") }}
             </v-btn>
           </template>
         </PageHeader>
 
-        <v-alert v-if="loadError" type="error" variant="tonal" class="mb-5" role="alert">
+        <v-alert
+          v-if="loadError"
+          type="error"
+          variant="tonal"
+          class="mb-5"
+          role="alert"
+        >
           {{ loadError }}
         </v-alert>
 
@@ -94,7 +100,10 @@
           >
             <BookCard
               :book="book"
-              :can-edit="authStore.user?.role === 'ADMIN' || Number(book.createdById) === Number(authStore.user?.id)"
+              :can-edit="
+                authStore.user?.role === 'ADMIN' ||
+                Number(book.createdById) === Number(authStore.user?.id)
+              "
               @click="goToDetail"
               @edit="openEditDialog"
               @delete="confirmDeleteBook"
@@ -113,11 +122,11 @@
             </v-avatar>
             <div>
               <h2 class="text-h6 font-weight-black text-primary">
-                {{ t(isEditing ? 'booksPage.editBook' : 'booksPage.addBook') }}
+                {{ t(isEditing ? "booksPage.editBook" : "booksPage.addBook") }}
               </h2>
-              <span class="text-caption text-secondary"
-                >{{ t('booksPage.manageBooks') }}</span
-              >
+              <span class="text-caption text-secondary">{{
+                t("booksPage.manageBooks")
+              }}</span>
             </div>
           </div>
 
@@ -125,7 +134,7 @@
             <div class="mb-4">
               <label
                 class="text-caption font-weight-bold text-secondary mb-1 d-block"
-                >{{ t('booksPage.titleLabel') }}</label
+                >{{ t("booksPage.titleLabel") }}</label
               >
               <v-text-field
                 v-model="bookForm.title"
@@ -142,7 +151,7 @@
             <div class="mb-4">
               <label
                 class="text-caption font-weight-bold text-secondary mb-1 d-block"
-                >{{ t('booksPage.subjectLabel') }}</label
+                >{{ t("booksPage.subjectLabel") }}</label
               >
               <v-select
                 v-model="bookForm.subject"
@@ -162,7 +171,7 @@
             <div class="mb-6">
               <label
                 class="text-caption font-weight-bold text-secondary mb-1 d-block"
-                >{{ t('booksPage.gradeLabel') }}</label
+                >{{ t("booksPage.gradeLabel") }}</label
               >
               <v-select
                 v-model="bookForm.gradeLevel"
@@ -189,7 +198,7 @@
                 :disabled="isSubmittingBook"
                 @click="showBookDialog = false"
               >
-                {{ t('booksPage.cancel') }}
+                {{ t("booksPage.cancel") }}
               </v-btn>
               <v-btn
                 color="primary"
@@ -198,7 +207,13 @@
                 :loading="isSubmittingBook"
                 @click="handleSaveBook"
               >
-                {{ t(isEditing ? 'booksPage.saveChanges' : 'booksPage.createBook') }}
+                {{
+                  t(
+                    isEditing
+                      ? "booksPage.saveChanges"
+                      : "booksPage.createBook",
+                  )
+                }}
               </v-btn>
             </div>
           </v-form>
@@ -234,9 +249,9 @@
           <span class="font-weight-bold">{{ snackbar.message }}</span>
         </div>
         <template #actions>
-          <v-btn variant="text" size="small" @click="snackbar.show = false"
-            >{{ t('booksPage.close') }}</v-btn
-          >
+          <v-btn variant="text" size="small" @click="snackbar.show = false">{{
+            t("booksPage.close")
+          }}</v-btn>
         </template>
       </v-snackbar>
     </v-main>
@@ -267,9 +282,14 @@ const { t } = useI18n();
 const books = ref([]);
 const booksPage = ref(1);
 const booksPageSize = 20;
-const pagedBooks = computed(() => books.value.slice((booksPage.value - 1) * booksPageSize, booksPage.value * booksPageSize));
+const pagedBooks = computed(() =>
+  books.value.slice(
+    (booksPage.value - 1) * booksPageSize,
+    booksPage.value * booksPageSize,
+  ),
+);
 const isLoading = ref(false);
-const loadError = ref('');
+const loadError = ref("");
 const selectedGrade = ref(null);
 const baseSubjects = [
   "Toán",
@@ -299,34 +319,36 @@ const workbookSubjectsByGrade = {
   9: ["Toán", "Ngữ văn", "Địa lí", "Lịch sử", "Tiếng Anh"],
 };
 const subjectTranslationKeys = {
-  'Toán': 'math',
-  'Tiếng Việt': 'vietnamese',
-  'Ngữ Văn': 'literature',
-  'Ngữ văn': 'literature',
-  'Tiếng Anh': 'english',
-  'Đạo đức': 'ethics',
-  'Tự nhiên và Xã hội': 'natureSociety',
-  'Khoa học': 'science',
-  'Lịch sử': 'history',
-  'Địa lí': 'geography',
-  'Lịch sử và Địa lí': 'historyGeography',
-  'Vật lí': 'physics',
-  'Hóa học': 'chemistry',
-  'Sinh học': 'biology',
-  'Tin học': 'informatics',
-  'Công nghệ': 'technology',
-  'Giáo dục công dân': 'civicEducation',
-  'Giáo dục kinh tế và pháp luật': 'economicsLaw',
-  'Âm nhạc': 'music',
-  'Mĩ thuật': 'arts',
-  'Giáo dục thể chất': 'physicalEducation',
-  'Hoạt động trải nghiệm': 'experientialActivities',
+  Toán: "math",
+  "Tiếng Việt": "vietnamese",
+  "Ngữ Văn": "literature",
+  "Ngữ văn": "literature",
+  "Tiếng Anh": "english",
+  "Đạo đức": "ethics",
+  "Tự nhiên và Xã hội": "natureSociety",
+  "Khoa học": "science",
+  "Lịch sử": "history",
+  "Địa lí": "geography",
+  "Lịch sử và Địa lí": "historyGeography",
+  "Vật lí": "physics",
+  "Hóa học": "chemistry",
+  "Sinh học": "biology",
+  "Tin học": "informatics",
+  "Công nghệ": "technology",
+  "Giáo dục công dân": "civicEducation",
+  "Giáo dục kinh tế và pháp luật": "economicsLaw",
+  "Âm nhạc": "music",
+  "Mĩ thuật": "arts",
+  "Giáo dục thể chất": "physicalEducation",
+  "Hoạt động trải nghiệm": "experientialActivities",
 };
 const subjectOptions = computed(() =>
-  [...new Set([
-    ...(workbookSubjectsByGrade[bookForm.value.gradeLevel] || baseSubjects),
-    ...books.value.map((book) => book.subject?.trim()).filter(Boolean),
-  ])]
+  [
+    ...new Set([
+      ...(workbookSubjectsByGrade[bookForm.value.gradeLevel] || baseSubjects),
+      ...books.value.map((book) => book.subject?.trim()).filter(Boolean),
+    ]),
+  ]
     .sort((a, b) => a.localeCompare(b, "vi"))
     .map((value) => ({
       title: subjectTranslationKeys[value]
@@ -338,9 +360,9 @@ const subjectOptions = computed(() =>
 
 // Danh sách các lớp lọc
 const gradeOptions = computed(() => [
-  { label: t('booksPage.allGrades'), value: null },
+  { label: t("booksPage.allGrades"), value: null },
   ...Array.from({ length: 12 }, (_, i) => ({
-    label: t('booksPage.gradeOption', { grade: i + 1 }),
+    label: t("booksPage.gradeOption", { grade: i + 1 }),
     value: i + 1,
   })),
 ]);
@@ -379,22 +401,25 @@ const bookToDelete = ref(null);
 const isDeleting = ref(false);
 
 // Validation rules
-const requiredRule = [(v) => !!v || t('booksPage.required')];
+const requiredRule = [(v) => !!v || t("booksPage.required")];
 const gradeRule = [
-  (v) => (Number(v) >= 1 && Number(v) <= 12) || t('booksPage.invalidGrade'),
+  (v) => (Number(v) >= 1 && Number(v) <= 12) || t("booksPage.invalidGrade"),
 ];
 
 // Lấy danh sách sách
 async function fetchBooks() {
   isLoading.value = true;
-  loadError.value = '';
+  loadError.value = "";
   try {
     const path = selectedGrade.value
       ? `/books?gradeLevel=${selectedGrade.value}`
       : "/books";
     books.value = await api(path);
   } catch (err) {
-    loadError.value = err.status === 403 ? t('booksPage.accessDenied') : (err.message || t('booksPage.loadError'));
+    loadError.value =
+      err.status === 403
+        ? t("booksPage.accessDenied")
+        : err.message || t("booksPage.loadError");
     showNotice(err.message, "error");
   } finally {
     isLoading.value = false;
@@ -450,13 +475,13 @@ async function handleSaveBook() {
         method: "PATCH",
         body: payload,
       });
-      showNotice(t('booksPage.bookUpdated'));
+      showNotice(t("booksPage.bookUpdated"));
     } else {
       await api("/books", {
         method: "POST",
         body: payload,
       });
-      showNotice(t('booksPage.bookAdded'));
+      showNotice(t("booksPage.bookAdded"));
     }
     showBookDialog.value = false;
     await fetchBooks();
@@ -482,7 +507,7 @@ async function handleDeleteBook() {
     await api(`/books/${bookToDelete.value.id}`, {
       method: "DELETE",
     });
-    showNotice(t('booksPage.bookDeleted'));
+    showNotice(t("booksPage.bookDeleted"));
     showDeleteConfirm.value = false;
     bookToDelete.value = null;
     await fetchBooks();

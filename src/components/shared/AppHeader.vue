@@ -38,7 +38,12 @@
 
     <v-spacer />
 
-    <v-menu v-if="user" v-model="notificationsOpen" location="bottom end" :close-on-content-click="false">
+    <v-menu
+      v-if="user"
+      v-model="notificationsOpen"
+      location="bottom end"
+      :close-on-content-click="false"
+    >
       <template #activator="{ props }">
         <v-btn
           v-bind="props"
@@ -50,12 +55,14 @@
         >
           <v-icon icon="mdi-bell-outline" />
           <span v-if="notifications.count" class="notification-count">
-            {{ notifications.count > 99 ? '99+' : notifications.count }}
+            {{ notifications.count > 99 ? "99+" : notifications.count }}
           </span>
         </v-btn>
       </template>
       <v-card class="notification-menu" rounded="lg" elevation="8">
-        <div class="notification-menu-heading">{{ t('notifications.title') }}</div>
+        <div class="notification-menu-heading">
+          {{ t("notifications.title") }}
+        </div>
         <v-divider />
         <div v-if="notifications.items.length" class="notification-list">
           <v-list density="comfortable" class="py-1">
@@ -69,12 +76,16 @@
               @click="openNotification(item)"
             >
               <template #append>
-                <span class="notification-time">{{ formatNotificationTime(item.createdAt) }}</span>
+                <span class="notification-time">{{
+                  formatNotificationTime(item.createdAt)
+                }}</span>
               </template>
             </v-list-item>
           </v-list>
         </div>
-        <div v-else class="notification-empty">{{ t('notifications.empty') }}</div>
+        <div v-else class="notification-empty">
+          {{ t("notifications.empty") }}
+        </div>
       </v-card>
     </v-menu>
 
@@ -110,7 +121,7 @@
       class="mr-3"
       @click="router.push('/classes')"
     >
-      {{ t('classes') }}
+      {{ t("classes") }}
     </v-btn>
 
     <!-- Khu vực Người dùng & Đăng xuất -->
@@ -178,7 +189,7 @@
         class="text-none font-weight-bold px-3 ml-1"
         @click="handleLogout"
       >
-        <span class="d-none d-sm-inline">{{ t('logout') }}</span>
+        <span class="d-none d-sm-inline">{{ t("logout") }}</span>
       </v-btn>
     </div>
   </v-app-bar>
@@ -206,11 +217,18 @@ const languageOptions = [
 const user = computed(() => authStore.user);
 const notificationsOpen = ref(false);
 const failedAvatarUrl = ref(null);
-const showAvatarImage = computed(() => Boolean(user.value?.avatarUrl) && failedAvatarUrl.value !== user.value.avatarUrl);
+const showAvatarImage = computed(
+  () =>
+    Boolean(user.value?.avatarUrl) &&
+    failedAvatarUrl.value !== user.value.avatarUrl,
+);
 
-watch(() => user.value?.avatarUrl, () => {
-  failedAvatarUrl.value = null;
-});
+watch(
+  () => user.value?.avatarUrl,
+  () => {
+    failedAvatarUrl.value = null;
+  },
+);
 
 const userInitial = computed(() => {
   const name = user.value?.fullName || user.value?.email || "D";
@@ -234,9 +252,10 @@ const roleColor = computed(() => {
 });
 
 function toggleTeacherSidebar() {
-  const eventName = user.value?.role === "STUDENT"
-    ? "student-sidebar:toggle"
-    : "teacher-sidebar:toggle";
+  const eventName =
+    user.value?.role === "STUDENT"
+      ? "student-sidebar:toggle"
+      : "teacher-sidebar:toggle";
   window.dispatchEvent(new Event(eventName));
 }
 
@@ -246,7 +265,11 @@ function setLocale(value) {
 }
 
 function handleLogout() {
-  if (questionBankStore.hasPendingDrafts && !window.confirm(t("questionBank.confirmLogoutWithDrafts"))) return;
+  if (
+    questionBankStore.hasPendingDrafts &&
+    !window.confirm(t("questionBank.confirmLogoutWithDrafts"))
+  )
+    return;
   authStore.logout();
   router.push("/login");
 }
@@ -260,7 +283,10 @@ function openNotification(item) {
 function formatNotificationTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(locale.value, { hour: "2-digit", minute: "2-digit" }).format(date);
+  return new Intl.DateTimeFormat(locale.value, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 function goHome() {

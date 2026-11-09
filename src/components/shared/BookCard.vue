@@ -25,7 +25,7 @@
           class="font-weight-black grade-chip"
           variant="flat"
         >
-          {{ t('booksPage.gradeOption', { grade: book.gradeLevel }) }}
+          {{ t("booksPage.gradeOption", { grade: book.gradeLevel }) }}
         </v-chip>
 
         <span class="subject-tag font-weight-bold text-caption">
@@ -44,7 +44,7 @@
       <div
         class="d-flex justify-space-between align-center text-caption cover-muted position-relative z-1"
       >
-        <span>{{ t('booksPage.coverBrand') }}</span>
+        <span>{{ t("booksPage.coverBrand") }}</span>
         <v-icon icon="mdi-school" size="16" class="cover-foreground" />
       </div>
     </div>
@@ -75,7 +75,7 @@
           append-icon="mdi-arrow-right"
           class="font-weight-bold"
         >
-          {{ t('booksPage.explore') }}
+          {{ t("booksPage.explore") }}
         </v-btn>
 
         <!-- Thao tác Sửa / Xóa cho Teacher -->
@@ -105,7 +105,11 @@
 <script setup>
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { getSubjectTheme, subjectThemeGradient, subjectThemeStyle } from '../../utils/subjectTheme.js';
+import {
+  getSubjectTheme,
+  subjectThemeGradient,
+  subjectThemeStyle,
+} from "../../utils/subjectTheme.js";
 
 const { t, locale } = useI18n();
 
@@ -123,12 +127,28 @@ const props = defineProps({
 const emit = defineEmits(["click", "edit", "delete"]);
 
 const subjectLabelKeys = {
-  'Toán': 'math', 'Tiếng Việt': 'vietnamese', 'Ngữ Văn': 'literature', 'Ngữ văn': 'literature',
-  'Tiếng Anh': 'english', 'Đạo đức': 'ethics', 'Tự nhiên và Xã hội': 'natureSociety', 'Khoa học': 'science',
-  'Lịch sử': 'history', 'Địa lí': 'geography', 'Lịch sử và Địa lí': 'historyGeography', 'Vật lí': 'physics',
-  'Hóa học': 'chemistry', 'Sinh học': 'biology', 'Tin học': 'informatics', 'Công nghệ': 'technology',
-  'Giáo dục công dân': 'civicEducation', 'Giáo dục kinh tế và pháp luật': 'economicsLaw', 'Âm nhạc': 'music',
-  'Mĩ thuật': 'arts', 'Giáo dục thể chất': 'physicalEducation', 'Hoạt động trải nghiệm': 'experientialActivities',
+  Toán: "math",
+  "Tiếng Việt": "vietnamese",
+  "Ngữ Văn": "literature",
+  "Ngữ văn": "literature",
+  "Tiếng Anh": "english",
+  "Đạo đức": "ethics",
+  "Tự nhiên và Xã hội": "natureSociety",
+  "Khoa học": "science",
+  "Lịch sử": "history",
+  "Địa lí": "geography",
+  "Lịch sử và Địa lí": "historyGeography",
+  "Vật lí": "physics",
+  "Hóa học": "chemistry",
+  "Sinh học": "biology",
+  "Tin học": "informatics",
+  "Công nghệ": "technology",
+  "Giáo dục công dân": "civicEducation",
+  "Giáo dục kinh tế và pháp luật": "economicsLaw",
+  "Âm nhạc": "music",
+  "Mĩ thuật": "arts",
+  "Giáo dục thể chất": "physicalEducation",
+  "Hoạt động trải nghiệm": "experientialActivities",
 };
 const subjectLabel = computed(() => {
   const key = subjectLabelKeys[props.book.subject];
@@ -137,20 +157,26 @@ const subjectLabel = computed(() => {
 
 const coverConfig = computed(() => {
   const theme = getSubjectTheme(props.book.subject, props.book.gradeLevel);
-  return { icon: theme.icon, style: subjectThemeStyle(theme), gradient: subjectThemeGradient(theme) };
+  return {
+    icon: theme.icon,
+    style: subjectThemeStyle(theme),
+    gradient: subjectThemeGradient(theme),
+  };
 });
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString(locale.value === 'vi' ? 'vi-VN' : 'en-US');
+  return new Date(dateStr).toLocaleDateString(
+    locale.value === "vi" ? "vi-VN" : "en-US",
+  );
 }
 </script>
 
 <style scoped>
 .shub-book-card {
   border-radius: 20px !important;
-  border: 1px solid rgba(var(--v-theme-primary), .12) !important;
-  box-shadow: 0 6px 20px rgba(var(--v-theme-primary), .06) !important;
+  border: 1px solid rgba(var(--v-theme-primary), 0.12) !important;
+  box-shadow: 0 6px 20px rgba(var(--v-theme-primary), 0.06) !important;
   overflow: hidden;
   cursor: pointer;
   transition:
@@ -160,7 +186,7 @@ function formatDate(dateStr) {
 
 .shub-book-card:hover {
   transform: translateY(-6px) !important;
-  box-shadow: 0 16px 32px rgba(var(--v-theme-primary), .14) !important;
+  box-shadow: 0 16px 32px rgba(var(--v-theme-primary), 0.14) !important;
 }
 
 .book-card-cover {
@@ -174,7 +200,7 @@ function formatDate(dateStr) {
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  background: rgba(var(--v-theme-on-secondary), .12);
+  background: rgba(var(--v-theme-on-secondary), 0.12);
   pointer-events: none;
 }
 
@@ -185,18 +211,18 @@ function formatDate(dateStr) {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: rgba(var(--v-theme-on-secondary), .08);
+  background: rgba(var(--v-theme-on-secondary), 0.08);
   pointer-events: none;
 }
 
 .grade-chip {
-  background: rgba(var(--v-theme-surface), .95) !important;
+  background: rgba(var(--v-theme-surface), 0.95) !important;
   color: rgb(var(--v-theme-on-surface)) !important;
   font-size: 0.72rem !important;
 }
 
 .subject-tag {
-  background: rgba(var(--v-theme-on-secondary), .15);
+  background: rgba(var(--v-theme-on-secondary), 0.15);
   color: rgb(var(--v-theme-on-secondary));
   padding: 2px 10px;
   border-radius: 12px;
@@ -204,7 +230,7 @@ function formatDate(dateStr) {
 }
 
 .cover-muted {
-  color: rgba(var(--v-theme-on-secondary), .7);
+  color: rgba(var(--v-theme-on-secondary), 0.7);
   letter-spacing: 0.1em;
   font-size: 0.65rem;
   font-weight: 700;
@@ -214,7 +240,9 @@ function formatDate(dateStr) {
   color: rgb(var(--v-theme-on-surface));
   line-height: 1.35;
 }
-.cover-foreground { color: rgb(var(--v-theme-on-secondary)); }
+.cover-foreground {
+  color: rgb(var(--v-theme-on-secondary));
+}
 
 .line-clamp-2 {
   display: -webkit-box;

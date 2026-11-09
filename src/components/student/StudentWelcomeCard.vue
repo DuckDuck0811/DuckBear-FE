@@ -1,17 +1,30 @@
 <template>
   <v-card class="student-welcome pa-6 pa-md-8 mb-7" rounded="xl">
-    <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-5">
+    <div
+      class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-5"
+    >
       <div class="d-flex align-center ga-4">
         <v-avatar class="student-mascot" size="68">
           <v-icon icon="mdi-star-four-points" size="34" />
         </v-avatar>
         <div>
-          <div class="text-overline student-eyebrow">{{ t('studentDashboard.eyebrow') }}</div>
-          <h1 class="text-h4 font-weight-black mb-1">{{ t('studentDashboard.greeting', { name }) }}</h1>
-          <p class="text-body-1 text-secondary mb-0">{{ t('studentDashboard.subtitle') }}</p>
+          <div class="text-overline student-eyebrow">
+            {{ t("studentDashboard.eyebrow") }}
+          </div>
+          <h1 class="text-h4 font-weight-black mb-1">
+            {{ t("studentDashboard.greeting", { name }) }}
+          </h1>
+          <p class="text-body-1 text-secondary mb-0">
+            {{ t("studentDashboard.subtitle") }}
+          </p>
         </div>
       </div>
-      <v-chip v-if="gradeStyle !== 'neutral'" color="success" variant="tonal" prepend-icon="mdi-school-outline">
+      <v-chip
+        v-if="gradeStyle !== 'neutral'"
+        color="success"
+        variant="tonal"
+        prepend-icon="mdi-school-outline"
+      >
         {{ gradeStyleLabel }}
       </v-chip>
     </div>
@@ -19,15 +32,15 @@
 </template>
 
 <script setup>
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n";
 
 defineProps({
   name: { type: String, required: true },
-  gradeStyle: { type: String, default: 'neutral' },
-  gradeStyleLabel: { type: String, default: '' },
-})
+  gradeStyle: { type: String, default: "neutral" },
+  gradeStyleLabel: { type: String, default: "" },
+});
 
-const { t } = useI18n()
+const { t } = useI18n();
 </script>
 
 <style scoped>

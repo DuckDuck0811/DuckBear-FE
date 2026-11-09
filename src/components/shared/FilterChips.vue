@@ -36,7 +36,7 @@
 
 <script setup>
 const props = defineProps({
-  title: { type: String, default: 'Khối lớp học tập' },
+  title: { type: String, default: "Khối lớp học tập" },
   modelValue: {
     type: [Number, String, null],
     default: null,

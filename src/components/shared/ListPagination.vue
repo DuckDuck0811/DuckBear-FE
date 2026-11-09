@@ -16,10 +16,14 @@ defineProps({
   modelValue: { type: Number, required: true },
   total: { type: Number, required: true },
   pageSize: { type: Number, default: 10 },
-})
-defineEmits(['update:modelValue'])
+});
+defineEmits(["update:modelValue"]);
 </script>
 
 <style scoped>
-.list-pagination { display: flex; justify-content: center; padding: 16px 8px; }
+.list-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 16px 8px;
+}
 </style>

@@ -25,7 +25,13 @@ const handleSessionExpired = () => {
 window.addEventListener("auth:session-expired", handleSessionExpired);
 
 watch(
-  () => [authStore.token, authStore.user?.role, authStore.user?.id, authStore.user?.userId, authStore.user?.email],
+  () => [
+    authStore.token,
+    authStore.user?.role,
+    authStore.user?.id,
+    authStore.user?.userId,
+    authStore.user?.email,
+  ],
   async ([token, role, id, userId, email]) => {
     const currentVersion = ++connectionVersion;
     classSocket?.disconnect();
@@ -52,7 +58,11 @@ watch(
         window.dispatchEvent(new CustomEvent("classes:refresh"));
       });
       classSocket.on("classes.assignment-activity", (activity) => {
-        window.dispatchEvent(new CustomEvent("activity-log:assignment-event", { detail: activity }));
+        window.dispatchEvent(
+          new CustomEvent("activity-log:assignment-event", {
+            detail: activity,
+          }),
+        );
       });
     }
 
