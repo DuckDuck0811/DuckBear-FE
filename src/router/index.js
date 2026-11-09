@@ -151,12 +151,15 @@ router.beforeEach((to) => {
     user?.role === "STUDENT"
       ? "/student"
       : user?.role === "TEACHER"
-      ? "/"
-      : "/";
+        ? "/"
+        : "/";
 
   if (to.path !== "/login" && !to.path.startsWith("/register") && !token) {
     return "/login";
-  } else if ((to.path === "/login" || to.path.startsWith("/register")) && token) {
+  } else if (
+    (to.path === "/login" || to.path.startsWith("/register")) &&
+    token
+  ) {
     return landingPath;
   } else if (to.meta.roles && !to.meta.roles.includes(user?.role)) {
     return landingPath;

@@ -1,4 +1,5 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 /**
  * Hàm gọi API dùng native fetch
@@ -6,92 +7,100 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localho
  * @param {object} options - Cấu hình { method, body, headers }
  * @returns {Promise<any>}
  */
-export async function api(path, { method = 'GET', body, headers = {}, signal } = {}) {
-  const token = localStorage.getItem('accessToken')
+export async function api(
+  path,
+  { method = "GET", body, headers = {}, signal } = {},
+) {
+  const token = localStorage.getItem("accessToken");
 
   const reqHeaders = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...headers,
-  }
+  };
 
-  const isAuthEndpoint = path.includes('/auth/login') || path.includes('/auth/register')
+  const isAuthEndpoint =
+    path.includes("/auth/login") || path.includes("/auth/register");
   if (token && !isAuthEndpoint) {
-    reqHeaders['Authorization'] = `Bearer ${token}`
+    reqHeaders["Authorization"] = `Bearer ${token}`;
   }
 
   const options = {
     method,
     headers: reqHeaders,
     signal,
-  }
+  };
 
   if (body !== undefined) {
-    options.body = typeof body === 'string' ? body : JSON.stringify(body)
+    options.body = typeof body === "string" ? body : JSON.stringify(body);
   }
 
-  const url = path.startsWith('http')
+  const url = path.startsWith("http")
     ? path
-    : `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`
+    : `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
-  let response
+  let response;
   try {
-    response = await fetch(url, options)
+    response = await fetch(url, options);
   } catch (err) {
-    if (err?.name === 'AbortError') throw err
-    throw new Error('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.')
+    if (err?.name === "AbortError") throw err;
+    throw new Error(
+      "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.",
+    );
   }
 
   // 401: Chưa đăng nhập hoặc token hết hạn
   if (response.status === 401) {
     if (!isAuthEndpoint) {
-      window.dispatchEvent(new Event('auth:session-expired'))
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('user')
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
+      window.dispatchEvent(new Event("auth:session-expired"));
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
       }
     }
-    throw new Error('Sai email hoặc mật khẩu, hoặc phiên đăng nhập đã hết hạn.')
+    throw new Error(
+      "Sai email hoặc mật khẩu, hoặc phiên đăng nhập đã hết hạn.",
+    );
   }
 
   // 403: Không đủ quyền
   if (response.status === 403) {
-    throw new Error('Bạn không có quyền thực hiện thao tác này')
+    throw new Error("Bạn không có quyền thực hiện thao tác này");
   }
 
   // Parse nội dung trả về
-  let data = null
-  const contentType = response.headers.get('content-type')
-  if (contentType && contentType.includes('application/json')) {
+  let data = null;
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
     try {
-      data = await response.json()
+      data = await response.json();
     } catch {
-      data = null
+      data = null;
     }
   } else {
     try {
-      data = await response.text()
+      data = await response.text();
     } catch {
-      data = null
+      data = null;
     }
   }
 
   // Kiểm tra lỗi nếu status >= 400
   if (!response.ok) {
-    let errorMessage = 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+    let errorMessage = "Đã có lỗi xảy ra. Vui lòng thử lại.";
     if (data && data.message) {
       if (Array.isArray(data.message)) {
-        errorMessage = data.message.join(', ')
+        errorMessage = data.message.join(", ");
       } else {
-        errorMessage = data.message
+        errorMessage = data.message;
       }
     }
-    const error = new Error(errorMessage)
-    error.status = response.status
-    throw error
+    const error = new Error(errorMessage);
+    error.status = response.status;
+    throw error;
   }
 
-  return data
+  return data;
 }
 
-export default api
+export default api;

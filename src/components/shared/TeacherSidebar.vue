@@ -23,10 +23,14 @@
             <v-icon :icon="item.icon" size="20" />
             <span>{{ t(item.label) }}</span>
           </RouterLink>
-          <div v-else class="sidebar-link sidebar-link-disabled" aria-disabled="true">
+          <div
+            v-else
+            class="sidebar-link sidebar-link-disabled"
+            aria-disabled="true"
+          >
             <v-icon :icon="item.icon" size="20" />
             <span class="sidebar-link-label">{{ t(item.label) }}</span>
-            <span class="coming-soon">{{ t('sidebar.comingSoon') }}</span>
+            <span class="coming-soon">{{ t("sidebar.comingSoon") }}</span>
           </div>
         </template>
       </section>
@@ -52,35 +56,87 @@ const groups = computed(() => [
   {
     title: "sidebar.learningSpace",
     items: [
-      { label: "sidebar.curriculum", icon: "mdi-bookshelf", to: "/", match: ["books", "book-detail", "lesson-detail"] },
-      { label: "sidebar.classes", icon: "mdi-account-group-outline", to: "/classes", match: ["classes", "class-detail"] },
+      {
+        label: "sidebar.curriculum",
+        icon: "mdi-bookshelf",
+        to: "/",
+        match: ["books", "book-detail", "lesson-detail"],
+      },
+      {
+        label: "sidebar.classes",
+        icon: "mdi-account-group-outline",
+        to: "/classes",
+        match: ["classes", "class-detail"],
+      },
     ],
   },
   {
     title: "sidebar.materials",
     items: [
-      { label: "sidebar.questionBank", icon: "mdi-comment-question-outline", to: "/question-bank", match: ["question-bank"] },
+      {
+        label: "sidebar.questionBank",
+        icon: "mdi-comment-question-outline",
+        to: "/question-bank",
+        match: ["question-bank"],
+      },
     ],
   },
   {
     title: "sidebar.assignments",
     items: [
-      { label: "sidebar.createAssignment", icon: "mdi-file-edit-outline", to: "/assignments", match: ["assignments"] },
-      { label: "sidebar.schedule", icon: "mdi-calendar-week-outline", to: "/schedule", match: ["schedule"] },
-      { label: "sidebar.examBank", icon: "mdi-folder-text-outline", to: "/exam-bank", match: ["exam-bank"] },
+      {
+        label: "sidebar.createAssignment",
+        icon: "mdi-file-edit-outline",
+        to: "/assignments",
+        match: ["assignments"],
+      },
+      {
+        label: "sidebar.schedule",
+        icon: "mdi-calendar-week-outline",
+        to: "/schedule",
+        match: ["schedule"],
+      },
+      {
+        label: "sidebar.examBank",
+        icon: "mdi-folder-text-outline",
+        to: "/exam-bank",
+        match: ["exam-bank"],
+      },
     ],
   },
   {
     title: "sidebar.progress",
     items: [
-      { label: "sidebar.submissions", icon: "mdi-cloud-upload-outline", to: "/manual-assignments", match: ["manual-assignments", "class-manual-assignments"] },
-      { label: "sidebar.results", icon: "mdi-chart-box-outline", to: "/teacher/progress", match: ["teacher-progress"] },
-      { label: "sidebar.activityLog", icon: "mdi-history", to: "/activity-log", match: ["activity-log"] },
+      {
+        label: "sidebar.submissions",
+        icon: "mdi-cloud-upload-outline",
+        to: "/manual-assignments",
+        match: ["manual-assignments", "class-manual-assignments"],
+      },
+      {
+        label: "sidebar.results",
+        icon: "mdi-chart-box-outline",
+        to: "/teacher/progress",
+        match: ["teacher-progress"],
+      },
+      {
+        label: "sidebar.activityLog",
+        icon: "mdi-history",
+        to: "/activity-log",
+        match: ["activity-log"],
+      },
     ],
   },
   {
     title: "sidebar.account",
-    items: [{ label: "sidebar.profile", icon: "mdi-account-cog-outline", to: "/profile", match: ["profile"] }],
+    items: [
+      {
+        label: "sidebar.profile",
+        icon: "mdi-account-cog-outline",
+        to: "/profile",
+        match: ["profile"],
+      },
+    ],
   },
 ]);
 
@@ -96,12 +152,20 @@ function toggleFromHeader() {
   if (mobile.value && isTeacher.value) drawerOpen.value = !drawerOpen.value;
 }
 
-watch(mobile, (isMobile) => {
-  drawerOpen.value = !isMobile;
-}, { immediate: true });
+watch(
+  mobile,
+  (isMobile) => {
+    drawerOpen.value = !isMobile;
+  },
+  { immediate: true },
+);
 
-onMounted(() => window.addEventListener("teacher-sidebar:toggle", toggleFromHeader));
-onBeforeUnmount(() => window.removeEventListener("teacher-sidebar:toggle", toggleFromHeader));
+onMounted(() =>
+  window.addEventListener("teacher-sidebar:toggle", toggleFromHeader),
+);
+onBeforeUnmount(() =>
+  window.removeEventListener("teacher-sidebar:toggle", toggleFromHeader),
+);
 </script>
 
 <style scoped>
@@ -133,7 +197,9 @@ onBeforeUnmount(() => window.removeEventListener("teacher-sidebar:toggle", toggl
   font-size: 0.9rem;
   font-weight: 700;
   text-decoration: none;
-  transition: background-color 0.16s ease, color 0.16s ease;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease;
 }
 
 .sidebar-link > span {

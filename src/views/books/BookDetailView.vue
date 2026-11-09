@@ -1,10 +1,10 @@
 <template>
-  <v-layout class="min-vh-100" style="background-color: #F4F8FF;">
+  <v-layout class="min-vh-100" style="background-color: #f4f8ff">
     <AppHeader />
     <TeacherSidebar />
     <StudentSidebar />
 
-    <v-main class="pb-16" style="background-color: #F4F8FF;">
+    <v-main class="pb-16" style="background-color: #f4f8ff">
       <v-progress-linear
         v-if="isLoading"
         indeterminate
@@ -12,7 +12,7 @@
         height="3"
       />
 
-      <v-container class="py-6 px-4 px-md-8" style="max-width: 1100px;">
+      <v-container class="py-6 px-4 px-md-8" style="max-width: 1100px">
         <!-- Nút Quay lại Thư viện -->
         <v-btn
           variant="text"
@@ -22,13 +22,21 @@
           color="primary"
           @click="goBack"
         >
-          {{ t('bookDetail.backToLibrary') }}
+          {{ t("bookDetail.backToLibrary") }}
         </v-btn>
 
-        <v-alert v-if="loadError" type="error" variant="tonal" class="mb-5" role="alert">
+        <v-alert
+          v-if="loadError"
+          type="error"
+          variant="tonal"
+          class="mb-5"
+          role="alert"
+        >
           <div class="d-flex flex-wrap align-center justify-space-between ga-3">
             <span>{{ loadError }}</span>
-            <v-btn variant="text" color="primary" @click="goBack">{{ t('bookDetail.backToLibrary') }}</v-btn>
+            <v-btn variant="text" color="primary" @click="goBack">{{
+              t("bookDetail.backToLibrary")
+            }}</v-btn>
           </div>
         </v-alert>
 
@@ -38,22 +46,42 @@
           class="rounded-xl pa-6 pa-md-8 mb-8 hero-book-card"
           elevation="0"
         >
-          <div class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between ga-6">
+          <div
+            class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between ga-6"
+          >
             <div class="d-flex align-start ga-4">
-              <v-avatar color="primary" size="64" class="rounded-xl text-white shadow-primary">
+              <v-avatar
+                color="primary"
+                size="64"
+                class="rounded-xl text-white shadow-primary"
+              >
                 <v-icon icon="mdi-book-open-page-variant" size="34" />
               </v-avatar>
 
               <div>
                 <div class="d-flex align-center ga-2 mb-2 flex-wrap">
-                  <v-chip color="primary" size="small" variant="flat" class="font-weight-black">
-                    {{ t('bookDetail.grade', { grade: book.gradeLevel }) }}
+                  <v-chip
+                    color="primary"
+                    size="small"
+                    variant="flat"
+                    class="font-weight-black"
+                  >
+                    {{ t("bookDetail.grade", { grade: book.gradeLevel }) }}
                   </v-chip>
-                  <v-chip color="secondary" size="small" variant="tonal" class="font-weight-bold">
+                  <v-chip
+                    color="secondary"
+                    size="small"
+                    variant="tonal"
+                    class="font-weight-bold"
+                  >
                     {{ subjectLabel }}
                   </v-chip>
                   <span class="text-caption text-secondary font-weight-medium">
-                    {{ t('bookDetail.chapterCount', { count: book.chapters?.length || 0 }) }}
+                    {{
+                      t("bookDetail.chapterCount", {
+                        count: book.chapters?.length || 0,
+                      })
+                    }}
                   </span>
                 </div>
 
@@ -73,7 +101,7 @@
               prepend-icon="mdi-folder-plus-outline"
               @click="openAddChapterDialog"
             >
-              {{ t('bookDetail.addChapter') }}
+              {{ t("bookDetail.addChapter") }}
             </v-btn>
           </div>
         </v-card>
@@ -83,10 +111,10 @@
           <div class="d-flex justify-space-between align-center mb-4">
             <div>
               <h2 class="text-h5 font-weight-black text-primary mb-0">
-                {{ t('bookDetail.contentsTitle') }}
+                {{ t("bookDetail.contentsTitle") }}
               </h2>
               <span class="text-caption text-secondary">
-                {{ t('bookDetail.contentsSubtitle') }}
+                {{ t("bookDetail.contentsSubtitle") }}
               </span>
             </div>
           </div>
@@ -103,145 +131,181 @@
 
           <!-- Cây Chương Mục Dạng Expansion Panels Bo Góc Lớn -->
           <div v-else>
-          <v-expansion-panels
-            v-model="openedPanels"
-            multiple
-            class="ga-3"
-          >
-            <v-expansion-panel
-              v-for="(chapter, cIndex) in pagedChapters"
-              :key="chapter.id"
-              class="rounded-xl overflow-hidden shub-panel"
-            >
-              <!-- Tiêu đề Panel Chương -->
-              <v-expansion-panel-title class="py-4 px-5">
-                <div class="d-flex flex-grow-1 align-center justify-space-between mr-2">
-                  <div class="d-flex align-center">
-                    <v-avatar
-                      :color="getChapterColor(cIndex)"
-                      size="36"
-                      class="mr-3 font-weight-black text-white"
-                    >
-                      {{ (chaptersPage - 1) * pageSize + cIndex + 1 }}
-                    </v-avatar>
-
-                    <div>
-                      <div class="text-subtitle-1 font-weight-bold text-primary">
-                        {{ chapter.title }}
-                      </div>
-                      <span class="text-caption text-secondary">
-                        {{ t('bookDetail.lessonCount', { count: chapter.lessons?.length || 0 }) }}
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Thao tác trên chương (Teacher) -->
-                  <div v-if="canManageBook" class="d-flex align-center ga-2" @click.stop>
-                    <v-btn
-                      size="small"
-                      color="primary"
-                      variant="tonal"
-                      rounded="pill"
-                      prepend-icon="mdi-plus"
-                      class="text-none font-weight-bold"
-                      @click="openAddLessonDialog(chapter.id, $event)"
-                    >
-                      {{ t('bookDetail.addLesson') }}
-                    </v-btn>
-
-                    <v-btn
-                      icon="mdi-pencil-outline"
-                      size="small"
-                      variant="text"
-                      color="primary"
-                      :title="t('bookDetail.editChapter')"
-                      @click="openEditChapterDialog(chapter, $event)"
-                    />
-
-                    <v-btn
-                      icon="mdi-trash-can-outline"
-                      size="small"
-                      variant="text"
-                      color="error"
-                      :title="t('bookDetail.deleteChapter')"
-                      @click="confirmDeleteChapter(chapter, $event)"
-                    />
-                  </div>
-                </div>
-              </v-expansion-panel-title>
-
-              <!-- Nội dung bài học bên trong chương -->
-              <v-expansion-panel-text class="pt-2 pb-4 px-5 bg-shub-inner">
-                <div
-                  v-if="!chapter.lessons || chapter.lessons.length === 0"
-                  class="py-4 text-center text-caption text-secondary"
-                >
-                  {{ t('bookDetail.noLessons') }}
-                  <span v-if="canManageBook">{{ t('bookDetail.noLessonsTeacherHint') }}</span>
-                </div>
-
-                <!-- Danh sách các bài học -->
-                <div v-else class="d-flex flex-column ga-2">
+            <v-expansion-panels v-model="openedPanels" multiple class="ga-3">
+              <v-expansion-panel
+                v-for="(chapter, cIndex) in pagedChapters"
+                :key="chapter.id"
+                class="rounded-xl overflow-hidden shub-panel"
+              >
+                <!-- Tiêu đề Panel Chương -->
+                <v-expansion-panel-title class="py-4 px-5">
                   <div
-                    v-for="(lesson, lIndex) in pagedLessons(chapter)"
-                    :key="lesson.id"
-                    class="lesson-item-shub d-flex align-center justify-space-between pa-3 rounded-lg bg-white"
-                    role="button"
-                    tabindex="0"
-                    @click="goToLesson(lesson.id)"
-                    @keydown.enter="goToLesson(lesson.id)"
+                    class="d-flex flex-grow-1 align-center justify-space-between mr-2"
                   >
                     <div class="d-flex align-center">
-                      <v-avatar color="primary" variant="tonal" size="28" class="mr-3 font-weight-bold text-caption">
-                        {{ (lessonPages[chapter.id] ? lessonPages[chapter.id] - 1 : 0) * pageSize + lIndex + 1 }}
+                      <v-avatar
+                        :color="getChapterColor(cIndex)"
+                        size="36"
+                        class="mr-3 font-weight-black text-white"
+                      >
+                        {{ (chaptersPage - 1) * pageSize + cIndex + 1 }}
                       </v-avatar>
-                      <div class="text-body-2 font-weight-bold text-primary">
-                        {{ lesson.title }}
+
+                      <div>
+                        <div
+                          class="text-subtitle-1 font-weight-bold text-primary"
+                        >
+                          {{ chapter.title }}
+                        </div>
+                        <span class="text-caption text-secondary">
+                          {{
+                            t("bookDetail.lessonCount", {
+                              count: chapter.lessons?.length || 0,
+                            })
+                          }}
+                        </span>
                       </div>
                     </div>
 
-                    <div class="d-flex align-center ga-3">
-                      <v-chip size="x-small" color="primary" variant="text" append-icon="mdi-arrow-right" class="font-weight-bold d-none d-sm-inline-flex">
-                        {{ t('bookDetail.startLearning') }}
-                      </v-chip>
+                    <!-- Thao tác trên chương (Teacher) -->
+                    <div
+                      v-if="canManageBook"
+                      class="d-flex align-center ga-2"
+                      @click.stop
+                    >
+                      <v-btn
+                        size="small"
+                        color="primary"
+                        variant="tonal"
+                        rounded="pill"
+                        prepend-icon="mdi-plus"
+                        class="text-none font-weight-bold"
+                        @click="openAddLessonDialog(chapter.id, $event)"
+                      >
+                        {{ t("bookDetail.addLesson") }}
+                      </v-btn>
 
-                      <!-- Nút Sửa / Xóa Bài học cho Teacher -->
-                      <QuestionBankSection
-                        v-if="canManageBook"
-                        :lesson-id="lesson.id"
-                        :lesson-title="lesson.title"
+                      <v-btn
+                        icon="mdi-pencil-outline"
+                        size="small"
+                        variant="text"
+                        color="primary"
+                        :title="t('bookDetail.editChapter')"
+                        @click="openEditChapterDialog(chapter, $event)"
                       />
-                      <div v-if="canManageBook" class="d-flex align-center ga-1" @click.stop>
-                        <v-btn
-                          icon="mdi-pencil-outline"
-                          size="x-small"
-                          variant="text"
-                          color="primary"
-                          :title="t('bookDetail.editLesson')"
-                          @click="openEditLessonDialog(lesson, $event)"
-                        />
-                        <v-btn
-                          icon="mdi-trash-can-outline"
-                          size="x-small"
-                          variant="text"
-                          color="error"
-                          :title="t('bookDetail.deleteLesson')"
-                          @click="confirmDeleteLesson(lesson, $event)"
-                        />
-                      </div>
+
+                      <v-btn
+                        icon="mdi-trash-can-outline"
+                        size="small"
+                        variant="text"
+                        color="error"
+                        :title="t('bookDetail.deleteChapter')"
+                        @click="confirmDeleteChapter(chapter, $event)"
+                      />
                     </div>
                   </div>
-                  <ListPagination
-                    :model-value="lessonPages[chapter.id] || 1"
-                    :total="chapter.lessons.length"
-                    :page-size="pageSize"
-                    @update:model-value="setLessonPage(chapter.id, $event)"
-                  />
-                </div>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
-          <ListPagination v-model="chaptersPage" :total="book.chapters.length" :page-size="pageSize" />
+                </v-expansion-panel-title>
+
+                <!-- Nội dung bài học bên trong chương -->
+                <v-expansion-panel-text class="pt-2 pb-4 px-5 bg-shub-inner">
+                  <div
+                    v-if="!chapter.lessons || chapter.lessons.length === 0"
+                    class="py-4 text-center text-caption text-secondary"
+                  >
+                    {{ t("bookDetail.noLessons") }}
+                    <span v-if="canManageBook">{{
+                      t("bookDetail.noLessonsTeacherHint")
+                    }}</span>
+                  </div>
+
+                  <!-- Danh sách các bài học -->
+                  <div v-else class="d-flex flex-column ga-2">
+                    <div
+                      v-for="(lesson, lIndex) in pagedLessons(chapter)"
+                      :key="lesson.id"
+                      class="lesson-item-shub d-flex align-center justify-space-between pa-3 rounded-lg bg-white"
+                      role="button"
+                      tabindex="0"
+                      @click="goToLesson(lesson.id)"
+                      @keydown.enter="goToLesson(lesson.id)"
+                    >
+                      <div class="d-flex align-center">
+                        <v-avatar
+                          color="primary"
+                          variant="tonal"
+                          size="28"
+                          class="mr-3 font-weight-bold text-caption"
+                        >
+                          {{
+                            (lessonPages[chapter.id]
+                              ? lessonPages[chapter.id] - 1
+                              : 0) *
+                              pageSize +
+                            lIndex +
+                            1
+                          }}
+                        </v-avatar>
+                        <div class="text-body-2 font-weight-bold text-primary">
+                          {{ lesson.title }}
+                        </div>
+                      </div>
+
+                      <div class="d-flex align-center ga-3">
+                        <v-chip
+                          size="x-small"
+                          color="primary"
+                          variant="text"
+                          append-icon="mdi-arrow-right"
+                          class="font-weight-bold d-none d-sm-inline-flex"
+                        >
+                          {{ t("bookDetail.startLearning") }}
+                        </v-chip>
+
+                        <!-- Nút Sửa / Xóa Bài học cho Teacher -->
+                        <QuestionBankSection
+                          v-if="canManageBook"
+                          :lesson-id="lesson.id"
+                          :lesson-title="lesson.title"
+                        />
+                        <div
+                          v-if="canManageBook"
+                          class="d-flex align-center ga-1"
+                          @click.stop
+                        >
+                          <v-btn
+                            icon="mdi-pencil-outline"
+                            size="x-small"
+                            variant="text"
+                            color="primary"
+                            :title="t('bookDetail.editLesson')"
+                            @click="openEditLessonDialog(lesson, $event)"
+                          />
+                          <v-btn
+                            icon="mdi-trash-can-outline"
+                            size="x-small"
+                            variant="text"
+                            color="error"
+                            :title="t('bookDetail.deleteLesson')"
+                            @click="confirmDeleteLesson(lesson, $event)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <ListPagination
+                      :model-value="lessonPages[chapter.id] || 1"
+                      :total="chapter.lessons.length"
+                      :page-size="pageSize"
+                      @update:model-value="setLessonPage(chapter.id, $event)"
+                    />
+                  </div>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+            <ListPagination
+              v-model="chaptersPage"
+              :total="book.chapters.length"
+              :page-size="pageSize"
+            />
           </div>
         </div>
       </v-container>
@@ -255,15 +319,26 @@
             </v-avatar>
             <div>
               <h2 class="text-h6 font-weight-black text-primary">
-                {{ t(isEditingChapter ? 'bookDetail.editChapterTitle' : 'bookDetail.addChapterTitle') }}
+                {{
+                  t(
+                    isEditingChapter
+                      ? "bookDetail.editChapterTitle"
+                      : "bookDetail.addChapterTitle",
+                  )
+                }}
               </h2>
-              <span class="text-caption text-secondary">{{ t('bookDetail.curriculumStructure') }}</span>
+              <span class="text-caption text-secondary">{{
+                t("bookDetail.curriculumStructure")
+              }}</span>
             </div>
           </div>
 
           <v-form ref="chapterFormRef" @submit.prevent="handleSaveChapter">
             <div class="mb-4">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('bookDetail.chapterTitleLabel') }}</label>
+              <label
+                class="text-caption font-weight-bold text-secondary mb-1 d-block"
+                >{{ t("bookDetail.chapterTitleLabel") }}</label
+              >
               <v-text-field
                 v-model="chapterForm.title"
                 :placeholder="t('bookDetail.chapterTitlePlaceholder')"
@@ -277,7 +352,10 @@
             </div>
 
             <div class="mb-6">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('bookDetail.orderLabel') }}</label>
+              <label
+                class="text-caption font-weight-bold text-secondary mb-1 d-block"
+                >{{ t("bookDetail.orderLabel") }}</label
+              >
               <v-text-field
                 v-model="chapterForm.orderIndex"
                 type="number"
@@ -298,7 +376,7 @@
                 :disabled="isSubmittingChapter"
                 @click="showChapterDialog = false"
               >
-                {{ t('bookDetail.cancel') }}
+                {{ t("bookDetail.cancel") }}
               </v-btn>
               <v-btn
                 color="primary"
@@ -307,7 +385,13 @@
                 :loading="isSubmittingChapter"
                 @click="handleSaveChapter"
               >
-                {{ t(isEditingChapter ? 'bookDetail.saveChanges' : 'bookDetail.addChapter') }}
+                {{
+                  t(
+                    isEditingChapter
+                      ? "bookDetail.saveChanges"
+                      : "bookDetail.addChapter",
+                  )
+                }}
               </v-btn>
             </div>
           </v-form>
@@ -318,7 +402,11 @@
       <ConfirmDialog
         v-model="showDeleteChapterConfirm"
         :title="t('bookDetail.deleteChapter')"
-        :message="t('bookDetail.confirmDeleteChapter', { title: chapterToDelete?.title })"
+        :message="
+          t('bookDetail.confirmDeleteChapter', {
+            title: chapterToDelete?.title,
+          })
+        "
         :loading="isDeletingChapter"
         @confirm="handleDeleteChapter"
       />
@@ -328,19 +416,34 @@
         <v-card class="rounded-xl pa-6">
           <div class="d-flex align-center mb-5">
             <v-avatar color="primary" variant="tonal" size="46" class="mr-3">
-              <v-icon icon="mdi-file-document-edit-outline" size="24" color="primary" />
+              <v-icon
+                icon="mdi-file-document-edit-outline"
+                size="24"
+                color="primary"
+              />
             </v-avatar>
             <div>
               <h2 class="text-h6 font-weight-black text-primary">
-                {{ t(isEditingLesson ? 'bookDetail.editLessonTitle' : 'bookDetail.addLessonTitle') }}
+                {{
+                  t(
+                    isEditingLesson
+                      ? "bookDetail.editLessonTitle"
+                      : "bookDetail.addLessonTitle",
+                  )
+                }}
               </h2>
-              <span class="text-caption text-secondary">{{ t('bookDetail.lessonContent') }}</span>
+              <span class="text-caption text-secondary">{{
+                t("bookDetail.lessonContent")
+              }}</span>
             </div>
           </div>
 
           <v-form ref="lessonFormRef" @submit.prevent="handleSaveLesson">
             <div class="mb-4">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('bookDetail.lessonTitleLabel') }}</label>
+              <label
+                class="text-caption font-weight-bold text-secondary mb-1 d-block"
+                >{{ t("bookDetail.lessonTitleLabel") }}</label
+              >
               <v-text-field
                 v-model="lessonForm.title"
                 :placeholder="t('bookDetail.lessonTitlePlaceholder')"
@@ -354,7 +457,10 @@
             </div>
 
             <div class="mb-4">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('bookDetail.orderLabel') }}</label>
+              <label
+                class="text-caption font-weight-bold text-secondary mb-1 d-block"
+                >{{ t("bookDetail.orderLabel") }}</label
+              >
               <v-text-field
                 v-model="lessonForm.orderIndex"
                 type="number"
@@ -368,7 +474,10 @@
             </div>
 
             <div class="mb-6">
-              <label class="text-caption font-weight-bold text-secondary mb-1 d-block">{{ t('bookDetail.optionalLessonContent') }}</label>
+              <label
+                class="text-caption font-weight-bold text-secondary mb-1 d-block"
+                >{{ t("bookDetail.optionalLessonContent") }}</label
+              >
               <v-textarea
                 v-model="lessonForm.content"
                 :placeholder="t('bookDetail.lessonContentPlaceholder')"
@@ -389,7 +498,7 @@
                 :disabled="isSubmittingLesson"
                 @click="showLessonDialog = false"
               >
-                {{ t('bookDetail.cancel') }}
+                {{ t("bookDetail.cancel") }}
               </v-btn>
               <v-btn
                 color="primary"
@@ -398,7 +507,13 @@
                 :loading="isSubmittingLesson"
                 @click="handleSaveLesson"
               >
-                {{ t(isEditingLesson ? 'bookDetail.saveChanges' : 'bookDetail.addLesson') }}
+                {{
+                  t(
+                    isEditingLesson
+                      ? "bookDetail.saveChanges"
+                      : "bookDetail.addLesson",
+                  )
+                }}
               </v-btn>
             </div>
           </v-form>
@@ -409,7 +524,9 @@
       <ConfirmDialog
         v-model="showDeleteLessonConfirm"
         :title="t('bookDetail.deleteLesson')"
-        :message="t('bookDetail.confirmDeleteLesson', { title: lessonToDelete?.title })"
+        :message="
+          t('bookDetail.confirmDeleteLesson', { title: lessonToDelete?.title })
+        "
         :loading="isDeletingLesson"
         @confirm="handleDeleteLesson"
       />
@@ -424,13 +541,19 @@
       >
         <div class="d-flex align-center">
           <v-icon
-            :icon="snackbar.color === 'error' ? 'mdi-alert-circle' : 'mdi-check-circle'"
+            :icon="
+              snackbar.color === 'error'
+                ? 'mdi-alert-circle'
+                : 'mdi-check-circle'
+            "
             class="mr-2"
           />
           <span class="font-weight-bold">{{ snackbar.message }}</span>
         </div>
         <template #actions>
-          <v-btn variant="text" size="small" @click="snackbar.show = false">{{ t('bookDetail.close') }}</v-btn>
+          <v-btn variant="text" size="small" @click="snackbar.show = false">{{
+            t("bookDetail.close")
+          }}</v-btn>
         </template>
       </v-snackbar>
     </v-main>
@@ -438,306 +561,343 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { api } from '../../services/api'
-import { useAuthStore } from '../../stores/auth'
-import AppHeader from '../../components/shared/AppHeader.vue'
-import TeacherSidebar from '../../components/shared/TeacherSidebar.vue'
-import StudentSidebar from '../../components/shared/StudentSidebar.vue'
-import EmptyState from '../../components/shared/EmptyState.vue'
-import ConfirmDialog from '../../components/shared/ConfirmDialog.vue'
-import ListPagination from '../../components/shared/ListPagination.vue'
-import QuestionBankSection from '../../components/QuestionBankSection.vue'
+import { ref, computed, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
+import { api } from "../../services/api";
+import { useAuthStore } from "../../stores/auth";
+import AppHeader from "../../components/shared/AppHeader.vue";
+import TeacherSidebar from "../../components/shared/TeacherSidebar.vue";
+import StudentSidebar from "../../components/shared/StudentSidebar.vue";
+import EmptyState from "../../components/shared/EmptyState.vue";
+import ConfirmDialog from "../../components/shared/ConfirmDialog.vue";
+import ListPagination from "../../components/shared/ListPagination.vue";
+import QuestionBankSection from "../../components/QuestionBankSection.vue";
 
-const route = useRoute()
-const router = useRouter()
-const authStore = useAuthStore()
-const { t } = useI18n()
+const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
+const { t } = useI18n();
 
 const subjectTranslationKeys = {
-  'Toán': 'math', 'Tiếng Việt': 'vietnamese', 'Ngữ Văn': 'literature', 'Ngữ văn': 'literature',
-  'Tiếng Anh': 'english', 'Đạo đức': 'ethics', 'Tự nhiên và Xã hội': 'natureSociety', 'Khoa học': 'science',
-  'Lịch sử': 'history', 'Địa lí': 'geography', 'Lịch sử và Địa lí': 'historyGeography', 'Vật lí': 'physics',
-  'Hóa học': 'chemistry', 'Sinh học': 'biology', 'Tin học': 'informatics', 'Công nghệ': 'technology',
-  'Giáo dục công dân': 'civicEducation', 'Giáo dục kinh tế và pháp luật': 'economicsLaw', 'Âm nhạc': 'music',
-  'Mĩ thuật': 'arts', 'Giáo dục thể chất': 'physicalEducation', 'Hoạt động trải nghiệm': 'experientialActivities',
-}
+  Toán: "math",
+  "Tiếng Việt": "vietnamese",
+  "Ngữ Văn": "literature",
+  "Ngữ văn": "literature",
+  "Tiếng Anh": "english",
+  "Đạo đức": "ethics",
+  "Tự nhiên và Xã hội": "natureSociety",
+  "Khoa học": "science",
+  "Lịch sử": "history",
+  "Địa lí": "geography",
+  "Lịch sử và Địa lí": "historyGeography",
+  "Vật lí": "physics",
+  "Hóa học": "chemistry",
+  "Sinh học": "biology",
+  "Tin học": "informatics",
+  "Công nghệ": "technology",
+  "Giáo dục công dân": "civicEducation",
+  "Giáo dục kinh tế và pháp luật": "economicsLaw",
+  "Âm nhạc": "music",
+  "Mĩ thuật": "arts",
+  "Giáo dục thể chất": "physicalEducation",
+  "Hoạt động trải nghiệm": "experientialActivities",
+};
 
-const bookId = route.params.id
-const book = ref(null)
-const chaptersPage = ref(1)
-const lessonPages = ref({})
-const pageSize = 10
-const pagedChapters = computed(() => (book.value?.chapters || []).slice((chaptersPage.value - 1) * pageSize, chaptersPage.value * pageSize))
-watch(() => Math.ceil((book.value?.chapters?.length || 0) / pageSize), count => { if (chaptersPage.value > count) chaptersPage.value = Math.max(1, count) })
+const bookId = route.params.id;
+const book = ref(null);
+const chaptersPage = ref(1);
+const lessonPages = ref({});
+const pageSize = 10;
+const pagedChapters = computed(() =>
+  (book.value?.chapters || []).slice(
+    (chaptersPage.value - 1) * pageSize,
+    chaptersPage.value * pageSize,
+  ),
+);
+watch(
+  () => Math.ceil((book.value?.chapters?.length || 0) / pageSize),
+  (count) => {
+    if (chaptersPage.value > count) chaptersPage.value = Math.max(1, count);
+  },
+);
 function pagedLessons(chapter) {
-  const page = lessonPages.value[chapter.id] || 1
-  return (chapter.lessons || []).slice((page - 1) * pageSize, page * pageSize)
+  const page = lessonPages.value[chapter.id] || 1;
+  return (chapter.lessons || []).slice((page - 1) * pageSize, page * pageSize);
 }
 function setLessonPage(chapterId, page) {
-  lessonPages.value[chapterId] = page
+  lessonPages.value[chapterId] = page;
 }
 const subjectLabel = computed(() => {
-  const key = subjectTranslationKeys[book.value?.subject]
-  return key ? t(`booksPage.subjects.${key}`) : book.value?.subject
-})
-const canManageBook = computed(() =>
-  authStore.user?.role === 'ADMIN' ||
-  Number(book.value?.createdById) === Number(authStore.user?.id),
-)
-const isLoading = ref(false)
-const loadError = ref('')
-const openedPanels = ref([])
+  const key = subjectTranslationKeys[book.value?.subject];
+  return key ? t(`booksPage.subjects.${key}`) : book.value?.subject;
+});
+const canManageBook = computed(
+  () =>
+    authStore.user?.role === "ADMIN" ||
+    Number(book.value?.createdById) === Number(authStore.user?.id),
+);
+const isLoading = ref(false);
+const loadError = ref("");
+const openedPanels = ref([]);
 
 // Snackbar thông báo
 const snackbar = ref({
   show: false,
-  message: '',
-  color: 'success',
-})
+  message: "",
+  color: "success",
+});
 
-function showNotice(message, color = 'success') {
+function showNotice(message, color = "success") {
   snackbar.value = {
     show: true,
     message,
     color,
-  }
+  };
 }
 
 // ---- Quản lý Chương ----
-const showChapterDialog = ref(false)
-const isEditingChapter = ref(false)
-const chapterFormRef = ref(null)
-const isSubmittingChapter = ref(false)
+const showChapterDialog = ref(false);
+const isEditingChapter = ref(false);
+const chapterFormRef = ref(null);
+const isSubmittingChapter = ref(false);
 const chapterForm = ref({
   id: null,
-  title: '',
+  title: "",
   orderIndex: 0,
-})
+});
 
-const showDeleteChapterConfirm = ref(false)
-const chapterToDelete = ref(null)
-const isDeletingChapter = ref(false)
+const showDeleteChapterConfirm = ref(false);
+const chapterToDelete = ref(null);
+const isDeletingChapter = ref(false);
 
 // ---- Quản lý Bài học ----
-const showLessonDialog = ref(false)
-const isEditingLesson = ref(false)
-const lessonFormRef = ref(null)
-const isSubmittingLesson = ref(false)
-const targetChapterId = ref(null)
+const showLessonDialog = ref(false);
+const isEditingLesson = ref(false);
+const lessonFormRef = ref(null);
+const isSubmittingLesson = ref(false);
+const targetChapterId = ref(null);
 const lessonForm = ref({
   id: null,
-  title: '',
-  content: '',
+  title: "",
+  content: "",
   orderIndex: 0,
-})
+});
 
-const showDeleteLessonConfirm = ref(false)
-const lessonToDelete = ref(null)
-const isDeletingLesson = ref(false)
+const showDeleteLessonConfirm = ref(false);
+const lessonToDelete = ref(null);
+const isDeletingLesson = ref(false);
 
-const requiredRule = [(v) => !!v || t('bookDetail.required')]
+const requiredRule = [(v) => !!v || t("bookDetail.required")];
 
 // Lấy chi tiết sách
 async function fetchBookDetail() {
-  isLoading.value = true
-  loadError.value = ''
+  isLoading.value = true;
+  loadError.value = "";
   try {
-    const data = await api(`/books/${bookId}`)
-    book.value = data
+    const data = await api(`/books/${bookId}`);
+    book.value = data;
     if (data?.chapters) {
-      openedPanels.value = data.chapters.map((_, i) => i)
+      openedPanels.value = data.chapters.map((_, i) => i);
     }
   } catch (err) {
-    loadError.value = err.status === 403 ? t('bookDetail.accessDenied') : (err.message || t('bookDetail.loadError'))
+    loadError.value =
+      err.status === 403
+        ? t("bookDetail.accessDenied")
+        : err.message || t("bookDetail.loadError");
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 
 // ==== THAO TÁC VỚI CHƯƠNG ====
 function openAddChapterDialog() {
-  isEditingChapter.value = false
+  isEditingChapter.value = false;
   chapterForm.value = {
     id: null,
-    title: '',
+    title: "",
     orderIndex: (book.value?.chapters?.length || 0) + 1,
-  }
-  showChapterDialog.value = true
+  };
+  showChapterDialog.value = true;
 }
 
 function openEditChapterDialog(chapter, event) {
-  event?.stopPropagation()
-  isEditingChapter.value = true
+  event?.stopPropagation();
+  isEditingChapter.value = true;
   chapterForm.value = {
     id: chapter.id,
     title: chapter.title,
     orderIndex: chapter.orderIndex ?? 0,
-  }
-  showChapterDialog.value = true
+  };
+  showChapterDialog.value = true;
 }
 
 async function handleSaveChapter() {
-  const { valid } = await chapterFormRef.value.validate()
-  if (!valid) return
+  const { valid } = await chapterFormRef.value.validate();
+  if (!valid) return;
 
-  isSubmittingChapter.value = true
+  isSubmittingChapter.value = true;
   try {
     const payload = {
       title: chapterForm.value.title.trim(),
       orderIndex: Number(chapterForm.value.orderIndex) || 0,
-    }
+    };
 
     if (isEditingChapter.value) {
       await api(`/chapters/${chapterForm.value.id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         body: payload,
-      })
-      showNotice(t('bookDetail.chapterUpdated'))
+      });
+      showNotice(t("bookDetail.chapterUpdated"));
     } else {
       await api(`/books/${bookId}/chapters`, {
-        method: 'POST',
+        method: "POST",
         body: payload,
-      })
-      showNotice(t('bookDetail.chapterAdded'))
+      });
+      showNotice(t("bookDetail.chapterAdded"));
     }
-    showChapterDialog.value = false
-    await fetchBookDetail()
+    showChapterDialog.value = false;
+    await fetchBookDetail();
   } catch (err) {
-    showNotice(err.message, 'error')
+    showNotice(err.message, "error");
   } finally {
-    isSubmittingChapter.value = false
+    isSubmittingChapter.value = false;
   }
 }
 
 function confirmDeleteChapter(chapter, event) {
-  event?.stopPropagation()
-  chapterToDelete.value = chapter
-  showDeleteChapterConfirm.value = true
+  event?.stopPropagation();
+  chapterToDelete.value = chapter;
+  showDeleteChapterConfirm.value = true;
 }
 
 async function handleDeleteChapter() {
-  if (!chapterToDelete.value) return
-  isDeletingChapter.value = true
+  if (!chapterToDelete.value) return;
+  isDeletingChapter.value = true;
   try {
     await api(`/chapters/${chapterToDelete.value.id}`, {
-      method: 'DELETE',
-    })
-    showNotice(t('bookDetail.chapterDeleted'))
-    showDeleteChapterConfirm.value = false
-    chapterToDelete.value = null
-    await fetchBookDetail()
+      method: "DELETE",
+    });
+    showNotice(t("bookDetail.chapterDeleted"));
+    showDeleteChapterConfirm.value = false;
+    chapterToDelete.value = null;
+    await fetchBookDetail();
   } catch (err) {
-    showNotice(err.message, 'error')
+    showNotice(err.message, "error");
   } finally {
-    isDeletingChapter.value = false
+    isDeletingChapter.value = false;
   }
 }
 
 // ==== THAO TÁC VỚI BÀI HỌC ====
 function openAddLessonDialog(chapterId, event) {
-  event?.stopPropagation()
-  isEditingLesson.value = false
-  targetChapterId.value = chapterId
-  const chapter = book.value?.chapters?.find((c) => c.id === chapterId)
+  event?.stopPropagation();
+  isEditingLesson.value = false;
+  targetChapterId.value = chapterId;
+  const chapter = book.value?.chapters?.find((c) => c.id === chapterId);
   lessonForm.value = {
     id: null,
-    title: '',
-    content: '',
+    title: "",
+    content: "",
     orderIndex: (chapter?.lessons?.length || 0) + 1,
-  }
-  showLessonDialog.value = true
+  };
+  showLessonDialog.value = true;
 }
 
 function openEditLessonDialog(lesson, event) {
-  event?.stopPropagation()
-  isEditingLesson.value = true
+  event?.stopPropagation();
+  isEditingLesson.value = true;
   lessonForm.value = {
     id: lesson.id,
     title: lesson.title,
-    content: lesson.content || '',
+    content: lesson.content || "",
     orderIndex: lesson.orderIndex ?? 0,
-  }
-  showLessonDialog.value = true
+  };
+  showLessonDialog.value = true;
 }
 
 async function handleSaveLesson() {
-  const { valid } = await lessonFormRef.value.validate()
-  if (!valid) return
+  const { valid } = await lessonFormRef.value.validate();
+  if (!valid) return;
 
-  isSubmittingLesson.value = true
+  isSubmittingLesson.value = true;
   try {
     const payload = {
       title: lessonForm.value.title.trim(),
-      content: lessonForm.value.content || '',
+      content: lessonForm.value.content || "",
       orderIndex: Number(lessonForm.value.orderIndex) || 0,
-    }
+    };
 
     if (isEditingLesson.value) {
       await api(`/lessons/${lessonForm.value.id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         body: payload,
-      })
-      showNotice(t('bookDetail.lessonUpdated'))
+      });
+      showNotice(t("bookDetail.lessonUpdated"));
     } else {
       await api(`/chapters/${targetChapterId.value}/lessons`, {
-        method: 'POST',
+        method: "POST",
         body: payload,
-      })
-      showNotice(t('bookDetail.lessonAdded'))
+      });
+      showNotice(t("bookDetail.lessonAdded"));
     }
-    showLessonDialog.value = false
-    await fetchBookDetail()
+    showLessonDialog.value = false;
+    await fetchBookDetail();
   } catch (err) {
-    showNotice(err.message, 'error')
+    showNotice(err.message, "error");
   } finally {
-    isSubmittingLesson.value = false
+    isSubmittingLesson.value = false;
   }
 }
 
 function confirmDeleteLesson(lesson, event) {
-  event?.stopPropagation()
-  lessonToDelete.value = lesson
-  showDeleteLessonConfirm.value = true
+  event?.stopPropagation();
+  lessonToDelete.value = lesson;
+  showDeleteLessonConfirm.value = true;
 }
 
 async function handleDeleteLesson() {
-  if (!lessonToDelete.value) return
-  isDeletingLesson.value = true
+  if (!lessonToDelete.value) return;
+  isDeletingLesson.value = true;
   try {
     await api(`/lessons/${lessonToDelete.value.id}`, {
-      method: 'DELETE',
-    })
-    showNotice(t('bookDetail.lessonDeleted'))
-    showDeleteLessonConfirm.value = false
-    lessonToDelete.value = null
-    await fetchBookDetail()
+      method: "DELETE",
+    });
+    showNotice(t("bookDetail.lessonDeleted"));
+    showDeleteLessonConfirm.value = false;
+    lessonToDelete.value = null;
+    await fetchBookDetail();
   } catch (err) {
-    showNotice(err.message, 'error')
+    showNotice(err.message, "error");
   } finally {
-    isDeletingLesson.value = false
+    isDeletingLesson.value = false;
   }
 }
 
 function goToLesson(lessonId) {
-  router.push(`/lessons/${lessonId}`)
+  router.push(`/lessons/${lessonId}`);
 }
 
 function goBack() {
-  router.push('/')
+  router.push("/");
 }
 
 // Bảng màu cho badge số thứ tự chương
-const chapterColorPalette = ['primary', 'orange', 'success', 'purple', 'warning', 'info']
+const chapterColorPalette = [
+  "primary",
+  "orange",
+  "success",
+  "purple",
+  "warning",
+  "info",
+];
 function getChapterColor(index) {
-  return chapterColorPalette[index % chapterColorPalette.length]
+  return chapterColorPalette[index % chapterColorPalette.length];
 }
 
 onMounted(() => {
-  fetchBookDetail()
-})
+  fetchBookDetail();
+});
 </script>
 
 <style scoped>
@@ -746,8 +906,8 @@ onMounted(() => {
 }
 
 .hero-book-card {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F5F9FF 100%) !important;
-  border: 1px solid #DCE7F7 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f5f9ff 100%) !important;
+  border: 1px solid #dce7f7 !important;
   box-shadow: 0 6px 20px rgba(47, 124, 246, 0.06) !important;
 }
 
@@ -756,25 +916,25 @@ onMounted(() => {
 }
 
 .shub-panel {
-  background: #FFFFFF !important;
-  border: 1px solid #E4ECF7 !important;
+  background: #ffffff !important;
+  border: 1px solid #e4ecf7 !important;
   box-shadow: 0 4px 14px rgba(47, 124, 246, 0.05) !important;
 }
 
 .bg-shub-inner {
-  background: #F8FAFD !important;
-  border-top: 1px solid #EDF3FA;
+  background: #f8fafd !important;
+  border-top: 1px solid #edf3fa;
 }
 
 .lesson-item-shub {
-  border: 1px solid #E4ECF7;
+  border: 1px solid #e4ecf7;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .lesson-item-shub:hover {
-  background: #EBF3FF !important;
-  border-color: #2F7CF6;
+  background: #ebf3ff !important;
+  border-color: #2f7cf6;
   transform: translateX(4px);
 }
 </style>

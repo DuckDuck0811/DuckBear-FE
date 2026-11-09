@@ -12,14 +12,27 @@
           prepend-icon="mdi-arrow-left"
           class="mb-4"
         >
-          {{ t('classSeatMap.back') }}
+          {{ t("classSeatMap.back") }}
         </v-btn>
 
-        <v-progress-linear v-if="isLoading" indeterminate color="primary" rounded class="mb-5" />
-        <v-alert v-else-if="errorMessage" type="error" variant="tonal" class="mb-5">
+        <v-progress-linear
+          v-if="isLoading"
+          indeterminate
+          color="primary"
+          rounded
+          class="mb-5"
+        />
+        <v-alert
+          v-else-if="errorMessage"
+          type="error"
+          variant="tonal"
+          class="mb-5"
+        >
           {{ errorMessage }}
           <template #append>
-            <v-btn variant="text" @click="loadClass">{{ t('classSeatMap.retry') }}</v-btn>
+            <v-btn variant="text" @click="loadClass">{{
+              t("classSeatMap.retry")
+            }}</v-btn>
           </template>
         </v-alert>
 
@@ -27,16 +40,23 @@
           <v-card class="class-seat-header mb-5" rounded="xl">
             <div class="class-summary">
               <div class="class-identity">
-                <v-avatar color="primary" variant="tonal" rounded="xl" size="48">
+                <v-avatar
+                  color="primary"
+                  variant="tonal"
+                  rounded="xl"
+                  size="48"
+                >
                   <v-icon icon="mdi-google-classroom" size="26" />
                 </v-avatar>
                 <div>
                   <div class="text-overline text-primary font-weight-bold">
-                    {{ t('classSeatMap.eyebrow') }}
+                    {{ t("classSeatMap.eyebrow") }}
                   </div>
                   <h1 class="class-title">{{ schoolClass.name }}</h1>
                   <p class="class-meta text-body-2 text-secondary mb-0">
-                    {{ t('classSeatMap.grade', { grade: schoolClass.gradeLevel }) }}
+                    {{
+                      t("classSeatMap.grade", { grade: schoolClass.gradeLevel })
+                    }}
                     · {{ schoolClass.schoolYear }}
                     <span v-if="schoolClass.homeroomTeacher?.fullName">
                       · {{ schoolClass.homeroomTeacher.fullName }}
@@ -45,27 +65,46 @@
                 </div>
               </div>
               <div class="class-header-actions">
-                <v-chip color="primary" variant="tonal" prepend-icon="mdi-account-group-outline">
-                  {{ t('classSeatMap.studentCount', { count: schoolClass.studentCount }) }}
+                <v-chip
+                  color="primary"
+                  variant="tonal"
+                  prepend-icon="mdi-account-group-outline"
+                >
+                  {{
+                    t("classSeatMap.studentCount", {
+                      count: schoolClass.studentCount,
+                    })
+                  }}
                 </v-chip>
-                <v-btn :to="`/classes/${schoolClass.id}/manual-assignments`" color="primary" variant="tonal" rounded="pill" prepend-icon="mdi-clipboard-edit-outline">
-                  {{ t('classManualAssignments.open') }}
+                <v-btn
+                  :to="`/classes/${schoolClass.id}/manual-assignments`"
+                  color="primary"
+                  variant="tonal"
+                  rounded="pill"
+                  prepend-icon="mdi-clipboard-edit-outline"
+                >
+                  {{ t("classManualAssignments.open") }}
                 </v-btn>
               </div>
             </div>
           </v-card>
 
-          <section class="seat-map-panel pa-4 pa-md-7" :aria-label="t('classSeatMap.aria')">
+          <section
+            class="seat-map-panel pa-4 pa-md-7"
+            :aria-label="t('classSeatMap.aria')"
+          >
             <div class="class-board mb-8">
               <v-icon icon="mdi-human-male-board" class="mr-2" />
-              {{ t('classSeatMap.board') }}
+              {{ t("classSeatMap.board") }}
             </div>
 
             <div
               v-if="schoolClass.students.length"
               class="seat-grid"
               :class="{
-                'seat-grid--medium': schoolClass.students.length >= 10 && schoolClass.students.length < 24,
+                'seat-grid--medium':
+                  schoolClass.students.length >= 10 &&
+                  schoolClass.students.length < 24,
                 'seat-grid--compact': schoolClass.students.length >= 24,
               }"
             >
@@ -73,7 +112,12 @@
                 v-for="(student, index) in pagedStudents"
                 :key="student.id"
                 class="seat-item"
-                :aria-label="t('classSeatMap.seatDescription', { seat: (studentsPage - 1) * pageSize + index + 1, name: student.fullName })"
+                :aria-label="
+                  t('classSeatMap.seatDescription', {
+                    seat: (studentsPage - 1) * pageSize + index + 1,
+                    name: student.fullName,
+                  })
+                "
               >
                 <div class="desk-card">
                   <div class="student-name">{{ student.fullName }}</div>
@@ -81,78 +125,192 @@
                     <v-icon icon="mdi-clock-check-outline" size="14" />
                     <span>{{ formatJoinedAt(student.joinedAt) }}</span>
                   </div>
-                  <v-btn size="x-small" color="primary" variant="tonal" rounded="pill" class="mt-2" @click="openStudentHistory(student)">
-                    <v-icon start icon="mdi-history" />{{ t('classSeatMap.history') }}
+                  <v-btn
+                    size="x-small"
+                    color="primary"
+                    variant="tonal"
+                    rounded="pill"
+                    class="mt-2"
+                    @click="openStudentHistory(student)"
+                  >
+                    <v-icon start icon="mdi-history" />{{
+                      t("classSeatMap.history")
+                    }}
                   </v-btn>
                 </div>
                 <div class="desk-front" aria-hidden="true" />
               </article>
             </div>
 
-            <v-card v-else class="empty-seats pa-8 text-center" rounded="xl" variant="tonal">
-              <v-icon icon="mdi-seat-outline" color="primary" size="48" class="mb-3" />
-              <h2 class="text-h6 font-weight-black mb-2">{{ t('classSeatMap.emptyTitle') }}</h2>
-              <p class="text-body-2 text-secondary mb-0">{{ t('classSeatMap.emptyBody') }}</p>
+            <v-card
+              v-else
+              class="empty-seats pa-8 text-center"
+              rounded="xl"
+              variant="tonal"
+            >
+              <v-icon
+                icon="mdi-seat-outline"
+                color="primary"
+                size="48"
+                class="mb-3"
+              />
+              <h2 class="text-h6 font-weight-black mb-2">
+                {{ t("classSeatMap.emptyTitle") }}
+              </h2>
+              <p class="text-body-2 text-secondary mb-0">
+                {{ t("classSeatMap.emptyBody") }}
+              </p>
             </v-card>
-            <ListPagination v-model="studentsPage" :total="schoolClass.students.length" :page-size="pageSize" />
-
+            <ListPagination
+              v-model="studentsPage"
+              :total="schoolClass.students.length"
+              :page-size="pageSize"
+            />
           </section>
         </template>
       </v-container>
 
       <v-dialog v-model="historyDialog" max-width="760" scrollable>
         <v-card rounded="xl">
-          <v-card-title class="d-flex align-center justify-space-between ga-3 pa-5">
+          <v-card-title
+            class="d-flex align-center justify-space-between ga-3 pa-5"
+          >
             <div class="min-width-0">
-              <div class="text-h6 font-weight-black text-truncate">{{ selectedHistory?.student.fullName }}</div>
-              <div class="text-body-2 text-secondary">{{ selectedHistory?.class.name }} · {{ t('classSeatMap.historyTitle') }}</div>
+              <div class="text-h6 font-weight-black text-truncate">
+                {{ selectedHistory?.student.fullName }}
+              </div>
+              <div class="text-body-2 text-secondary">
+                {{ selectedHistory?.class.name }} ·
+                {{ t("classSeatMap.historyTitle") }}
+              </div>
             </div>
-            <v-btn icon="mdi-close" variant="text" @click="historyDialog = false" />
+            <v-btn
+              icon="mdi-close"
+              variant="text"
+              @click="historyDialog = false"
+            />
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-5">
-            <v-progress-linear v-if="historyLoading" indeterminate color="primary" />
-            <v-alert v-else-if="historyError" type="error" variant="tonal">{{ historyError }}</v-alert>
-            <div v-else-if="!selectedHistory?.attempts.length" class="py-10 text-center text-secondary">
+            <v-progress-linear
+              v-if="historyLoading"
+              indeterminate
+              color="primary"
+            />
+            <v-alert v-else-if="historyError" type="error" variant="tonal">{{
+              historyError
+            }}</v-alert>
+            <div
+              v-else-if="!selectedHistory?.attempts.length"
+              class="py-10 text-center text-secondary"
+            >
               <v-icon icon="mdi-notebook-outline" size="40" class="mb-2" />
-              <div>{{ t('classSeatMap.noHistory') }}</div>
+              <div>{{ t("classSeatMap.noHistory") }}</div>
             </div>
             <div v-else class="student-attempt-list">
-              <article v-for="attempt in pagedStudentAttempts" :key="attempt.id" class="student-attempt-row">
+              <article
+                v-for="attempt in pagedStudentAttempts"
+                :key="attempt.id"
+                class="student-attempt-row"
+              >
                 <div class="min-width-0 flex-grow-1">
-                  <div class="font-weight-bold text-truncate">{{ attempt.assignment.title }}</div>
+                  <div class="font-weight-bold text-truncate">
+                    {{ attempt.assignment.title }}
+                  </div>
                   <div class="text-caption text-secondary mt-1">
-                    {{ t('classSeatMap.attemptNumber', { number: attempt.attemptNo }) }} · {{ formatJoinedAt(attempt.startedAt) }}
-                    <span v-if="attempt.submittedAt"> · {{ t('classSeatMap.submittedAt') }} {{ formatJoinedAt(attempt.submittedAt) }}</span>
+                    {{
+                      t("classSeatMap.attemptNumber", {
+                        number: attempt.attemptNo,
+                      })
+                    }}
+                    · {{ formatJoinedAt(attempt.startedAt) }}
+                    <span v-if="attempt.submittedAt">
+                      · {{ t("classSeatMap.submittedAt") }}
+                      {{ formatJoinedAt(attempt.submittedAt) }}</span
+                    >
                   </div>
                   <div v-if="attempt.activityLogs?.length" class="screen-log">
                     <div class="screen-log-summary">
-                      <v-chip v-if="screenExitCount(attempt)" size="x-small" color="warning" variant="tonal" prepend-icon="mdi-eye-off-outline">
-                        {{ t('classSeatMap.screenExitCount', { count: screenExitCount(attempt) }) }}
+                      <v-chip
+                        v-if="screenExitCount(attempt)"
+                        size="x-small"
+                        color="warning"
+                        variant="tonal"
+                        prepend-icon="mdi-eye-off-outline"
+                      >
+                        {{
+                          t("classSeatMap.screenExitCount", {
+                            count: screenExitCount(attempt),
+                          })
+                        }}
                       </v-chip>
-                      <span v-else class="text-caption text-success">{{ t('classSeatMap.noScreenExit') }}</span>
+                      <span v-else class="text-caption text-success">{{
+                        t("classSeatMap.noScreenExit")
+                      }}</span>
                       <v-btn
                         size="x-small"
                         variant="text"
                         color="primary"
-                        :append-icon="isScreenLogExpanded(attempt.id) ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                        :append-icon="
+                          isScreenLogExpanded(attempt.id)
+                            ? 'mdi-chevron-up'
+                            : 'mdi-chevron-down'
+                        "
                         @click="toggleScreenLog(attempt.id)"
-                      >{{ isScreenLogExpanded(attempt.id) ? t('classSeatMap.hideScreenLog') : t('classSeatMap.showScreenLog') }}</v-btn>
+                        >{{
+                          isScreenLogExpanded(attempt.id)
+                            ? t("classSeatMap.hideScreenLog")
+                            : t("classSeatMap.showScreenLog")
+                        }}</v-btn
+                      >
                     </div>
-                    <div v-if="isScreenLogExpanded(attempt.id)" class="screen-log-details">
-                      <div v-for="event in attempt.activityLogs" :key="event.id" class="screen-log-event">
-                        <span class="screen-log-dot" :class="{ 'screen-log-dot--return': event.action === 'ATTEMPT_SCREEN_RETURNED' }" />
-                        <span class="screen-log-event-label">{{ activityLabel(event.action) }}</span>
+                    <div
+                      v-if="isScreenLogExpanded(attempt.id)"
+                      class="screen-log-details"
+                    >
+                      <div
+                        v-for="event in attempt.activityLogs"
+                        :key="event.id"
+                        class="screen-log-event"
+                      >
+                        <span
+                          class="screen-log-dot"
+                          :class="{
+                            'screen-log-dot--return':
+                              event.action === 'ATTEMPT_SCREEN_RETURNED',
+                          }"
+                        />
+                        <span class="screen-log-event-label">{{
+                          activityLabel(event.action)
+                        }}</span>
                         <time>{{ formatEventDate(event.createdAt) }}</time>
                       </div>
                     </div>
                   </div>
                 </div>
-                <v-chip v-if="attempt.score !== null" color="primary" variant="tonal" size="small">{{ attempt.score }}%</v-chip>
-                <v-chip v-else-if="attempt.submittedAt" color="grey" variant="tonal" size="small">{{ t('classSeatMap.notGraded') }}</v-chip>
-                <v-chip v-else color="warning" variant="tonal" size="small">{{ t('classSeatMap.inProgress') }}</v-chip>
+                <v-chip
+                  v-if="attempt.score !== null"
+                  color="primary"
+                  variant="tonal"
+                  size="small"
+                  >{{ attempt.score }}%</v-chip
+                >
+                <v-chip
+                  v-else-if="attempt.submittedAt"
+                  color="grey"
+                  variant="tonal"
+                  size="small"
+                  >{{ t("classSeatMap.notGraded") }}</v-chip
+                >
+                <v-chip v-else color="warning" variant="tonal" size="small">{{
+                  t("classSeatMap.inProgress")
+                }}</v-chip>
               </article>
-              <ListPagination v-model="historyPage" :total="selectedHistory.attempts.length" :page-size="pageSize" />
+              <ListPagination
+                v-model="historyPage"
+                :total="selectedHistory.attempts.length"
+                :page-size="pageSize"
+              />
             </div>
           </v-card-text>
         </v-card>
@@ -176,14 +334,29 @@ const schoolClass = ref(null);
 const studentsPage = ref(1);
 const historyDialog = ref(false);
 const historyLoading = ref(false);
-const historyError = ref('');
+const historyError = ref("");
 const selectedHistory = ref(null);
 const historyPage = ref(1);
 const expandedScreenLogs = ref({});
 const pageSize = 10;
-const pagedStudents = computed(() => (schoolClass.value?.students || []).slice((studentsPage.value - 1) * pageSize, studentsPage.value * pageSize));
-const pagedStudentAttempts = computed(() => (selectedHistory.value?.attempts || []).slice((historyPage.value - 1) * pageSize, historyPage.value * pageSize));
-watch(() => Math.ceil((schoolClass.value?.students.length || 0) / pageSize), count => { if (studentsPage.value > count) studentsPage.value = Math.max(1, count); });
+const pagedStudents = computed(() =>
+  (schoolClass.value?.students || []).slice(
+    (studentsPage.value - 1) * pageSize,
+    studentsPage.value * pageSize,
+  ),
+);
+const pagedStudentAttempts = computed(() =>
+  (selectedHistory.value?.attempts || []).slice(
+    (historyPage.value - 1) * pageSize,
+    historyPage.value * pageSize,
+  ),
+);
+watch(
+  () => Math.ceil((schoolClass.value?.students.length || 0) / pageSize),
+  (count) => {
+    if (studentsPage.value > count) studentsPage.value = Math.max(1, count);
+  },
+);
 const isLoading = ref(false);
 const errorMessage = ref("");
 
@@ -191,7 +364,9 @@ async function loadClass() {
   isLoading.value = true;
   errorMessage.value = "";
   try {
-    schoolClass.value = await api(`/classes/${encodeURIComponent(route.params.id)}`);
+    schoolClass.value = await api(
+      `/classes/${encodeURIComponent(route.params.id)}`,
+    );
   } catch (error) {
     errorMessage.value = error.message || t("classSeatMap.loadError");
   } finally {
@@ -202,14 +377,16 @@ async function loadClass() {
 async function openStudentHistory(student) {
   historyDialog.value = true;
   historyLoading.value = true;
-  historyError.value = '';
+  historyError.value = "";
   historyPage.value = 1;
   expandedScreenLogs.value = {};
   selectedHistory.value = { class: schoolClass.value, student, attempts: [] };
   try {
-    selectedHistory.value = await api(`/classes/${schoolClass.value.id}/students/${student.id}/attempts`);
+    selectedHistory.value = await api(
+      `/classes/${schoolClass.value.id}/students/${student.id}/attempts`,
+    );
   } catch (error) {
-    historyError.value = error.message || t('classSeatMap.historyError');
+    historyError.value = error.message || t("classSeatMap.historyError");
   } finally {
     historyLoading.value = false;
   }
@@ -227,15 +404,19 @@ function formatJoinedAt(value) {
 }
 
 function screenExitCount(attempt) {
-  return attempt.activityLogs.filter(event => ['ATTEMPT_SCREEN_HIDDEN', 'ATTEMPT_SCREEN_LEFT'].includes(event.action)).length
+  return attempt.activityLogs.filter((event) =>
+    ["ATTEMPT_SCREEN_HIDDEN", "ATTEMPT_SCREEN_LEFT"].includes(event.action),
+  ).length;
 }
 
 function activityLabel(action) {
-  if (action === 'ATTEMPT_STARTED') return t('classSeatMap.activityStarted')
-  if (action === 'ATTEMPT_SUBMITTED') return t('classSeatMap.activitySubmitted')
-  if (action === 'ATTEMPT_SCREEN_HIDDEN') return t('classSeatMap.screenHidden')
-  if (action === 'ATTEMPT_SCREEN_RETURNED') return t('classSeatMap.screenReturned')
-  return t('classSeatMap.screenLeft')
+  if (action === "ATTEMPT_STARTED") return t("classSeatMap.activityStarted");
+  if (action === "ATTEMPT_SUBMITTED")
+    return t("classSeatMap.activitySubmitted");
+  if (action === "ATTEMPT_SCREEN_HIDDEN") return t("classSeatMap.screenHidden");
+  if (action === "ATTEMPT_SCREEN_RETURNED")
+    return t("classSeatMap.screenReturned");
+  return t("classSeatMap.screenLeft");
 }
 
 function isScreenLogExpanded(attemptId) {
@@ -248,8 +429,12 @@ function toggleScreenLog(attemptId) {
 
 function formatEventDate(value) {
   return new Intl.DateTimeFormat(locale.value, {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
   }).format(new Date(value));
 }
 
@@ -267,18 +452,66 @@ onMounted(loadClass);
   background: #fff;
   box-shadow: 0 6px 20px rgba(47, 124, 246, 0.05);
 }
-.student-attempt-list { display: flex; flex-direction: column; }
-.student-attempt-row { display: flex; align-items: flex-start; gap: 14px; padding: 16px 4px; border-bottom: 1px solid #edf2f8; }
-.student-attempt-row:last-of-type { border-bottom: 0; }
-.student-attempt-row > .v-chip { flex: none; }
-.screen-log { margin-top: 9px; }
-.screen-log-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-.screen-log-details { display: grid; gap: 5px; margin-top: 8px; padding: 9px 11px; border: 1px solid #f5e8ca; border-radius: 10px; background: #fffcf5; }
-.screen-log-event { display: grid; grid-template-columns: 8px minmax(0, 1fr) auto; align-items: center; gap: 8px; color: #8b6b38; font-size: .73rem; }
-.screen-log-dot { width: 7px; height: 7px; border-radius: 50%; background: #e5a538; }
-.screen-log-dot--return { background: #36a879; }
-.screen-log-event-label { min-width: 0; }
-.screen-log-event time { color: #8a93a2; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.student-attempt-list {
+  display: flex;
+  flex-direction: column;
+}
+.student-attempt-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 4px;
+  border-bottom: 1px solid #edf2f8;
+}
+.student-attempt-row:last-of-type {
+  border-bottom: 0;
+}
+.student-attempt-row > .v-chip {
+  flex: none;
+}
+.screen-log {
+  margin-top: 9px;
+}
+.screen-log-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.screen-log-details {
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 9px 11px;
+  border: 1px solid #f5e8ca;
+  border-radius: 10px;
+  background: #fffcf5;
+}
+.screen-log-event {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  color: #8b6b38;
+  font-size: 0.73rem;
+}
+.screen-log-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e5a538;
+}
+.screen-log-dot--return {
+  background: #36a879;
+}
+.screen-log-event-label {
+  min-width: 0;
+}
+.screen-log-event time {
+  color: #8a93a2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 
 .class-summary,
 .class-identity {
@@ -290,7 +523,12 @@ onMounted(loadClass);
   justify-content: space-between;
   gap: 20px;
 }
-.class-header-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.class-header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 
 .class-identity {
   min-width: 0;
@@ -373,7 +611,9 @@ onMounted(loadClass);
   border-radius: 15px;
   background: linear-gradient(145deg, #fff 10%, #f3f8ff 100%);
   box-shadow: 0 6px 16px rgba(47, 124, 246, 0.08);
-  transition: transform 160ms ease, box-shadow 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .desk-card:hover {
@@ -452,7 +692,9 @@ onMounted(loadClass);
     gap: 12px;
   }
 
-  .class-header-actions { width: 100%; }
+  .class-header-actions {
+    width: 100%;
+  }
 
   .class-identity {
     align-items: flex-start;

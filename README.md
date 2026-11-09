@@ -42,21 +42,21 @@ Vite sẽ in địa chỉ local trong terminal sau khi khởi động.
 
 ## Các lệnh
 
-| Lệnh | Mô tả |
-| --- | --- |
-| `npm run dev` | Chạy máy chủ phát triển Vite |
-| `npm run build` | Build ứng dụng cho production vào `dist/` |
-| `npm run preview` | Chạy thử bản build production tại local |
+| Lệnh              | Mô tả                                     |
+| ----------------- | ----------------------------------------- |
+| `npm run dev`     | Chạy máy chủ phát triển Vite              |
+| `npm run build`   | Build ứng dụng cho production vào `dist/` |
+| `npm run preview` | Chạy thử bản build production tại local   |
 
 ## Điều hướng chính
 
-| Đường dẫn | Màn hình |
-| --- | --- |
-| `/login` | Đăng nhập và đăng ký |
-| `/` | Danh sách sách |
-| `/books/:id` | Chi tiết sách, chương và bài học |
-| `/lessons/:id` | Nội dung bài học |
-| Các đường dẫn khác | Trang không tìm thấy |
+| Đường dẫn          | Màn hình                         |
+| ------------------ | -------------------------------- |
+| `/login`           | Đăng nhập và đăng ký             |
+| `/`                | Danh sách sách                   |
+| `/books/:id`       | Chi tiết sách, chương và bài học |
+| `/lessons/:id`     | Nội dung bài học                 |
+| Các đường dẫn khác | Trang không tìm thấy             |
 
 Các trang ngoài `/login` yêu cầu có access token. Token và thông tin người dùng được lưu trong `localStorage`; khi token hết hạn, ứng dụng xóa phiên đăng nhập và chuyển về trang đăng nhập.
 

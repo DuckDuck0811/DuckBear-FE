@@ -4,7 +4,9 @@
     color="transparent"
     elevation="0"
   >
-    <div class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between ga-4">
+    <div
+      class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between ga-4"
+    >
       <div class="d-flex align-start ga-4">
         <div class="header-icon-box d-flex align-center justify-center">
           <v-icon :icon="icon" color="primary" size="30" />
@@ -30,7 +32,10 @@
       </div>
 
       <!-- Vùng Nút Hành Động (Align thẳng hàng với flex) -->
-      <div v-if="$slots.actions" class="d-flex flex-wrap align-center ga-3 w-100 w-md-auto justify-start justify-md-end mt-2 mt-md-0">
+      <div
+        v-if="$slots.actions"
+        class="d-flex flex-wrap align-center ga-3 w-100 w-md-auto justify-start justify-md-end mt-2 mt-md-0"
+      >
         <slot name="actions" />
       </div>
     </div>
@@ -41,7 +46,7 @@
 defineProps({
   tag: {
     type: String,
-    default: '',
+    default: "",
   },
   title: {
     type: String,
@@ -49,34 +54,34 @@ defineProps({
   },
   subtitle: {
     type: String,
-    default: '',
+    default: "",
   },
   icon: {
     type: String,
-    default: 'mdi-book-open-variant',
+    default: "mdi-book-open-variant",
   },
-})
+});
 </script>
 
 <style scoped>
 .page-header-banner {
-  background: linear-gradient(135deg, #EAF2FF 0%, #F5F9FF 100%) !important;
+  background: linear-gradient(135deg, #eaf2ff 0%, #f5f9ff 100%) !important;
   border-radius: 20px !important;
-  border: 1px solid #DCE7F7 !important;
+  border: 1px solid #dce7f7 !important;
 }
 
 .header-icon-box {
   width: 52px;
   height: 52px;
   border-radius: 16px;
-  background: #FFFFFF;
-  border: 1px solid #DCE7F7;
+  background: #ffffff;
+  border: 1px solid #dce7f7;
   box-shadow: 0 4px 12px rgba(47, 124, 246, 0.1);
   flex-shrink: 0;
 }
 
 .header-title {
-  color: #1D2939;
+  color: #1d2939;
   line-height: 1.25;
 }
 
@@ -86,4 +91,3 @@ defineProps({
   max-width: 680px;
 }
 </style>
-
