@@ -28,8 +28,10 @@
             <h2 class="question-bank-heading-title text-h6 font-weight-black">{{ lessonTitle }}</h2>
           </div>
           <div v-if="inline && canManage" class="d-flex flex-wrap ga-2 question-bank-heading-actions">
+            <v-btn class="question-bank-action-button question-bank-action-button--secondary" size="small" color="primary" variant="tonal" prepend-icon="mdi-file-word-outline" :loading="isImportingWord" @click="wordFileInput?.click()">{{ t('questionBank.importWord') }}</v-btn>
             <v-btn class="question-bank-action-button question-bank-action-button--secondary" size="small" color="deep-purple" variant="tonal" prepend-icon="mdi-auto-fix" @click="showGenerator = !showGenerator">{{ t('questionBank.generateWithAi') }}</v-btn>
             <v-btn class="question-bank-action-button" size="small" color="primary" prepend-icon="mdi-plus" @click="openCreate">{{ t('questionBank.createQuestion') }}</v-btn>
+            <input ref="wordFileInput" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="d-none" @change="importWordFile" />
           </div>
           <v-btn
             v-if="!inline"
@@ -43,12 +45,12 @@
 
         <v-card-text class="pa-5">
           <v-alert
-            v-if="errorMessage"
-            type="error"
+            v-if="errorMessage || importMessage"
+            :type="errorMessage ? 'error' : (importFailed ? 'warning' : 'success')"
             variant="tonal"
             class="mb-4"
           >
-            {{ errorMessage }}
+            {{ errorMessage || importMessage }}
           </v-alert>
 
           <div v-if="showEditor">
@@ -448,6 +450,7 @@ import { API_BASE_URL, api } from '../services/api';
 import { filterQuestionLists } from '../services/questionBankState.js';
 import { useAuthStore } from '../stores/auth';
 import { useQuestionBankStore } from '../stores/questionBank';
+import { parseWordQuestionFile } from '../services/wordQuestionImport.js';
 import ConfirmDialog from './shared/ConfirmDialog.vue';
 
 const props = defineProps({
@@ -538,10 +541,14 @@ const isLoading = ref(false);
 const isSaving = ref(false);
 const isDeleting = ref(false);
 const isGenerating = ref(false);
+const isImportingWord = ref(false);
+const wordFileInput = ref(null);
 const isSavingAllDrafts = ref(false);
 const savingDraftIndex = ref(null);
 const draftEditingIndex = ref(null);
 const errorMessage = ref('');
+const importMessage = ref('');
+const importFailed = ref(false);
 const aiOptions = reactive({ count: 5, type: 'MIXED', difficulty: 'MIXED', instructions: '' });
 const requiredRules = [
   (value) => !!String(value || '').trim() || t('questionBank.required'),
@@ -835,6 +842,75 @@ async function generateQuestions() {
   } finally {
     isGenerating.value = false;
   }
+}
+
+async function importWordFile(event) {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+  isImportingWord.value = true;
+  errorMessage.value = '';
+  importMessage.value = '';
+  importFailed.value = false;
+  try {
+    if (!file.name.toLowerCase().endsWith('.docx')) throw new Error(t('questionBank.wordFormatError'));
+    if (file.size > 10 * 1024 * 1024) throw new Error(t('questionBank.wordTooLarge'));
+    const importedQuestions = await parseWordQuestionFile(file);
+    if (!importedQuestions.length) throw new Error(t('questionBank.wordNoQuestions'));
+    if (importedQuestions.length > 100) throw new Error(t('questionBank.wordTooManyQuestions'));
+    let saved = 0;
+    let relabeled = 0;
+    const failedQuestions = [];
+    for (const [index, question] of importedQuestions.entries()) {
+      try {
+        const legacyMatch = findUnlabeledImportedQuestion(question);
+        if (legacyMatch) {
+          await api(`/questions/${legacyMatch.id}`, { method: 'PATCH', body: { content: question.content } });
+          legacyMatch.content = question.content;
+          relabeled += 1;
+        } else {
+          await api(`/lessons/${props.lessonId}/questions`, { method: 'POST', body: question });
+          saved += 1;
+        }
+      } catch (error) {
+        failedQuestions.push({ number: index + 1, status: error.status, message: error.message });
+      }
+    }
+    await loadQuestions();
+    const duplicates = failedQuestions.filter((failure) => failure.status === 409);
+    const otherFailures = failedQuestions.filter((failure) => failure.status !== 409);
+    importFailed.value = failedQuestions.length > 0;
+    if (failedQuestions.length) {
+      const details = [
+        t('questionBank.wordImportPartial', { saved, updated: relabeled, duplicates: duplicates.length, failed: otherFailures.length }),
+        ...(duplicates.length ? [t('questionBank.wordImportDuplicateDetails', { numbers: duplicates.map(({ number }) => number).join(', ') })] : []),
+        ...otherFailures.slice(0, 3).map(({ number, message }) => t('questionBank.wordImportFailureDetails', { number, reason: message })),
+      ];
+      importMessage.value = details.join(' ');
+    } else {
+      importMessage.value = t('questionBank.wordImportSuccess', { count: saved + relabeled });
+    }
+  } catch (error) {
+    errorMessage.value = error.message || t('questionBank.wordImportError');
+  } finally {
+    isImportingWord.value = false;
+  }
+}
+
+function findUnlabeledImportedQuestion(importedQuestion) {
+  const label = importedQuestion.content.match(/^Question \d+\.\n\n/);
+  if (!label) return null;
+  const previousContent = importedQuestion.content.slice(label[0].length).trim();
+  const normalizeContent = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+  const optionSignature = (options) => (options || [])
+    .map(({ content, isCorrect, matchContent }) => `${String(content || '').trim()}|${Boolean(isCorrect)}|${String(matchContent || '').trim()}`)
+    .sort()
+    .join('::');
+  return questions.value.find((existing) =>
+    existing.type === importedQuestion.type &&
+    normalizeContent(existing.content) === normalizeContent(previousContent) &&
+    optionSignature(existing.options) === optionSignature(importedQuestion.options),
+  ) || null;
 }
 
 function draftPayload(draft) {
