@@ -11,7 +11,10 @@
             <h1>{{ t('teacherProgress.title') }}</h1>
             <p>{{ t('teacherProgress.subtitle') }}</p>
           </div>
-          <v-select v-model="selectedClassId" :items="classOptions" item-title="title" item-value="value" :label="t('teacherProgress.selectClass')" variant="outlined" density="compact" hide-details class="class-select" />
+          <div class="progress-actions">
+            <v-btn color="primary" variant="tonal" prepend-icon="mdi-microsoft-excel" :loading="exporting" :disabled="!selectedClass" @click="exportProgress">{{ t('teacherProgress.export') }}</v-btn>
+            <v-select v-model="selectedClassId" :items="classOptions" item-title="title" item-value="value" :label="t('teacherProgress.selectClass')" variant="outlined" density="compact" hide-details class="class-select" />
+          </div>
         </header>
 
         <v-alert v-if="error" type="error" variant="tonal" class="mb-4">{{ error }}</v-alert>
@@ -310,6 +313,7 @@ import { api } from '../../services/api'
 import AppHeader from '../../components/shared/AppHeader.vue'
 import TeacherSidebar from '../../components/shared/TeacherSidebar.vue'
 import ListPagination from '../../components/shared/ListPagination.vue'
+import { downloadTeacherProgressWorkbook } from '../../services/teacherProgressExport'
 
 const { t } = useI18n()
 const classes = ref([])
@@ -328,6 +332,7 @@ const detailPage = ref(1)
 const remindingId = ref('')
 const remindedAssignments = ref(new Set())
 const toast = ref({ show: false, message: '', color: 'success' })
+const exporting = ref(false)
 const detailSearch = ref('')
 const detailStatusFilter = ref('ALL')
 const pageSize = 10
@@ -446,6 +451,19 @@ async function remindPending(assignment) {
     toast.value = { show: true, color: 'error', message: cause?.message || t('teacherProgress.reminderError') }
   } finally { remindingId.value = '' }
 }
+function exportProgress() {
+  if (!selectedClass.value) return
+  exporting.value = true
+  try {
+    const keys = ['metric', 'value', 'class', 'grade', 'schoolYear', 'studentCount', 'assignmentCount', 'completion', 'gradedTotal', 'student', 'email', 'submitted', 'totalAssignments', 'graded', 'quizAverage', 'manualAverage', 'assignment', 'type', 'deadline', 'totalStudents', 'online', 'manual']
+    const labels = Object.fromEntries(keys.map((key) => [key, t(`teacherProgress.exportLabels.${key}`)]))
+    const date = new Date().toISOString().slice(0, 10)
+    downloadTeacherProgressWorkbook(selectedClass.value, labels, `duckbear-progress-class-${selectedClass.value.id}-${date}.xlsx`)
+    toast.value = { show: true, color: 'success', message: t('teacherProgress.exportDone') }
+  } catch {
+    toast.value = { show: true, color: 'error', message: t('teacherProgress.exportError') }
+  } finally { exporting.value = false }
+}
 </script>
 
 <style scoped>
@@ -457,6 +475,7 @@ async function remindPending(assignment) {
 .progress-eyebrow { color:#347cf5;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase; }
 .progress-hero h1 { margin:2px 0;color:#1e2c43;font-size:clamp(1.4rem,3vw,1.8rem); }
 .progress-hero p,.report-heading p { margin:0;color:#75839a; }
+.progress-actions { display:flex;align-items:center;gap:10px; }
 .class-select { max-width:260px; }
 .summary-grid { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px; }
 .summary-card { display:grid;grid-template-columns:42px 1fr;column-gap:12px;align-items:center;border:1px solid #e3ebf7;background:#fff; }
@@ -529,6 +548,8 @@ async function remindPending(assignment) {
 @media(max-width:850px){
   .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   .progress-hero{flex-wrap:wrap;}
+  .progress-actions{width:100%;flex-wrap:wrap;}
+  .progress-actions>.v-btn{flex:1;}
   .class-select{max-width:none;width:100%;}
   .report-heading{align-items:stretch;flex-direction:column;}
   .search-field{max-width:none;}
