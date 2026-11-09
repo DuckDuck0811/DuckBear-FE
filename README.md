@@ -1,86 +1,111 @@
-# DuckBear — Frontend
+# DuckBear
 
-DuckBear là giao diện web cho nền tảng học tập trực tuyến. Frontend cung cấp các màn hình đăng nhập, duyệt sách và xem nội dung sách theo chương, bài học; giáo viên có thể quản lý nội dung sách, chương và bài học.
+DuckBear is an online learning platform with a Vue web application and a NestJS API. It supports learning materials, assignments, classes, student progress, and real-time classroom notifications.
 
-## Công nghệ
+This repository contains the frontend. The backend is maintained separately and requires PostgreSQL.
 
-- [Vue 3](https://vuejs.org/) với Single-File Components và Composition API
-- [Vite](https://vite.dev/) để phát triển và build ứng dụng
-- [Vue Router](https://router.vuejs.org/) cho điều hướng
-- [Pinia](https://pinia.vuejs.org/) để quản lý trạng thái
-- [Vuetify](https://vuetifyjs.com/) cho giao diện
-- `fetch` để gọi REST API
+## Project Components
 
-## Yêu cầu
+| Component | Technology | Purpose |
+| --- | --- | --- |
+| Frontend (this repository) | Vue 3, Vite, Vuetify, Pinia | Web application for students, teachers, and administrators |
+| Backend (`BE`) | NestJS, Prisma, PostgreSQL | REST API, authentication, data storage, and real-time events |
 
-- Node.js và npm
-- Backend DuckBear có thể truy cập được để đăng nhập và tải dữ liệu
+## Prerequisites
 
-## Cài đặt và chạy
+- Node.js and npm
+- PostgreSQL for the backend
+- The DuckBear backend repository, available at `BE` alongside this frontend repository
 
-Mở terminal tại thư mục frontend (`FE/FE`), sau đó cài dependencies:
+## Quick Start
 
-```bash
-npm install
+Start the backend and frontend in separate terminals. The commands below assume the workspace contains sibling `BE` and `FE` directories, with this frontend repository at `FE/FE`.
+
+### 1. Configure and start the backend
+
+From the workspace root:
+
+```powershell
+cd BE
+npm ci
 ```
 
-Tạo file `.env` nếu cần cấu hình địa chỉ backend:
+Create `BE/.env` and configure at least `DATABASE_URL` and `JWT_SECRET`. Optional question-generation settings are documented in the backend README.
 
-```dotenv
-VITE_API_BASE_URL=http://localhost:3000
-```
+Generate the Prisma client, apply development migrations, and start the API:
 
-Nếu không khai báo biến này, frontend mặc định gọi API tại `http://localhost:3000`.
-
-Chạy ứng dụng ở chế độ phát triển:
-
-```bash
+```powershell
+npx prisma generate
+npx prisma migrate dev
 npm run dev
 ```
 
-Vite sẽ in địa chỉ local trong terminal sau khi khởi động.
+The API listens on `http://localhost:3000` by default.
 
-## Các lệnh
+### 2. Configure and start the frontend
 
-| Lệnh              | Mô tả                                     |
-| ----------------- | ----------------------------------------- |
-| `npm run dev`     | Chạy máy chủ phát triển Vite              |
-| `npm run build`   | Build ứng dụng cho production vào `dist/` |
-| `npm run preview` | Chạy thử bản build production tại local   |
+In another terminal, from the workspace root:
 
-## Điều hướng chính
-
-| Đường dẫn          | Màn hình                         |
-| ------------------ | -------------------------------- |
-| `/login`           | Đăng nhập và đăng ký             |
-| `/`                | Danh sách sách                   |
-| `/books/:id`       | Chi tiết sách, chương và bài học |
-| `/lessons/:id`     | Nội dung bài học                 |
-| Các đường dẫn khác | Trang không tìm thấy             |
-
-Các trang ngoài `/login` yêu cầu có access token. Token và thông tin người dùng được lưu trong `localStorage`; khi token hết hạn, ứng dụng xóa phiên đăng nhập và chuyển về trang đăng nhập.
-
-## Cấu trúc source
-
-```text
-src/
-├── components/   # Thành phần giao diện dùng chung
-├── plugins/      # Cấu hình plugin, bao gồm i18n
-├── router/       # Khai báo routes và điều hướng
-├── services/     # Hàm gọi API
-├── stores/       # Trạng thái ứng dụng và xác thực (Pinia)
-├── views/        # Các màn hình của ứng dụng
-├── App.vue       # Component gốc
-├── main.js       # Khởi tạo Vue, Pinia, Router và Vuetify
-└── style.css     # Styles toàn cục
+```powershell
+cd FE/FE
+npm ci
+npm run dev
 ```
 
-## Kết nối backend
-
-Đặt `VITE_API_BASE_URL` thành URL của backend trước khi chạy hoặc build frontend. Ví dụ:
+Vite prints the local URL to open in your browser. The frontend uses `http://localhost:3000` as its default API URL. To use a different backend URL, set `VITE_API_BASE_URL` in the frontend `.env` file before starting Vite:
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-Frontend gọi các API xác thực, sách, chương và bài học tại địa chỉ này. Đảm bảo backend đang chạy và cho phép frontend kết nối (CORS).
+## Common Commands
+
+Run commands from the corresponding project directory.
+
+| Project | Command | Description |
+| --- | --- | --- |
+| Frontend | `npm run dev` | Start the Vite development server |
+| Frontend | `npm test` | Run frontend tests |
+| Frontend | `npm run build` | Build the frontend into `dist/` |
+| Frontend | `npm run preview` | Preview the production build locally |
+| Backend | `npm run dev` | Start the NestJS API in watch mode |
+| Backend | `npm test` | Run backend unit tests |
+| Backend | `npm run test:e2e` | Run backend end-to-end tests |
+| Backend | `npm run build` | Build the backend |
+
+## Frontend Routes
+
+| Route | Page |
+| --- | --- |
+| `/login` | Sign in and registration |
+| `/` | Book catalogue |
+| `/books/:id` | Book details, chapters, and lessons |
+| `/lessons/:id` | Lesson content |
+| Other routes | Not found |
+
+Routes other than `/login` require an access token. The frontend stores the token and user information in `localStorage` and returns to the login page when the session expires.
+
+## Frontend Source Structure
+
+```text
+src/
+├── components/   # Shared and feature-specific UI components
+├── plugins/      # Plugins, including internationalization
+├── router/       # Application routes
+├── services/     # API client and other services
+├── stores/       # Pinia application and authentication state
+├── views/        # Application pages
+├── App.vue       # Root component
+├── main.js       # Vue, Pinia, Router, and Vuetify setup
+└── style.css     # Global styles
+```
+
+## Backend and API Configuration
+
+Set `VITE_API_BASE_URL` to the backend URL before running or building the frontend. For a local backend, use:
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:3000
+```
+
+The backend must be running and allow requests from the frontend through CORS. Keep environment files and credentials private.
