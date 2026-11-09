@@ -17,6 +17,12 @@
   --shadow-primary-btn: 0 6px 18px rgba(47, 124, 246, 0.32);
 }
 
+/* Keep every successful snackbar on the same DuckBear mint green. */
+.v-snackbar__wrapper.bg-success {
+  background-color: #2bc48a !important;
+  color: #123329 !important;
+}
+
 *,
 *::before,
 *::after {
