@@ -258,6 +258,16 @@
                     <v-text-field v-model="aiOptions.instructions" :label="t('questionBank.aiInstructions')" :placeholder="t('questionBank.aiInstructionsHint')" variant="outlined" density="comfortable" hide-details />
                   </v-col>
                 </v-row>
+                <div v-if="isGenerating" class="mt-4" aria-live="polite">
+                  <div class="d-flex align-center justify-space-between mb-2">
+                    <span class="text-body-2 font-weight-medium">{{ t('questionBank.aiProgress', { completed: generationProgress.completed, total: generationProgress.total }) }}</span>
+                    <span class="text-caption text-medium-emphasis">{{ Math.round(generationProgress.completed * 100 / Math.max(generationProgress.total, 1)) }}%</span>
+                  </div>
+                  <v-progress-linear :model-value="generationProgress.completed * 100 / Math.max(generationProgress.total, 1)" color="deep-purple" rounded height="7" />
+                  <div v-if="generationProgress.total > generationProgress.completed" class="mt-3 d-flex flex-column ga-2" aria-hidden="true">
+                    <v-skeleton-loader v-for="slot in Math.min(generationProgress.total - generationProgress.completed, 3)" :key="`generation-skeleton-${slot}`" type="list-item-two-line" class="generation-skeleton" />
+                  </div>
+                </div>
                 <v-alert v-if="!isGenerating && generatedQuestions.length" type="info" variant="tonal" density="comfortable" class="mt-4 mb-0">
                   {{ t('questionBank.aiReviewNote') }}
                 </v-alert>
@@ -434,7 +444,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { api } from '../services/api';
+import { API_BASE_URL, api } from '../services/api';
 import { filterQuestionLists } from '../services/questionBankState.js';
 import { useAuthStore } from '../stores/auth';
 import { useQuestionBankStore } from '../stores/questionBank';
@@ -461,6 +471,7 @@ function displayOptionContent(type, content) {
 const showDialog = ref(false);
 const showEditor = ref(false);
 const showGenerator = ref(false);
+const generationProgress = ref({ completed: 0, total: 0 });
 watch(() => props.startWithAi, (open) => { if (open && props.canManage) showGenerator.value = true }, { immediate: true });
 const showDeleteConfirm = ref(false);
 const questions = ref([]);
@@ -767,25 +778,58 @@ async function saveQuestion() {
 async function generateQuestions() {
   isGenerating.value = true;
   errorMessage.value = '';
+  generationProgress.value = { completed: 0, total: Number(aiOptions.count) };
   try {
-    const drafts = await api(`/lessons/${props.lessonId}/questions/generate`, {
+    const path = `/lessons/${props.lessonId}/questions/generate/stream`;
+    const token = localStorage.getItem('accessToken');
+    const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
-      body: {
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({
         count: Number(aiOptions.count),
         type: aiOptions.type === 'MIXED' ? undefined : aiOptions.type,
         difficulty: aiOptions.difficulty === 'MIXED' ? undefined : aiOptions.difficulty,
         instructions: aiOptions.instructions.trim() || undefined,
-      },
+      }),
     });
-    const identifiedDrafts = drafts.map((draft, index) => ({
-      ...draft,
-      draftKey: `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
-    }));
-    questionBankStore.setDrafts(
-      authStore.user?.id,
-      props.lessonId,
-      [...generatedQuestions.value, ...identifiedDrafts],
-    );
+    if (response.status === 401) {
+      window.dispatchEvent(new Event('auth:session-expired'));
+      throw new Error(t('questionBank.aiError'));
+    }
+    if (!response.ok) {
+      let message = t('questionBank.aiError');
+      try { message = (await response.json()).message || message; } catch {}
+      throw new Error(Array.isArray(message) ? message.join(', ') : message);
+    }
+    if (!response.body) throw new Error(t('questionBank.aiError'));
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let received = 0;
+    const consume = (block) => {
+      const lines = block.split(/\r?\n/);
+      const event = lines.find((line) => line.startsWith('event:'))?.slice(6).trim();
+      const data = lines.find((line) => line.startsWith('data:'))?.slice(5).trim();
+      if (!event || !data) return;
+      const payload = JSON.parse(data);
+      if (event === 'question') {
+        const draft = { ...payload, draftKey: `${Date.now()}-${received++}-${Math.random().toString(36).slice(2, 8)}` };
+        questionBankStore.setDrafts(authStore.user?.id, props.lessonId, [...generatedQuestions.value, draft]);
+      } else if (event === 'progress') {
+        generationProgress.value = payload;
+      } else if (event === 'generation-error') {
+        throw new Error(payload.message || t('questionBank.aiError'));
+      }
+    };
+    while (true) {
+      const { value, done } = await reader.read();
+      buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+      const blocks = buffer.split(/\r?\n\r?\n/);
+      buffer = blocks.pop() || '';
+      blocks.forEach(consume);
+      if (done) break;
+    }
+    if (buffer.trim()) consume(buffer);
   } catch (error) {
     errorMessage.value = error.message || t('questionBank.aiError');
   } finally {
