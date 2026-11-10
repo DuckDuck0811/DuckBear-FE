@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { api } from "../services/api";
 
 const storageKey = (ownerId) => `notifications:${ownerId}`;
 
@@ -44,7 +45,24 @@ export const useNotificationsStore = defineStore("notifications", {
       this.persist();
     },
 
+    async refresh() {
+      if (!this.ownerId) return;
+      try {
+        const saved = await api("/notifications/mine");
+        const localItems = this.items.filter((item) => typeof item.id === "string");
+        this.items = [...localItems, ...saved].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+        );
+        this.persist();
+      } catch {
+        // Keep cached and realtime notifications visible while the API is unavailable.
+      }
+    },
+
     dismiss(id) {
+      if (typeof id === "number") {
+        api(`/notifications/${id}/read`, { method: "PATCH" }).catch(() => {});
+      }
       this.items = this.items.filter((item) => item.id !== id);
       this.persist();
     },
