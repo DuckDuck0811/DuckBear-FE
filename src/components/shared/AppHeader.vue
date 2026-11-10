@@ -223,6 +223,12 @@ const showAvatarImage = computed(
     failedAvatarUrl.value !== user.value.avatarUrl,
 );
 
+watch(notificationsOpen, (open) => {
+  if (open && ["STUDENT", "PARENT"].includes(user.value?.role)) {
+    notifications.refresh();
+  }
+});
+
 watch(
   () => user.value?.avatarUrl,
   () => {

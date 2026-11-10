@@ -18,6 +18,7 @@ const questionBankStore = useQuestionBankStore();
 const notificationsStore = useNotificationsStore();
 let classSocket = null;
 let connectionVersion = 0;
+let notificationRefreshTimer = null;
 const handleSessionExpired = () => {
   questionBankStore.clearAllDrafts();
   authStore.logout();
@@ -36,7 +37,18 @@ watch(
     const currentVersion = ++connectionVersion;
     classSocket?.disconnect();
     classSocket = null;
+    clearInterval(notificationRefreshTimer);
+    notificationRefreshTimer = null;
     notificationsStore.setOwner(id || userId || email);
+    if (token && ["STUDENT", "PARENT"].includes(role)) {
+      notificationsStore.refresh();
+    }
+    if (token && role === "STUDENT") {
+      notificationRefreshTimer = setInterval(
+        () => notificationsStore.refresh(),
+        5 * 60 * 1000,
+      );
+    }
     if (!token || !["TEACHER", "ADMIN", "STUDENT"].includes(role)) return;
 
     const { io } = await import("socket.io-client");
@@ -88,6 +100,7 @@ watch(
 onBeforeUnmount(() => {
   window.removeEventListener("auth:session-expired", handleSessionExpired);
   connectionVersion += 1;
+  clearInterval(notificationRefreshTimer);
   classSocket?.disconnect();
 });
 </script>
