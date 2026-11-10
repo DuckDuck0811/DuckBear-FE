@@ -2026,44 +2026,80 @@
       :fullscreen="isMobile"
       scrollable
     >
-      <v-card rounded="xl">
-        <v-card-title class="pa-5 font-weight-black">
-          {{
-            curriculumSelection?.type === "chapter"
-              ? t("schedule.assignChapterTitle")
-              : t("schedule.assignLessonTitle")
-          }}
+      <v-card class="curriculum-assign-dialog rounded-xl">
+        <!-- Header -->
+        <v-card-title class="dialog-heading d-flex align-center justify-space-between pa-5">
+          <div class="d-flex align-center ga-3">
+            <v-avatar color="primary" variant="tonal" rounded="lg" size="42">
+              <v-icon
+                :icon="curriculumSelection?.type === 'chapter' ? 'mdi-folder-outline' : 'mdi-book-open-page-variant-outline'"
+                size="22"
+              />
+            </v-avatar>
+            <div>
+              <h2 class="text-h6 font-weight-black text-slate-800 mb-0">
+                {{
+                  curriculumSelection?.type === "chapter"
+                    ? t("schedule.assignChapterTitle")
+                    : t("schedule.assignLessonTitle")
+                }}
+              </h2>
+              <p class="text-caption text-secondary mb-0">
+                {{
+                  curriculumSelection?.type === "chapter"
+                    ? "Chọn câu hỏi và thiết lập lịch giao bài theo chương."
+                    : "Chọn câu hỏi và cài đặt thời hạn giao bài cho lớp."
+                }}
+              </p>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" @click="curriculumDialog = false" />
         </v-card-title>
-        <v-card-text>
+        <v-divider />
+
+        <v-card-text class="pa-5">
           <v-alert
             v-if="curriculumDialogError"
             type="error"
             variant="tonal"
+            rounded="lg"
             class="mb-4"
           >
             {{ curriculumDialogError }}
             <v-btn
               size="small"
               variant="text"
-              class="ml-2"
+              class="ml-2 font-weight-bold"
               @click="reloadCurriculumQuestionPreview"
               >{{ t("schedule.retry") }}</v-btn
             >
           </v-alert>
-          <div v-if="curriculumSelection" class="curriculum-dialog-source mb-4">
-            <v-icon
-              :icon="
-                curriculumSelection.type === 'chapter'
-                  ? 'mdi-folder-outline'
-                  : 'mdi-book-open-blank-variant-outline'
-              "
-              color="primary"
-            />
-            <div>
-              <strong>{{ curriculumBreadcrumb }}</strong>
-              <span>{{ curriculumForm.deadline?.replace("T", " ") }}</span>
+
+          <!-- Breadcrumb Source Banner -->
+          <div v-if="curriculumSelection" class="curriculum-dialog-banner pa-3 px-4 rounded-xl border mb-4 d-flex align-center justify-space-between flex-wrap ga-2">
+            <div class="d-flex align-center ga-2 min-w-0">
+              <v-icon
+                :icon="
+                  curriculumSelection.type === 'chapter'
+                    ? 'mdi-folder-open-outline'
+                    : 'mdi-bookmark-check-outline'
+                "
+                color="primary"
+                size="20"
+                class="flex-shrink-0"
+              />
+              <div class="min-w-0">
+                <div class="text-body-2 font-weight-bold text-slate-800 text-truncate">
+                  {{ curriculumBreadcrumb }}
+                </div>
+              </div>
             </div>
+            <v-chip v-if="curriculumForm.deadline" size="small" color="primary" variant="tonal" class="font-weight-medium">
+              <v-icon icon="mdi-clock-outline" size="14" class="mr-1" />
+              Hạn: {{ curriculumForm.deadline.replace("T", " ") }}
+            </v-chip>
           </div>
+
           <v-progress-linear
             v-if="curriculumQuestionsLoading"
             indeterminate
@@ -2071,6 +2107,7 @@
             rounded
             class="mb-4"
           />
+
           <v-alert
             v-else-if="
               !curriculumQuestionsLoading &&
@@ -2078,42 +2115,58 @@
             "
             type="info"
             variant="tonal"
+            rounded="lg"
             class="mb-4"
           >
             {{ t("schedule.noCurriculumLessons") }}
           </v-alert>
+
           <template v-else-if="!curriculumQuestionsLoading">
+            <!-- Smart Question Toolbar -->
             <div
               class="d-flex align-center justify-space-between flex-wrap ga-2 mb-2"
             >
-              <div class="text-body-2 font-weight-bold">
-                {{
-                  t("schedule.selectedQuestionSummary", {
-                    count: curriculumSelectedCount,
-                    total: curriculumQuestionCount,
-                  })
-                }}
+              <div class="d-flex align-center ga-2">
+                <v-chip size="small" color="primary" variant="tonal" class="font-weight-bold">
+                  <v-icon icon="mdi-checkbox-marked-circle-outline" size="15" class="mr-1" />
+                  {{
+                    t("schedule.selectedQuestionSummary", {
+                      count: curriculumSelectedCount,
+                      total: curriculumQuestionCount,
+                    })
+                  }}
+                </v-chip>
               </div>
               <v-btn
                 size="small"
-                variant="tonal"
+                rounded="pill"
+                :variant="curriculumAllSelected ? 'tonal' : 'flat'"
+                :color="curriculumAllSelected ? 'secondary' : 'primary'"
+                class="text-none font-weight-bold px-3"
                 @click="toggleAllCurriculumQuestions"
-                >{{
+              >
+                {{
                   curriculumAllSelected
                     ? t("schedule.deselectAllQuestions")
                     : t("schedule.selectAllQuestions")
-                }}</v-btn
-              >
+                }}
+              </v-btn>
             </div>
-            <div class="d-flex flex-wrap ga-2 mb-3">
+
+            <!-- Question Type Chips -->
+            <div class="d-flex flex-wrap ga-1 mb-3">
               <v-chip
                 v-for="(count, type) in curriculumSelectedTypeCounts"
                 :key="type"
-                size="small"
+                size="x-small"
+                color="primary"
                 variant="tonal"
-                >{{ t(`schedule.questionTypes.${type}`) }} · {{ count }}</v-chip
+                class="font-weight-medium"
               >
+                {{ t(`schedule.questionTypes.${type}`) }} · {{ count }}
+              </v-chip>
             </div>
+
             <v-alert
               v-if="
                 curriculumQuestionLessons.some(
@@ -2125,9 +2178,12 @@
               type="info"
               variant="tonal"
               density="compact"
+              rounded="lg"
               class="mb-3"
-              >{{ t("schedule.unselectedLessonWillSkip") }}</v-alert
             >
+              {{ t("schedule.unselectedLessonWillSkip") }}
+            </v-alert>
+
             <v-alert
               v-for="lesson in curriculumQuestionLessons.filter(
                 (item) => !item.questions.length,
@@ -2136,11 +2192,14 @@
               type="warning"
               variant="tonal"
               density="compact"
+              rounded="lg"
               class="mb-2"
             >
               {{ t("schedule.lessonHasNoQuestions", { title: lesson.title }) }}
               {{ t("schedule.emptyLessonWillSkip") }}
             </v-alert>
+
+            <!-- Chapter Mode: Accordion Lessons -->
             <v-expansion-panels
               v-if="curriculumSelection?.type === 'chapter'"
               v-model="expandedCurriculumLessons"
@@ -2151,21 +2210,27 @@
                 v-for="lesson in curriculumQuestionLessons"
                 :key="lesson.id"
                 :value="lesson.id"
+                rounded="xl"
+                class="border mb-2"
+                elevation="0"
               >
-                <v-expansion-panel-title>
-                  <span class="flex-grow-1"
-                    >{{ lesson.title }} ·
-                    {{ curriculumSelectedForLesson(lesson).length }}/{{
-                      lesson.questions.length
-                    }}</span
-                  >
+                <v-expansion-panel-title class="pa-3 px-4">
+                  <div class="d-flex align-center ga-2 flex-grow-1 min-w-0">
+                    <v-icon icon="mdi-bookmark-outline" size="18" color="primary" />
+                    <span class="font-weight-bold text-body-2 text-slate-800 text-truncate">{{ lesson.title }}</span>
+                    <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold flex-shrink-0">
+                      {{ curriculumSelectedForLesson(lesson).length }}/{{ lesson.questions.length }} câu
+                    </v-chip>
+                  </div>
                   <v-text-field
                     v-model="curriculumLessonDates[lesson.id]"
                     type="date"
                     density="compact"
+                    variant="outlined"
+                    rounded="lg"
                     hide-details
                     :min="minimumDeadline.slice(0, 10)"
-                    class="lesson-date-input mr-3"
+                    class="lesson-date-input mr-3 modern-input"
                     :aria-label="
                       t('schedule.lessonDeadline', { title: lesson.title })
                     "
@@ -2175,162 +2240,244 @@
                 <v-expansion-panel-text>
                   <div
                     v-if="lesson.questions.length"
-                    class="question-preview-list"
+                    class="question-scroll-box pa-2 border rounded-lg bg-white"
                   >
                     <div
                       v-for="(question, index) in lesson.questions"
                       :key="question.id"
-                      class="question-preview-row"
+                      class="question-row-compact d-flex align-start pa-2 px-3 mb-1 rounded-lg cursor-pointer"
+                      :class="{
+                        'question-row-selected': curriculumSelectedIds.includes(Number(question.id))
+                      }"
+                      @click="toggleCurriculumQuestion(question.id, !curriculumSelectedIds.includes(Number(question.id)))"
                     >
-                      <v-checkbox-btn
-                        :model-value="
-                          curriculumSelectedIds.includes(Number(question.id))
-                        "
-                        density="compact"
-                        :aria-label="
-                          t('schedule.toggleQuestion', { number: index + 1 })
-                        "
-                        @update:model-value="
-                          toggleCurriculumQuestion(question.id, $event)
-                        "
-                      />
-                      <v-tooltip :text="question.content" location="top">
-                        <template #activator="{ props: tooltipProps }"
-                          ><span
-                            v-bind="tooltipProps"
-                            class="question-preview-content"
-                            >{{ index + 1 }}.
-                            {{ question.preview || question.content }}</span
-                          ></template
-                        >
-                      </v-tooltip>
-                      <v-chip size="x-small" variant="tonal">{{
-                        t(`schedule.questionTypes.${question.type}`)
-                      }}</v-chip>
+                      <div class="d-flex align-start ga-2 min-w-0 flex-grow-1">
+                        <v-checkbox-btn
+                          :model-value="curriculumSelectedIds.includes(Number(question.id))"
+                          density="compact"
+                          color="primary"
+                          class="question-row-checkbox flex-shrink-0"
+                          @click.stop="toggleCurriculumQuestion(question.id, !curriculumSelectedIds.includes(Number(question.id)))"
+                        />
+                        <span class="question-stt-badge flex-shrink-0">
+                          #{{ index + 1 }}
+                        </span>
+                        <div class="question-row-content min-w-0 flex-grow-1">
+                          <div class="question-text text-body-2 font-weight-medium text-slate-800" :title="question.content">
+                            {{ question.preview || question.content }}
+                          </div>
+                          <div class="d-flex align-center ga-1 flex-wrap mt-1">
+                            <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-medium">
+                              {{ t(`schedule.questionTypes.${question.type}`) }}
+                            </v-chip>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div v-else class="text-medium-emphasis">
+                  <div v-else class="text-caption text-secondary py-3 text-center">
                     {{ t("schedule.noQuestionsInLesson") }}
                   </div>
                 </v-expansion-panel-text>
               </v-expansion-panel>
             </v-expansion-panels>
-            <div v-else class="question-preview-list mb-4">
+
+            <!-- Single Lesson Mode: Question List -->
+            <div v-else class="question-scroll-box pa-2 border rounded-xl bg-white mb-4">
               <div
-                v-for="(question, index) in curriculumQuestionLessons[0]
-                  ?.questions || []"
+                v-for="(question, index) in curriculumQuestionLessons[0]?.questions || []"
                 :key="question.id"
-                class="question-preview-row"
+                class="question-row-compact d-flex align-start pa-2 px-3 mb-1 rounded-lg cursor-pointer"
+                :class="{
+                  'question-row-selected': curriculumSelectedIds.includes(Number(question.id))
+                }"
+                @click="toggleCurriculumQuestion(question.id, !curriculumSelectedIds.includes(Number(question.id)))"
               >
-                <v-checkbox-btn
-                  :model-value="
-                    curriculumSelectedIds.includes(Number(question.id))
-                  "
-                  density="compact"
-                  :aria-label="
-                    t('schedule.toggleQuestion', { number: index + 1 })
-                  "
-                  @update:model-value="
-                    toggleCurriculumQuestion(question.id, $event)
-                  "
-                />
-                <v-tooltip :text="question.content" location="top">
-                  <template #activator="{ props: tooltipProps }"
-                    ><span
-                      v-bind="tooltipProps"
-                      class="question-preview-content"
-                      >{{ index + 1 }}.
-                      {{ question.preview || question.content }}</span
-                    ></template
-                  >
-                </v-tooltip>
-                <v-chip size="x-small" variant="tonal">{{
-                  t(`schedule.questionTypes.${question.type}`)
-                }}</v-chip>
+                <div class="d-flex align-start ga-2 min-w-0 flex-grow-1">
+                  <v-checkbox-btn
+                    :model-value="curriculumSelectedIds.includes(Number(question.id))"
+                    density="compact"
+                    color="primary"
+                    class="question-row-checkbox flex-shrink-0"
+                    @click.stop="toggleCurriculumQuestion(question.id, !curriculumSelectedIds.includes(Number(question.id)))"
+                  />
+                  <span class="question-stt-badge flex-shrink-0">
+                    #{{ index + 1 }}
+                  </span>
+                  <div class="question-row-content min-w-0 flex-grow-1">
+                    <div class="question-text text-body-2 font-weight-medium text-slate-800" :title="question.content">
+                      {{ question.preview || question.content }}
+                    </div>
+                    <div class="d-flex align-center ga-1 flex-wrap mt-1">
+                      <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-medium">
+                        {{ t(`schedule.questionTypes.${question.type}`) }}
+                      </v-chip>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </template>
-          <v-select
-            v-model="curriculumForm.classId"
-            :items="calendarClasses"
-            item-title="name"
-            item-value="id"
-            :label="t('schedule.class')"
-            variant="outlined"
-            :disabled="curriculumSubmitting"
-          />
-          <v-text-field
-            v-model="curriculumForm.deadline"
-            type="datetime-local"
-            :label="t('schedule.deadline')"
-            variant="outlined"
-            :min="minimumDeadline"
-            :disabled="curriculumSubmitting"
-          />
-          <v-row dense>
-            <v-col cols="6">
-              <v-text-field
-                v-model.number="curriculumForm.durationMinutes"
-                type="number"
-                min="1"
-                max="300"
-                :label="t('schedule.durationMinutes')"
-                variant="outlined"
-                :disabled="curriculumSubmitting"
-              />
-            </v-col>
-            <v-col cols="6">
-              <v-text-field
-                v-model.number="curriculumForm.maxAttempts"
-                type="number"
-                min="0"
-                :label="t('schedule.maxAttempts')"
-                variant="outlined"
-                :disabled="curriculumSubmitting"
-              />
-            </v-col>
-          </v-row>
-          <template v-if="curriculumSelection?.type === 'chapter'">
-            <v-text-field
-              v-model.number="curriculumForm.intervalDays"
-              type="number"
-              min="1"
-              max="30"
-              :label="t('schedule.intervalDays')"
-              variant="outlined"
-              :disabled="curriculumSubmitting"
-            />
-            <v-checkbox
-              v-model="curriculumForm.skipWeekends"
-              :label="t('schedule.skipWeekends')"
-              color="primary"
-              hide-details
-              :disabled="curriculumSubmitting"
-            />
-            <v-btn
-              size="small"
-              variant="text"
-              class="mt-1"
-              @click="spreadChapterDates"
-              >{{ t("schedule.spreadDates") }}</v-btn
-            >
-          </template>
-          <v-row dense>
-            <v-col cols="6"
-              ><v-switch
-                v-model="curriculumForm.shuffleQuestions"
-                :label="t('schedule.shuffleQuestions')"
-                color="primary"
-                hide-details
-            /></v-col>
-            <v-col cols="6"
-              ><v-switch
-                v-model="curriculumForm.shuffleOptions"
-                :label="t('schedule.shuffleOptions')"
-                color="primary"
-                hide-details
-            /></v-col>
-          </v-row>
+
+          <!-- Form Section Card (Lớp & Thời gian) -->
+          <div class="form-section-card pa-4 rounded-xl border mb-3">
+            <div class="form-section-title mb-3"><span>1</span>Thiết lập giao bài</div>
+            <v-row dense class="mb-2">
+              <v-col cols="12" sm="6">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-google-classroom" size="14" class="mr-1 text-primary" />{{ t('schedule.class') }}
+                </div>
+                <v-select
+                  v-model="curriculumForm.classId"
+                  :items="calendarClasses"
+                  item-title="name"
+                  item-value="id"
+                  placeholder="Chọn lớp học"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  menu-icon="mdi-chevron-down"
+                  hide-details
+                  class="modern-select"
+                  :disabled="curriculumSubmitting"
+                />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-calendar-clock" size="14" class="mr-1 text-primary" />{{ t('schedule.deadline') }}
+                </div>
+                <v-text-field
+                  v-model="curriculumForm.deadline"
+                  type="datetime-local"
+                  placeholder="Chọn hạn nộp bài"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  hide-details
+                  class="modern-input"
+                  :min="minimumDeadline"
+                  :disabled="curriculumSubmitting"
+                />
+              </v-col>
+              <v-col cols="6">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-clock-outline" size="14" class="mr-1 text-primary" />{{ t('schedule.durationMinutes') }}
+                </div>
+                <v-text-field
+                  v-model.number="curriculumForm.durationMinutes"
+                  type="number"
+                  min="1"
+                  max="300"
+                  suffix="phút"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  hide-details
+                  class="modern-input"
+                  :disabled="curriculumSubmitting"
+                />
+              </v-col>
+              <v-col cols="6">
+                <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                  <v-icon icon="mdi-repeat" size="14" class="mr-1 text-primary" />{{ t('schedule.maxAttempts') }}
+                </div>
+                <v-text-field
+                  v-model.number="curriculumForm.maxAttempts"
+                  type="number"
+                  min="0"
+                  placeholder="0 = Vô hạn"
+                  variant="outlined"
+                  rounded="lg"
+                  density="comfortable"
+                  hide-details
+                  class="modern-input"
+                  :disabled="curriculumSubmitting"
+                />
+              </v-col>
+            </v-row>
+
+            <template v-if="curriculumSelection?.type === 'chapter'">
+              <v-row dense class="mb-2">
+                <v-col cols="12" sm="6">
+                  <div class="field-label mb-1 text-caption font-weight-bold text-secondary">
+                    <v-icon icon="mdi-calendar-range" size="14" class="mr-1 text-primary" />{{ t('schedule.intervalDays') }}
+                  </div>
+                  <v-text-field
+                    v-model.number="curriculumForm.intervalDays"
+                    type="number"
+                    min="1"
+                    max="30"
+                    variant="outlined"
+                    rounded="lg"
+                    density="comfortable"
+                    hide-details
+                    class="modern-input"
+                    :disabled="curriculumSubmitting"
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" class="d-flex align-end pb-1">
+                  <v-checkbox
+                    v-model="curriculumForm.skipWeekends"
+                    :label="t('schedule.skipWeekends')"
+                    color="primary"
+                    density="compact"
+                    hide-details
+                    :disabled="curriculumSubmitting"
+                  />
+                  <v-btn
+                    size="small"
+                    variant="tonal"
+                    color="primary"
+                    class="ml-2 text-none font-weight-bold"
+                    @click="spreadChapterDates"
+                  >
+                    {{ t("schedule.spreadDates") }}
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </template>
+
+            <!-- Hai thẻ tùy chọn xáo trộn -->
+            <v-row dense class="mt-1">
+              <v-col cols="12" sm="6">
+                <div
+                  class="shuffle-toggle-card pa-3 px-4 rounded-xl border d-flex align-center justify-space-between cursor-pointer"
+                  :class="{ 'shuffle-toggle-card--active': curriculumForm.shuffleQuestions }"
+                  @click="curriculumForm.shuffleQuestions = !curriculumForm.shuffleQuestions"
+                >
+                  <div class="d-flex align-center ga-3">
+                    <v-avatar size="34" :color="curriculumForm.shuffleQuestions ? 'primary' : 'grey-lighten-3'" :variant="curriculumForm.shuffleQuestions ? 'flat' : 'tonal'" rounded="lg">
+                      <v-icon icon="mdi-shuffle-variant" size="18" :color="curriculumForm.shuffleQuestions ? 'white' : 'secondary'" />
+                    </v-avatar>
+                    <div>
+                      <div class="font-weight-bold text-body-2 text-slate-800">{{ t('schedule.shuffleQuestions') }}</div>
+                      <div class="text-caption text-secondary">Đổi thứ tự câu hỏi giữa các học sinh</div>
+                    </div>
+                  </div>
+                  <v-switch v-model="curriculumForm.shuffleQuestions" color="primary" hide-details density="compact" @click.stop />
+                </div>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <div
+                  class="shuffle-toggle-card pa-3 px-4 rounded-xl border d-flex align-center justify-space-between cursor-pointer"
+                  :class="{ 'shuffle-toggle-card--active': curriculumForm.shuffleOptions }"
+                  @click="curriculumForm.shuffleOptions = !curriculumForm.shuffleOptions"
+                >
+                  <div class="d-flex align-center ga-3">
+                    <v-avatar size="34" :color="curriculumForm.shuffleOptions ? 'primary' : 'grey-lighten-3'" :variant="curriculumForm.shuffleOptions ? 'flat' : 'tonal'" rounded="lg">
+                      <v-icon icon="mdi-format-list-bulleted-type" size="18" :color="curriculumForm.shuffleOptions ? 'white' : 'secondary'" />
+                    </v-avatar>
+                    <div>
+                      <div class="font-weight-bold text-body-2 text-slate-800">{{ t('schedule.shuffleOptions') }}</div>
+                      <div class="text-caption text-secondary">Đổi vị trí các đáp án A, B, C, D</div>
+                    </div>
+                  </div>
+                  <v-switch v-model="curriculumForm.shuffleOptions" color="primary" hide-details density="compact" @click.stop />
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
           <v-progress-linear
             v-if="curriculumSubmitting"
             indeterminate
@@ -2339,10 +2486,12 @@
             class="mt-3"
           />
         </v-card-text>
-        <v-card-actions class="px-5 pb-5">
+
+        <v-card-actions class="px-5 pb-5 pt-3 border-t">
           <v-spacer />
           <v-btn
             variant="text"
+            class="text-none font-weight-bold px-4"
             :disabled="curriculumSubmitting"
             @click="curriculumDialog = false"
             >{{ t("schedule.cancel") }}</v-btn
@@ -2351,6 +2500,7 @@
             color="primary"
             rounded="pill"
             prepend-icon="mdi-send-outline"
+            class="text-none font-weight-bold px-5"
             :loading="curriculumSubmitting"
             :disabled="
               !curriculumForm.classId ||
@@ -5671,5 +5821,171 @@ watch([expandedBooks, expandedChapters], ([bookId, chapterKeys]) => {
     justify-content: flex-start;
     padding: 16px;
   }
+}
+
+/* Curriculum Assign Dialog Styles */
+.curriculum-assign-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  max-height: 90dvh;
+  overflow: hidden;
+}
+.curriculum-assign-dialog .v-card-text {
+  flex: 1 1 auto;
+  overflow-y: auto !important;
+}
+.curriculum-dialog-banner {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0 !important;
+}
+
+/* Modern Form Controls */
+.modern-input :deep(.v-field),
+.modern-select :deep(.v-field) {
+  background: #f8fafc !important;
+  border-radius: 12px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1.5px solid #e2e8f0 !important;
+}
+.modern-input :deep(.v-field__outline),
+.modern-select :deep(.v-field__outline) {
+  display: none !important;
+}
+.modern-input :deep(.v-field:hover),
+.modern-select :deep(.v-field:hover) {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+.modern-input :deep(.v-field--focused),
+.modern-select :deep(.v-field--focused) {
+  background: #ffffff !important;
+  border-color: #3b82f6 !important;
+  box-shadow:
+    0 0 0 3.5px rgba(59, 130, 246, 0.14),
+    0 2px 4px rgba(0, 0, 0, 0.04) !important;
+}
+.modern-input :deep(input),
+.modern-select :deep(.v-select__selection-text) {
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  color: #1e293b !important;
+}
+.lesson-date-input {
+  max-width: 160px;
+}
+
+/* Form Section Card */
+.form-section-card {
+  background: #fbfcfe;
+  border: 1px solid #e8f0fc !important;
+}
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #263b59;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+.form-section-title > span {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: #eaf2ff;
+  color: #2f7cf6;
+  font-size: 0.8rem;
+}
+
+/* Toggle Card Tráo câu hỏi / đáp án */
+.shuffle-toggle-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.2s ease;
+}
+.shuffle-toggle-card:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1 !important;
+}
+.shuffle-toggle-card--active {
+  background: #eff6ff !important;
+  border-color: #93c5fd !important;
+}
+
+/* Question Selection List */
+.question-scroll-box {
+  max-height: 320px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c7d7f0 transparent;
+}
+.question-scroll-box::-webkit-scrollbar {
+  width: 6px;
+}
+.question-scroll-box::-webkit-scrollbar-track {
+  background: transparent;
+}
+.question-scroll-box::-webkit-scrollbar-thumb {
+  background: #c7d7f0;
+  border-radius: 3px;
+}
+
+.question-row-compact {
+  cursor: pointer;
+  border: 1px solid #e8f0fb;
+  transition: all 0.14s ease;
+  background: #fff;
+  min-height: 44px;
+  min-width: 0;
+  max-width: 100%;
+}
+.question-row-checkbox {
+  width: 32px;
+  min-width: 32px;
+  flex: 0 0 32px;
+}
+.question-row-checkbox :deep(.v-selection-control) {
+  width: 32px;
+  min-width: 32px;
+  flex: 0 0 32px;
+}
+.question-row-compact:hover {
+  border-color: #93c5fd;
+  background: #f5f9ff;
+}
+.question-row-selected {
+  border-color: #60a5fa !important;
+  background: #eff6ff !important;
+}
+.question-stt-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  min-width: 30px;
+  flex: 0 0 30px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 6px;
+  background: #e8f0fc;
+  color: #3b82f6;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.question-row-selected .question-stt-badge {
+  background: #bfdbfe;
+  color: #1d4ed8;
+}
+.question-text {
+  line-height: 1.35;
+  font-size: 0.855rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 </style>
