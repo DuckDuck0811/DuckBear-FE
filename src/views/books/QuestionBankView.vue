@@ -142,6 +142,7 @@
                 :lesson-id="selectedLesson.id"
                 :lesson-title="selectedLesson.title"
                 :can-manage="canManageSelectedBook"
+                :can-create="canCreateQuestions"
                 inline
               />
             </template>
@@ -276,6 +277,9 @@ const canManageSelectedBook = computed(
   () =>
     authStore.user?.role === "ADMIN" ||
     Number(selectedBook.value?.createdById) === Number(authStore.user?.id),
+);
+const canCreateQuestions = computed(() =>
+  ["TEACHER", "ADMIN"].includes(authStore.user?.role),
 );
 
 async function loadBooks() {

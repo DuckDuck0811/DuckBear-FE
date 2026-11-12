@@ -46,9 +46,18 @@
             </h2>
           </div>
           <div
-            v-if="inline && canManage"
+            v-if="inline && canCreate"
             class="d-flex flex-wrap ga-2 question-bank-heading-actions"
           >
+            <v-btn
+              class="question-bank-action-button question-bank-action-button--secondary"
+              size="small"
+              color="success"
+              variant="tonal"
+              prepend-icon="mdi-earth"
+              @click="openPublicQuestions"
+              >{{ t("questionBank.publicLibrary") }}</v-btn
+            >
             <v-btn
               class="question-bank-action-button question-bank-action-button--secondary"
               size="small"
@@ -362,7 +371,7 @@
             </div>
 
             <v-alert
-              v-if="!canManage && questionBankCount"
+              v-if="!canManage && !canCreate && questionBankCount"
               type="info"
               variant="tonal"
               density="comfortable"
@@ -620,7 +629,7 @@
                   </div>
                   <div class="d-flex flex-wrap ga-1">
                     <v-btn
-                      v-if="canManage"
+                      v-if="canCreate"
                       size="small"
                       variant="text"
                       prepend-icon="mdi-pencil-outline"
@@ -628,7 +637,7 @@
                       >{{ t("questionBank.editDraft") }}</v-btn
                     >
                     <v-btn
-                      v-if="canManage"
+                      v-if="canCreate"
                       size="small"
                       color="success"
                       variant="tonal"
@@ -765,7 +774,17 @@
                   </div>
                   <div class="d-flex ga-2 question-actions">
                     <v-btn
-                      v-if="canManage"
+                      v-if="canEditQuestion(question)"
+                      :icon="question.isPublic ? 'mdi-earth' : 'mdi-earth-off'"
+                      size="small"
+                      variant="text"
+                      :color="question.isPublic ? 'success' : undefined"
+                      :aria-label="t(question.isPublic ? 'questionBank.makePrivate' : 'questionBank.makePublic')"
+                      :title="t(question.isPublic ? 'questionBank.makePrivate' : 'questionBank.makePublic')"
+                      @click="togglePublic(question)"
+                    />
+                    <v-btn
+                      v-if="canEditQuestion(question)"
                       icon="mdi-pencil-outline"
                       size="small"
                       variant="text"
@@ -773,7 +792,7 @@
                       @click="openEdit(question)"
                     />
                     <v-btn
-                      v-if="canManage"
+                      v-if="canEditQuestion(question)"
                       icon="mdi-trash-can-outline"
                       size="small"
                       variant="text"
@@ -828,7 +847,7 @@
                 }}
               </p>
               <v-chip
-                v-if="!canManage && !questionBankCount"
+                v-if="!canManage && !canCreate && !questionBankCount"
                 class="mt-3"
                 color="secondary"
                 variant="tonal"
@@ -841,6 +860,30 @@
         </v-card-text>
       </v-card>
     </component>
+
+    <v-dialog v-model="showPublicQuestions" max-width="760" scrollable>
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center justify-space-between">
+          {{ t("questionBank.publicLibrary") }}
+          <v-btn icon="mdi-close" variant="text" @click="showPublicQuestions = false" />
+        </v-card-title>
+        <v-card-text>
+          <v-alert v-if="publicQuestionsError" type="error" variant="tonal" class="mb-3">{{ publicQuestionsError }}</v-alert>
+          <v-progress-linear v-if="loadingPublicQuestions" indeterminate class="mb-3" />
+          <v-card v-for="item in publicQuestions" :key="item.id" variant="outlined" class="pa-3 mb-3">
+            <div class="d-flex align-start justify-space-between ga-3">
+              <div>
+                <div class="text-caption text-medium-emphasis">{{ item.createdBy?.fullName }} · {{ item.lesson?.chapter?.book?.title }} / {{ item.lesson?.title }}</div>
+                <div class="font-weight-bold mt-1">{{ item.content }}</div>
+                <div class="text-caption mt-1">{{ t(`questionBank.types.${item.type}`) }} · {{ item.options?.map(option => displayOptionContent(item.type, option.content)).join(" · ") }}</div>
+              </div>
+              <v-btn v-if="canCreate" size="small" color="primary" variant="tonal" prepend-icon="mdi-content-copy" :loading="copyingPublicId === item.id" @click="copyPublicQuestion(item)">{{ t("questionBank.copyPublic") }}</v-btn>
+            </div>
+          </v-card>
+          <p v-if="!loadingPublicQuestions && !publicQuestions.length" class="text-center text-medium-emphasis">{{ t("questionBank.noPublicQuestions") }}</p>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <ConfirmDialog
       v-model="showDeleteConfirm"
@@ -882,12 +925,16 @@ const props = defineProps({
   lessonTitle: { type: String, required: true },
   inline: { type: Boolean, default: false },
   canManage: { type: Boolean, default: true },
+  canCreate: { type: Boolean, default: true },
   startWithAi: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
 const authStore = useAuthStore();
 const questionBankStore = useQuestionBankStore();
+const canEditQuestion = (question) =>
+  authStore.user?.role === "ADMIN" ||
+  Number(question.createdById) === Number(authStore.user?.id);
 
 function displayOptionContent(type, content) {
   if (type !== "TRUE_FALSE") return content;
@@ -904,11 +951,16 @@ const generationProgress = ref({ completed: 0, total: 0 });
 watch(
   () => props.startWithAi,
   (open) => {
-    if (open && props.canManage) showGenerator.value = true;
+    if (open && props.canCreate) showGenerator.value = true;
   },
   { immediate: true },
 );
 const showDeleteConfirm = ref(false);
+const showPublicQuestions = ref(false);
+const publicQuestions = ref([]);
+const loadingPublicQuestions = ref(false);
+const publicQuestionsError = ref("");
+const copyingPublicId = ref(null);
 const questions = ref([]);
 const visibleQuestionCount = ref(10);
 const questionSearch = ref("");
@@ -1103,6 +1155,46 @@ async function loadQuestions() {
     errorMessage.value = error.message || t("questionBank.loadError");
   } finally {
     isLoading.value = false;
+  }
+}
+
+async function openPublicQuestions() {
+  showPublicQuestions.value = true;
+  loadingPublicQuestions.value = true;
+  publicQuestionsError.value = "";
+  try {
+    publicQuestions.value = await api("/public-questions");
+  } catch (error) {
+    publicQuestionsError.value = error.message || t("questionBank.loadError");
+  } finally {
+    loadingPublicQuestions.value = false;
+  }
+}
+
+async function togglePublic(question) {
+  try {
+    const result = await api(`/questions/${question.id}/public`, {
+      method: "PATCH",
+      body: { isPublic: !question.isPublic },
+    });
+    question.isPublic = result.isPublic;
+  } catch (error) {
+    errorMessage.value = error.message || t("questionBank.saveError");
+  }
+}
+
+async function copyPublicQuestion(question) {
+  copyingPublicId.value = question.id;
+  try {
+    await api(`/public-questions/${question.id}/copy`, {
+      method: "POST",
+      body: { lessonId: Number(props.lessonId) },
+    });
+    await loadQuestions();
+  } catch (error) {
+    publicQuestionsError.value = error.message || t("questionBank.saveError");
+  } finally {
+    copyingPublicId.value = null;
   }
 }
 
