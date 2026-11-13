@@ -1,5 +1,8 @@
 <template>
-  <v-layout class="min-vh-100 assignment-take-page">
+  <v-layout
+    class="min-vh-100 assignment-take-page"
+    :class="'mode-' + resolvedDisplayMode"
+  >
     <AppHeader />
     <StudentSidebar />
     <v-main class="pb-16">
@@ -85,13 +88,14 @@
         </template>
 
         <template v-else-if="assignment">
-          <v-card class="pa-5 pa-md-7 mb-5" rounded="xl">
+          <!-- Header Thông tin bài tập -->
+          <v-card class="pa-5 pa-md-7 mb-4" rounded="xl">
             <div
               class="d-flex flex-wrap align-center justify-space-between ga-3"
             >
               <div>
                 <div class="text-overline text-primary">
-                  {{ assignment.class.name }} ·
+                  {{ assignment.class?.name }} ·
                   {{ assignment.lesson?.title || assignment.book?.title }}
                 </div>
                 <h1 class="text-h4 font-weight-black">
@@ -118,203 +122,47 @@
             </div>
           </v-card>
 
-          <v-card
+          <!-- DECORATOR THEO CHẾ ĐỘ HIỂN THỊ -->
+          <FunModeDecorator
+            v-if="resolvedDisplayMode === 'fun'"
+            :total-questions="totalQuestions"
+            :answered-count="answeredCount"
+            :stars="stars"
+          />
+          <CompetitiveModeDecorator
+            v-else-if="resolvedDisplayMode === 'competitive'"
+            :total-questions="totalQuestions"
+            :answered-count="answeredCount"
+            :streak="streak"
+          />
+          <FocusModeDecorator
+            v-else
+            :total-questions="totalQuestions"
+            :answered-count="answeredCount"
+            :answered-indices="answeredIndices"
+            @jump="scrollToQuestion"
+          />
+
+          <!-- DANH SÁCH CÂU HỎI DÙNG CHUNG -->
+          <QuestionItem
             v-for="(item, index) in assignment.questions"
+            :id="'question-card-' + index"
             :key="item.question.id"
-            class="pa-5 pa-md-6 mb-4"
-            rounded="xl"
-          >
-            <div class="d-flex align-center ga-2 mb-3">
-              <v-chip size="small" color="primary" variant="tonal">{{
-                t("questionBank.questionNumber", { number: index + 1 })
-              }}</v-chip
-              ><v-chip size="x-small" variant="tonal">{{
-                t(`questionBank.types.${item.question.type}`)
-              }}</v-chip>
-            </div>
-            <div class="text-body-1 font-weight-bold mb-4">
-              {{ item.question.content }}
-            </div>
+            :item="item"
+            :index="index"
+            :answer="answers[item.question.id]"
+            :mode="resolvedDisplayMode"
+            @answered="handleAnswered(index)"
+          />
 
-            <v-radio-group
-              v-if="['MCQ', 'TRUE_FALSE'].includes(item.question.type)"
-              v-model="answers[item.question.id].selectedOptionId"
-              hide-details
-            >
-              <v-radio
-                v-for="option in item.question.options"
-                :key="option.id"
-                :label="
-                  displayOptionContent(item.question.type, option.content)
-                "
-                :value="option.id"
-              />
-            </v-radio-group>
-            <div v-else-if="item.question.type === 'MULTI_MCQ'">
-              <v-checkbox
-                v-for="option in item.question.options"
-                :key="option.id"
-                :model-value="
-                  answers[item.question.id].selectedOptionIds.includes(
-                    option.id,
-                  )
-                "
-                :label="option.content"
-                hide-details
-                density="compact"
-                @update:model-value="
-                  toggleOption(item.question.id, option.id, $event)
-                "
-              />
-            </div>
-            <div
-              v-else-if="item.question.type === 'MATCHING'"
-              class="d-flex flex-column ga-2"
-            >
-              <div
-                v-for="option in item.question.options"
-                :key="option.id"
-                class="d-flex flex-column flex-sm-row align-sm-center ga-3"
-              >
-                <div class="flex-grow-1">{{ option.content }}</div>
-                <v-select
-                  v-model="answers[item.question.id].matchAnswers[option.id]"
-                  :items="item.question.matchTargets"
-                  :label="t('assignmentHub.chooseMatch')"
-                  variant="outlined"
-                  density="compact"
-                  hide-details
-                  class="match-select"
-                />
-              </div>
-            </div>
-            <div
-              v-else-if="
-                item.question.type === 'DRAG_DROP' &&
-                item.question.options.length === 4
-              "
-              class="drag-drop-activity"
-            >
-              <p class="drag-instruction">{{ t("assignmentHub.dragTip") }}</p>
-              <div class="drag-token-bank">
-                <span class="drag-bank-label">{{
-                  t("assignmentHub.draggableItems")
-                }}</span>
-                <button
-                  v-for="option in item.question.options"
-                  :key="option.id"
-                  type="button"
-                  class="drag-token"
-                  :class="{
-                    'drag-token--selected':
-                      selectedDrag?.questionId === item.question.id &&
-                      selectedDrag?.optionId === option.id,
-                    'drag-token--placed': isDragItemPlaced(
-                      item.question.id,
-                      option.id,
-                    ),
-                  }"
-                  draggable="true"
-                  @dragstart="beginDrag(item.question.id, option.id, $event)"
-                  @dragend="selectedDrag = null"
-                  @click="selectDragItem(item.question.id, option.id)"
-                >
-                  <v-icon icon="mdi-drag" size="16" />{{ option.content }}
-                </button>
-              </div>
-              <div
-                class="drop-target"
-                :class="{
-                  'drop-target--filled':
-                    answers[item.question.id].selectedOptionId,
-                }"
-                @dragover.prevent
-                @drop.prevent="dropOnTarget(item.question.id, $event)"
-                @click="dropSelectedItem(item.question.id)"
-              >
-                <span class="drop-target-label">{{
-                  t("assignmentHub.answerSlot")
-                }}</span>
-                <span
-                  v-if="answers[item.question.id].selectedOptionId"
-                  class="drop-target-content"
-                  >{{
-                    item.question.options.find(
-                      (option) =>
-                        option.id ===
-                        Number(answers[item.question.id].selectedOptionId),
-                    )?.content
-                  }}</span
-                >
-                <span v-else class="drop-target-placeholder">{{
-                  t("assignmentHub.dropHere")
-                }}</span>
-              </div>
-            </div>
-            <v-alert
-              v-else-if="item.question.type === 'DRAG_DROP'"
-              type="warning"
-              variant="tonal"
-              density="comfortable"
-              >{{ t("questionBank.noDragData") }}</v-alert
-            >
-            <v-textarea
-              v-else
-              v-model="answers[item.question.id].answerText"
-              :label="
-                item.question.type === 'FILL'
-                  ? t('assignmentHub.yourAnswer')
-                  : t('assignmentHub.writeAnswer')
-              "
-              variant="outlined"
-              rows="2"
-              auto-grow
-              hide-details
-            />
-            <template v-if="item.question.type === 'ESSAY'">
-              <v-file-input
-                :label="t('assignmentHub.attachWork')"
-                accept="image/png,image/jpeg,image/webp"
-                prepend-icon="mdi-camera-outline"
-                variant="outlined"
-                density="compact"
-                hide-details
-                class="mt-4"
-                @update:model-value="
-                  (file) => handleAnswerImage(item.question.id, file)
-                "
-              />
-              <div
-                v-if="answers[item.question.id].imageUrl"
-                class="attached-work mt-3"
-              >
-                <v-img
-                  :src="answers[item.question.id].imageUrl"
-                  :alt="t('assignmentHub.attachedWork')"
-                  max-height="240"
-                  width="100%"
-                  cover
-                  rounded="lg"
-                />
-                <v-btn
-                  size="small"
-                  variant="text"
-                  color="error"
-                  prepend-icon="mdi-delete-outline"
-                  class="mt-1"
-                  @click="answers[item.question.id].imageUrl = null"
-                  >{{ t("assignmentHub.removeAttachment") }}</v-btn
-                >
-              </div>
-            </template>
-          </v-card>
-
-          <div class="d-flex justify-end">
+          <div class="d-flex justify-end mt-6">
             <v-btn
               color="primary"
               size="large"
               prepend-icon="mdi-send"
               :loading="submitting"
+              rounded="pill"
+              class="px-6 font-weight-bold"
               @click="submitAttempt"
               >{{ t("assignmentHub.submit") }}</v-btn
             >
@@ -339,6 +187,11 @@ import { useI18n } from "vue-i18n";
 import { api } from "../../services/api";
 import AppHeader from "../../components/shared/AppHeader.vue";
 import StudentSidebar from "../../components/shared/StudentSidebar.vue";
+import QuestionItem from "../../components/assignment/QuestionItem.vue";
+import FunModeDecorator from "../../components/assignment/modes/FunModeDecorator.vue";
+import CompetitiveModeDecorator from "../../components/assignment/modes/CompetitiveModeDecorator.vue";
+import FocusModeDecorator from "../../components/assignment/modes/FocusModeDecorator.vue";
+import "../../styles/display-modes.css";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -351,11 +204,53 @@ const attemptNo = ref(1);
 const startedAt = ref(null);
 const result = ref(null);
 const answers = reactive({});
-const selectedDrag = ref(null);
 const now = ref(Date.now());
+const stars = ref(0);
+const streak = ref(0);
 let timer = null;
 let screenHidden = false;
-const maxImageBytes = 2 * 1024 * 1024;
+
+const resolvedDisplayMode = computed(() => {
+  return (
+    assignment.value?.resolved_display_mode ||
+    assignment.value?.resolvedDisplayMode ||
+    "focus"
+  );
+});
+
+const totalQuestions = computed(() => assignment.value?.questions?.length || 0);
+
+const answeredIndices = computed(() => {
+  if (!assignment.value?.questions) return [];
+  const indices = [];
+  assignment.value.questions.forEach(({ question }, index) => {
+    const a = answers[question.id];
+    if (!a) return;
+    const hasSingle = a.selectedOptionId !== null && a.selectedOptionId !== undefined;
+    const hasMulti = Array.isArray(a.selectedOptionIds) && a.selectedOptionIds.length > 0;
+    const hasText = typeof a.answerText === "string" && a.answerText.trim().length > 0;
+    const hasImage = typeof a.imageUrl === "string" && a.imageUrl.length > 0;
+    const hasMatch = a.matchAnswers && Object.keys(a.matchAnswers).length > 0;
+    if (hasSingle || hasMulti || hasText || hasImage || hasMatch) {
+      indices.push(index);
+    }
+  });
+  return indices;
+});
+
+const answeredCount = computed(() => answeredIndices.value.length);
+
+function handleAnswered(index) {
+  stars.value = answeredCount.value * 2;
+  streak.value = answeredCount.value;
+}
+
+function scrollToQuestion(index) {
+  const el = document.getElementById("question-card-" + index);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
 
 watch(
   answers,
@@ -462,111 +357,13 @@ async function startAttempt() {
     } catch {
       /* Ignore an invalid local draft and start with blank answers. */
     }
+    stars.value = answeredCount.value * 2;
+    streak.value = answeredCount.value;
   } catch (error) {
     errorMessage.value = error.message;
   } finally {
     loading.value = false;
   }
-}
-
-function toggleOption(questionId, optionId, checked) {
-  const selected = new Set(answers[questionId].selectedOptionIds);
-  checked ? selected.add(optionId) : selected.delete(optionId);
-  answers[questionId].selectedOptionIds = [...selected];
-}
-
-function handleAnswerImage(questionId, selection) {
-  const file = Array.isArray(selection) ? selection[0] : selection;
-  if (!file) return;
-  if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
-    errorMessage.value = t("assignmentHub.imageTypeError");
-    return;
-  }
-  if (file.size > maxImageBytes) {
-    errorMessage.value = t("assignmentHub.imageSizeError");
-    return;
-  }
-  const otherImageBytes = Object.entries(answers).reduce(
-    (total, [id, answer]) => {
-      if (Number(id) === Number(questionId) || !answer.imageUrl) return total;
-      return total + estimatedDataUrlBytes(answer.imageUrl);
-    },
-    0,
-  );
-  if (otherImageBytes + file.size > maxImageBytes) {
-    errorMessage.value = t("assignmentHub.imageTotalSizeError");
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = () => {
-    answers[questionId].imageUrl = String(reader.result);
-    errorMessage.value = "";
-  };
-  reader.onerror = () => {
-    errorMessage.value = t("assignmentHub.imageReadError");
-  };
-  reader.readAsDataURL(file);
-}
-
-function estimatedDataUrlBytes(value) {
-  const base64 = String(value).split(",")[1] || "";
-  return (
-    Math.floor((base64.length * 3) / 4) -
-    (base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0)
-  );
-}
-
-function displayOptionContent(type, content) {
-  if (type !== "TRUE_FALSE") return content;
-  if (/^(true|đúng)$/i.test(String(content || "").trim()))
-    return t("questionBank.true");
-  if (/^(false|sai)$/i.test(String(content || "").trim()))
-    return t("questionBank.false");
-  return content;
-}
-
-function beginDrag(questionId, optionId, event) {
-  selectedDrag.value = { questionId, optionId };
-  event.dataTransfer.effectAllowed = "move";
-  event.dataTransfer.setData("text/plain", `${questionId}:${optionId}`);
-}
-
-function selectDragItem(questionId, optionId) {
-  selectedDrag.value =
-    selectedDrag.value?.questionId === questionId &&
-    selectedDrag.value?.optionId === optionId
-      ? null
-      : { questionId, optionId };
-}
-
-function dropSelectedItem(questionId) {
-  if (selectedDrag.value?.questionId !== questionId) return;
-  placeDragItem(questionId, selectedDrag.value.optionId);
-  selectedDrag.value = null;
-}
-
-function dropOnTarget(questionId, event) {
-  const [dragQuestionId, optionId] = (
-    event.dataTransfer.getData("text/plain") || ""
-  )
-    .split(":")
-    .map(Number);
-  const drag =
-    dragQuestionId === questionId && optionId
-      ? optionId
-      : selectedDrag.value?.questionId === questionId
-        ? selectedDrag.value.optionId
-        : null;
-  if (drag) placeDragItem(questionId, drag);
-  selectedDrag.value = null;
-}
-
-function placeDragItem(questionId, optionId) {
-  answers[questionId].selectedOptionId = Number(optionId);
-}
-
-function isDragItemPlaced(questionId, optionId) {
-  return Number(answers[questionId]?.selectedOptionId) === Number(optionId);
 }
 
 async function submitAttempt() {
