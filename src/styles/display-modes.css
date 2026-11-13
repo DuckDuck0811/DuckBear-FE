@@ -1,0 +1,119 @@
+/* ==========================================================================
+   Display Modes CSS Tokens & Styles
+   fun (Vui học), competitive (Thi đua), focus (Tập trung)
+   ========================================================================== */
+
+/* 1. CHẾ ĐỘ VUI HỌC (FUN MODE) */
+.assignment-take-page.mode-fun {
+  background: linear-gradient(180deg, #fff9e6 0%, #f0fdf4 100%) !important;
+  font-family: "Nunito", -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+.mode-fun .quiz-card {
+  border-radius: 24px !important;
+  border: 3px solid #fef08a !important;
+  box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.2), 0 8px 10px -6px rgba(251, 191, 36, 0.1) !important;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 1.12rem !important;
+}
+
+.mode-fun .quiz-card:hover {
+  transform: translateY(-2px);
+}
+
+.mode-fun .fun-mascot-box {
+  background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+  border: 2px dashed #f59e0b;
+}
+
+.mode-fun .btn-fun-action {
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35) !important;
+}
+
+.mode-fun .star-burst {
+  animation: starPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes starPop {
+  0% { transform: scale(0.4) rotate(-20deg); opacity: 0; }
+  60% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* 2. CHẾ ĐỘ THI ĐUA (COMPETITIVE MODE) */
+.assignment-take-page.mode-competitive {
+  background: linear-gradient(180deg, #f0f4ff 0%, #faf5ff 100%) !important;
+}
+
+.mode-competitive .quiz-card {
+  border-radius: 14px !important;
+  border: 1px solid #c7d2fe !important;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mode-competitive .quiz-card:focus-within,
+.mode-competitive .quiz-card--active {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+}
+
+.mode-competitive .streak-badge {
+  background: linear-gradient(135deg, #ef4444 0%, #f97316 100%) !important;
+  color: #ffffff !important;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+  animation: flamePulse 2s infinite ease-in-out;
+}
+
+@keyframes flamePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.mode-competitive .leaderboard-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%);
+  border: 1px solid #ddd6fe;
+}
+
+/* 3. CHẾ ĐỘ TẬP TRUNG (FOCUS MODE) */
+.assignment-take-page.mode-focus {
+  background: #f8fafc !important;
+}
+
+.mode-focus .quiz-card {
+  border-radius: 8px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  background: #ffffff !important;
+}
+
+.mode-focus .focus-navigator {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.mode-focus .focus-nav-btn {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.mode-focus * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .mode-fun .quiz-card {
+    font-size: 1rem !important;
+    border-radius: 18px !important;
+    padding: 16px !important;
+  }
+}

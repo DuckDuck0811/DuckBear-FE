@@ -467,19 +467,29 @@
                       "
                     />
                   </v-btn>
-                  <v-btn
-                    v-else
-                    variant="tonal"
-                    color="primary"
-                    rounded="pill"
-                    size="small"
-                    prepend-icon="mdi-clipboard-list-outline"
-                    class="font-weight-bold text-none px-3"
-                    title="Bài nộp"
-                    @click="openSubmissions(assignment)"
-                  >
-                    Bài nộp
-                  </v-btn>
+                  <div v-else class="d-flex align-center justify-center ga-1">
+                    <v-btn
+                      variant="tonal"
+                      color="primary"
+                      rounded="pill"
+                      size="small"
+                      prepend-icon="mdi-clipboard-list-outline"
+                      class="font-weight-bold text-none px-3"
+                      title="Bài nộp"
+                      @click="openSubmissions(assignment)"
+                    >
+                      Bài nộp
+                    </v-btn>
+                    <v-btn
+                      variant="tonal"
+                      color="secondary"
+                      rounded="pill"
+                      size="small"
+                      icon="mdi-cog-outline"
+                      :title="t('assignmentHub.editAssignment')"
+                      @click="openEditAssignment(assignment)"
+                    />
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -638,19 +648,28 @@
                     "
                   />
                 </v-btn>
-                <v-btn
-                  v-else
-                  variant="tonal"
-                  color="primary"
-                  rounded="pill"
-                  size="small"
-                  block
-                  prepend-icon="mdi-clipboard-list-outline"
-                  class="font-weight-bold text-none"
-                  @click="openSubmissions(assignment)"
-                >
-                  {{ t("assignmentHub.viewSubmissions") }}
-                </v-btn>
+                <div v-else class="d-flex align-center ga-2">
+                  <v-btn
+                    variant="tonal"
+                    color="primary"
+                    rounded="pill"
+                    size="small"
+                    prepend-icon="mdi-clipboard-list-outline"
+                    class="font-weight-bold text-none flex-grow-1"
+                    @click="openSubmissions(assignment)"
+                  >
+                    {{ t("assignmentHub.viewSubmissions") }}
+                  </v-btn>
+                  <v-btn
+                    variant="tonal"
+                    color="secondary"
+                    icon="mdi-cog-outline"
+                    rounded="pill"
+                    size="small"
+                    :title="t('assignmentHub.editAssignment')"
+                    @click="openEditAssignment(assignment)"
+                  />
+                </div>
               </div>
             </v-card>
           </v-col>
@@ -1407,6 +1426,49 @@
               </v-col>
             </v-row>
 
+            <!-- Chọn Chế độ làm bài -->
+            <div class="mb-4">
+              <div
+                class="field-label mb-2 text-caption font-weight-bold text-secondary"
+              >
+                <v-icon
+                  icon="mdi-palette-outline"
+                  size="14"
+                  class="mr-1 text-primary"
+                />{{ t("assignmentHub.displayMode") }}
+              </div>
+              <v-row dense>
+                <v-col
+                  v-for="opt in displayModeOptions"
+                  :key="opt.value"
+                  cols="12"
+                  sm="6"
+                  md="3"
+                >
+                  <div
+                    class="pa-3 rounded-xl border d-flex flex-column cursor-pointer mode-select-card"
+                    :class="{
+                      'mode-select-card--active': form.displayMode === opt.value,
+                    }"
+                    @click="form.displayMode = opt.value"
+                  >
+                    <div class="d-flex align-center ga-2 mb-1">
+                      <v-icon :icon="opt.icon" size="18" :color="opt.color" />
+                      <span class="font-weight-bold text-body-2">{{
+                        opt.title
+                      }}</span>
+                    </div>
+                    <span
+                      class="text-caption text-secondary"
+                      style="line-height: 1.3"
+                    >
+                      {{ opt.desc }}
+                    </span>
+                  </div>
+                </v-col>
+              </v-row>
+            </div>
+
             <!-- Hai thẻ tùy chọn tráo câu hỏi / đáp án -->
             <v-row dense>
               <v-col cols="12" sm="6">
@@ -1817,6 +1879,50 @@
                   />
                 </v-col>
               </v-row>
+
+              <!-- Chọn Chế độ làm bài trong đề Word -->
+              <div class="mt-3">
+                <div
+                  class="field-label mb-2 text-caption font-weight-bold text-secondary"
+                >
+                  <v-icon
+                    icon="mdi-palette-outline"
+                    size="14"
+                    class="mr-1 text-primary"
+                  />{{ t("assignmentHub.displayMode") }}
+                </div>
+                <v-row dense>
+                  <v-col
+                    v-for="opt in displayModeOptions"
+                    :key="opt.value"
+                    cols="12"
+                    sm="6"
+                    md="3"
+                  >
+                    <div
+                      class="pa-3 rounded-xl border d-flex flex-column cursor-pointer mode-select-card"
+                      :class="{
+                        'mode-select-card--active':
+                          wordAssignmentForm.displayMode === opt.value,
+                      }"
+                      @click="wordAssignmentForm.displayMode = opt.value"
+                    >
+                      <div class="d-flex align-center ga-2 mb-1">
+                        <v-icon :icon="opt.icon" size="18" :color="opt.color" />
+                        <span class="font-weight-bold text-body-2">{{
+                          opt.title
+                        }}</span>
+                      </div>
+                      <span
+                        class="text-caption text-secondary"
+                        style="line-height: 1.3"
+                      >
+                        {{ opt.desc }}
+                      </span>
+                    </div>
+                  </v-col>
+                </v-row>
+              </div>
             </div>
           </template>
 
@@ -2056,7 +2162,489 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-layout>
+
+    <!-- Dialog Thiết lập / Chỉnh sửa bài tập -->
+    <v-dialog v-model="editDialog" max-width="700" scrollable>
+      <v-card rounded="xl">
+        <v-card-title
+          class="d-flex align-center justify-space-between pa-5 pb-3"
+        >
+          <div class="d-flex align-center ga-2">
+            <v-avatar color="primary" variant="tonal" size="38" rounded="lg">
+              <v-icon icon="mdi-cog-outline" size="22" />
+            </v-avatar>
+            <div>
+              <div class="font-weight-black text-h6 text-slate-800">
+                {{ t("assignmentHub.editAssignment") }}
+              </div>
+              <div class="text-caption text-secondary">
+                {{ t("assignmentHub.editAssignmentHint") }}
+              </div>
+            </div>
+          </div>
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            @click="editDialog = false"
+          />
+        </v-card-title>
+        <v-divider />
+
+        <v-card-text class="pa-5">
+          <v-alert
+            v-if="editError"
+            type="error"
+            variant="tonal"
+            density="comfortable"
+            class="mb-4"
+          >
+            {{ editError }}
+          </v-alert>
+
+          <v-alert
+            v-if="editForm.hasAttempts"
+            type="warning"
+            variant="tonal"
+            density="comfortable"
+            icon="mdi-alert-circle-outline"
+            class="mb-4 text-caption font-weight-medium"
+          >
+            {{ t("assignmentHub.attemptsExistWarning") }}
+          </v-alert>
+
+          <!-- Tên bài tập -->
+          <div class="mb-4">
+            <div
+              class="field-label mb-1 text-caption font-weight-bold text-secondary"
+            >
+              {{ t("assignmentHub.title") }}
+            </div>
+            <v-text-field
+              v-model="editForm.title"
+              variant="outlined"
+              rounded="lg"
+              density="comfortable"
+              hide-details
+            />
+          </div>
+
+          <!-- Chế độ làm bài -->
+          <div class="mb-4">
+            <div
+              class="field-label mb-2 text-caption font-weight-bold text-secondary"
+            >
+              <v-icon
+                icon="mdi-palette-outline"
+                size="14"
+                class="mr-1 text-primary"
+              />{{ t("assignmentHub.displayMode") }}
+            </div>
+            <v-row dense>
+              <v-col
+                v-for="opt in displayModeOptions"
+                :key="opt.value"
+                cols="12"
+                sm="6"
+              >
+                <div
+                  class="pa-3 rounded-xl border d-flex flex-column cursor-pointer mode-select-card"
+                  :class="{
+                    'mode-select-card--active':
+                      editForm.displayMode === opt.value,
+                  }"
+                  @click="editForm.displayMode = opt.value"
+                >
+                  <div class="d-flex align-center ga-2 mb-1">
+                    <v-icon :icon="opt.icon" size="18" :color="opt.color" />
+                    <span class="font-weight-bold text-body-2">{{
+                      opt.title
+                    }}</span>
+                  </div>
+                  <span
+                    class="text-caption text-secondary"
+                    style="line-height: 1.3"
+                  >
+                    {{ opt.desc }}
+                  </span>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <!-- Thời hạn nộp & Thời lượng & Số lần làm -->
+          <v-row dense class="mb-3">
+            <v-col cols="12" sm="6">
+              <div
+                class="field-label mb-1 text-caption font-weight-bold text-secondary"
+              >
+                <v-icon
+                  icon="mdi-calendar-clock"
+                  size="14"
+                  class="mr-1 text-primary"
+                />{{ t("assignmentHub.colDeadline") }}
+              </div>
+              <v-text-field
+                v-model="editForm.deadline"
+                type="datetime-local"
+                variant="outlined"
+                rounded="lg"
+                density="comfortable"
+                hide-details
+              />
+            </v-col>
+            <v-col cols="6" sm="3">
+              <div
+                class="field-label mb-1 text-caption font-weight-bold text-secondary"
+              >
+                <v-icon
+                  icon="mdi-clock-outline"
+                  size="14"
+                  class="mr-1 text-primary"
+                />{{ t("assignmentHub.duration") }}
+              </div>
+              <v-text-field
+                v-model.number="editForm.durationMinutes"
+                type="number"
+                min="1"
+                max="300"
+                suffix="phút"
+                :disabled="editForm.hasAttempts"
+                variant="outlined"
+                rounded="lg"
+                density="comfortable"
+                hide-details
+              />
+            </v-col>
+            <v-col cols="6" sm="3">
+              <div
+                class="field-label mb-1 text-caption font-weight-bold text-secondary"
+              >
+                <v-icon
+                  icon="mdi-repeat"
+                  size="14"
+                  class="mr-1 text-primary"
+                />{{ t("assignmentHub.maxAttempts") }}
+              </div>
+              <v-text-field
+                v-model.number="editForm.maxAttempts"
+                type="number"
+                min="0"
+                placeholder="0 = Vô hạn"
+                :disabled="editForm.hasAttempts"
+                variant="outlined"
+                rounded="lg"
+                density="comfortable"
+                hide-details
+              />
+            </v-col>
+          </v-row>
+
+          <!-- Tùy chọn tráo câu / đáp án -->
+          <v-row dense>
+            <v-col cols="12" sm="6">
+              <div
+                class="shuffle-toggle-card pa-3 px-4 rounded-xl border d-flex align-center justify-space-between cursor-pointer"
+                :class="{
+                  'shuffle-toggle-card--active': editForm.shuffleQuestions,
+                }"
+                @click="editForm.shuffleQuestions = !editForm.shuffleQuestions"
+              >
+                <div class="font-weight-bold text-body-2 text-slate-800">
+                  {{ t("assignmentHub.shuffleQuestions") }}
+                </div>
+                <v-switch
+                  v-model="editForm.shuffleQuestions"
+                  color="primary"
+                  hide-details
+                  density="compact"
+                  @click.stop
+                />
+              </div>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <div
+                class="shuffle-toggle-card pa-3 px-4 rounded-xl border d-flex align-center justify-space-between cursor-pointer"
+                :class="{
+                  'shuffle-toggle-card--active': editForm.shuffleOptions,
+                }"
+                @click="editForm.shuffleOptions = !editForm.shuffleOptions"
+              >
+                <div class="font-weight-bold text-body-2 text-slate-800">
+                  {{ t("assignmentHub.shuffleOptions") }}
+                </div>
+                <v-switch
+                  v-model="editForm.shuffleOptions"
+                  color="primary"
+                  hide-details
+                  density="compact"
+                  @click.stop
+                />
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-divider />
+        <v-card-actions class="pa-4 d-flex justify-end ga-2">
+          <v-btn variant="text" rounded="pill" @click="editDialog = false">
+            {{ t("assignmentHub.close") }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="pill"
+            class="px-5 font-weight-bold"
+            :loading="editSaving"
+            @click="saveEditAssignment"
+          >
+            {{ t("assignmentHub.saveSettings") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Dialog Thiết lập / Chỉnh sửa bài tập -->
+    <v-dialog v-model="editDialog" max-width="700" scrollable>
+      <v-card rounded="xl">
+        <v-card-title
+          class="d-flex align-center justify-space-between pa-5 pb-3"
+        >
+          <div class="d-flex align-center ga-2">
+            <v-avatar color="primary" variant="tonal" size="38" rounded="lg">
+              <v-icon icon="mdi-cog-outline" size="22" />
+            </v-avatar>
+            <div>
+              <div class="font-weight-black text-h6 text-slate-800">
+                {{ t("assignmentHub.editAssignment") }}
+              </div>
+              <div class="text-caption text-secondary">
+                {{ t("assignmentHub.editAssignmentHint") }}
+              </div>
+            </div>
+          </div>
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            @click="editDialog = false"
+          />
+        </v-card-title>
+        <v-divider />
+
+        <v-card-text class="pa-5">
+          <v-alert
+            v-if="editError"
+            type="error"
+            variant="tonal"
+            density="comfortable"
+            class="mb-4"
+          >
+            {{ editError }}
+          </v-alert>
+
+          <v-alert
+            v-if="editForm.hasAttempts"
+            type="warning"
+            variant="tonal"
+            density="comfortable"
+            icon="mdi-alert-circle-outline"
+            class="mb-4 text-caption font-weight-medium"
+          >
+            {{ t("assignmentHub.attemptsExistWarning") }}
+          </v-alert>
+
+          <!-- Tên bài tập -->
+          <div class="mb-4">
+            <div
+              class="field-label mb-1 text-caption font-weight-bold text-secondary"
+            >
+              {{ t("assignmentHub.title") }}
+            </div>
+            <v-text-field
+              v-model="editForm.title"
+              variant="outlined"
+              rounded="lg"
+              density="comfortable"
+              hide-details
+            />
+          </div>
+
+          <!-- Chế độ làm bài -->
+          <div class="mb-4">
+            <div
+              class="field-label mb-2 text-caption font-weight-bold text-secondary"
+            >
+              <v-icon
+                icon="mdi-palette-outline"
+                size="14"
+                class="mr-1 text-primary"
+              />{{ t("assignmentHub.displayMode") }}
+            </div>
+            <v-row dense>
+              <v-col
+                v-for="opt in displayModeOptions"
+                :key="opt.value"
+                cols="12"
+                sm="6"
+              >
+                <div
+                  class="pa-3 rounded-xl border d-flex flex-column cursor-pointer mode-select-card"
+                  :class="{
+                    'mode-select-card--active':
+                      editForm.displayMode === opt.value,
+                  }"
+                  @click="editForm.displayMode = opt.value"
+                >
+                  <div class="d-flex align-center ga-2 mb-1">
+                    <v-icon :icon="opt.icon" size="18" :color="opt.color" />
+                    <span class="font-weight-bold text-body-2">{{
+                      opt.title
+                    }}</span>
+                  </div>
+                  <span
+                    class="text-caption text-secondary"
+                    style="line-height: 1.3"
+                  >
+                    {{ opt.desc }}
+                  </span>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+
+          <!-- Thời hạn nộp & Thời lượng & Số lần làm -->
+          <v-row dense class="mb-3">
+            <v-col cols="12" sm="6">
+              <div
+                class="field-label mb-1 text-caption font-weight-bold text-secondary"
+              >
+                <v-icon
+                  icon="mdi-calendar-clock"
+                  size="14"
+                  class="mr-1 text-primary"
+                />{{ t("assignmentHub.colDeadline") }}
+              </div>
+              <v-text-field
+                v-model="editForm.deadline"
+                type="datetime-local"
+                variant="outlined"
+                rounded="lg"
+                density="comfortable"
+                hide-details
+              />
+            </v-col>
+            <v-col cols="6" sm="3">
+              <div
+                class="field-label mb-1 text-caption font-weight-bold text-secondary"
+              >
+                <v-icon
+                  icon="mdi-clock-outline"
+                  size="14"
+                  class="mr-1 text-primary"
+                />{{ t("assignmentHub.duration") }}
+              </div>
+              <v-text-field
+                v-model.number="editForm.durationMinutes"
+                type="number"
+                min="1"
+                max="300"
+                suffix="phút"
+                :disabled="editForm.hasAttempts"
+                variant="outlined"
+                rounded="lg"
+                density="comfortable"
+                hide-details
+              />
+            </v-col>
+            <v-col cols="6" sm="3">
+              <div
+                class="field-label mb-1 text-caption font-weight-bold text-secondary"
+              >
+                <v-icon
+                  icon="mdi-repeat"
+                  size="14"
+                  class="mr-1 text-primary"
+                />{{ t("assignmentHub.maxAttempts") }}
+              </div>
+              <v-text-field
+                v-model.number="editForm.maxAttempts"
+                type="number"
+                min="0"
+                placeholder="0 = Vô hạn"
+                :disabled="editForm.hasAttempts"
+                variant="outlined"
+                rounded="lg"
+                density="comfortable"
+                hide-details
+              />
+            </v-col>
+          </v-row>
+
+          <!-- Tùy chọn tráo câu / đáp án -->
+          <v-row dense>
+            <v-col cols="12" sm="6">
+              <div
+                class="shuffle-toggle-card pa-3 px-4 rounded-xl border d-flex align-center justify-space-between cursor-pointer"
+                :class="{
+                  'shuffle-toggle-card--active': editForm.shuffleQuestions,
+                }"
+                @click="editForm.shuffleQuestions = !editForm.shuffleQuestions"
+              >
+                <div class="font-weight-bold text-body-2 text-slate-800">
+                  {{ t("assignmentHub.shuffleQuestions") }}
+                </div>
+                <v-switch
+                  v-model="editForm.shuffleQuestions"
+                  color="primary"
+                  hide-details
+                  density="compact"
+                  @click.stop
+                />
+              </div>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <div
+                class="shuffle-toggle-card pa-3 px-4 rounded-xl border d-flex align-center justify-space-between cursor-pointer"
+                :class="{
+                  'shuffle-toggle-card--active': editForm.shuffleOptions,
+                }"
+                @click="editForm.shuffleOptions = !editForm.shuffleOptions"
+              >
+                <div class="font-weight-bold text-body-2 text-slate-800">
+                  {{ t("assignmentHub.shuffleOptions") }}
+                </div>
+                <v-switch
+                  v-model="editForm.shuffleOptions"
+                  color="primary"
+                  hide-details
+                  density="compact"
+                  @click.stop
+                />
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-divider />
+        <v-card-actions class="pa-4 d-flex justify-end ga-2">
+          <v-btn variant="text" rounded="pill" @click="editDialog = false">
+            {{ t("assignmentHub.close") }}
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="pill"
+            class="px-5 font-weight-bold"
+            :loading="editSaving"
+            @click="saveEditAssignment"
+          >
+            {{ t("assignmentHub.saveSettings") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-layout> 
 </template>
 
 <script setup>
@@ -2096,6 +2684,22 @@ const wordAssignmentForm = reactive({
   deadline: "",
   durationMinutes: null,
   maxAttempts: 0,
+  displayMode: "auto",
+});
+const editDialog = ref(false);
+const editingAssignment = ref(null);
+const editSaving = ref(false);
+const editError = ref("");
+const editForm = reactive({
+  id: null,
+  title: "",
+  deadline: "",
+  durationMinutes: null,
+  maxAttempts: 0,
+  shuffleQuestions: false,
+  shuffleOptions: false,
+  displayMode: "auto",
+  hasAttempts: false,
 });
 const submissionsDialog = ref(false);
 const loadingSubmissions = ref(false);
@@ -2433,6 +3037,7 @@ async function createAssignmentFromWord() {
         maxAttempts: Number(wordAssignmentForm.maxAttempts || 0),
         shuffleQuestions: false,
         shuffleOptions: false,
+        displayMode: wordAssignmentForm.displayMode || "auto",
       },
     });
     wordAssignmentDialog.value = false;
@@ -2813,7 +3418,103 @@ const form = reactive({
   shuffleQuestions: false,
   shuffleOptions: false,
   publishTemplate: false,
+  displayMode: "auto",
 });
+
+const displayModeOptions = computed(() => [
+  {
+    value: "auto",
+    title: t("assignmentHub.modeAuto"),
+    desc: t("assignmentHub.modeAutoDesc"),
+    icon: "mdi-auto-fix",
+    color: "primary",
+  },
+  {
+    value: "fun",
+    title: t("assignmentHub.modeFun"),
+    desc: t("assignmentHub.modeFunDesc"),
+    icon: "mdi-emoticon-happy-outline",
+    color: "amber-darken-2",
+  },
+  {
+    value: "competitive",
+    title: t("assignmentHub.modeCompetitive"),
+    desc: t("assignmentHub.modeCompetitiveDesc"),
+    icon: "mdi-fire",
+    color: "indigo",
+  },
+  {
+    value: "focus",
+    title: t("assignmentHub.modeFocus"),
+    desc: t("assignmentHub.modeFocusDesc"),
+    icon: "mdi-target",
+    color: "blue-grey-darken-3",
+  },
+]);
+
+function openEditAssignment(item) {
+  editingAssignment.value = item;
+  editForm.id = item.id;
+  editForm.title = item.title || "";
+  editForm.deadline = item.deadline
+    ? toLocalDateTimeInput(new Date(item.deadline).getTime())
+    : "";
+  editForm.durationMinutes = item.durationMinutes ?? null;
+  editForm.maxAttempts = item.maxAttempts ?? 0;
+  editForm.shuffleQuestions = Boolean(item.shuffleQuestions);
+  editForm.shuffleOptions = Boolean(item.shuffleOptions);
+  editForm.displayMode = item.displayMode || item.display_mode || "auto";
+  editForm.hasAttempts =
+    (item._count?.attempts ?? 0) > 0 || (item.attempts?.length ?? 0) > 0;
+  editError.value = "";
+  editDialog.value = true;
+}
+
+async function saveEditAssignment() {
+  if (!editForm.id) return;
+  editSaving.value = true;
+  editError.value = "";
+  try {
+    const payload = {
+      title: editForm.title.trim() || undefined,
+      deadline: editForm.deadline
+        ? new Date(editForm.deadline).toISOString()
+        : null,
+      displayMode: editForm.displayMode,
+      shuffleQuestions: editForm.shuffleQuestions,
+      shuffleOptions: editForm.shuffleOptions,
+    };
+    if (!editForm.hasAttempts) {
+      payload.durationMinutes = editForm.durationMinutes
+        ? Number(editForm.durationMinutes)
+        : null;
+      payload.maxAttempts = Number(editForm.maxAttempts || 0);
+    }
+    const updated = await api(`/assignments/${editForm.id}`, {
+      method: "PATCH",
+      body: payload,
+    });
+    if (editingAssignment.value) {
+      editingAssignment.value.title = updated.title;
+      editingAssignment.value.deadline = updated.deadline;
+      editingAssignment.value.durationMinutes = updated.durationMinutes;
+      editingAssignment.value.maxAttempts = updated.maxAttempts;
+      editingAssignment.value.shuffleQuestions = updated.shuffleQuestions;
+      editingAssignment.value.shuffleOptions = updated.shuffleOptions;
+      editingAssignment.value.displayMode = updated.displayMode;
+      editingAssignment.value.display_mode = updated.display_mode;
+      editingAssignment.value.resolved_display_mode =
+        updated.resolved_display_mode;
+      editingAssignment.value.resolvedDisplayMode = updated.resolvedDisplayMode;
+    }
+    editDialog.value = false;
+    formSuccess.value = t("assignmentHub.settingsSaved");
+  } catch (err) {
+    editError.value = err.message || "Không thể cập nhật bài tập";
+  } finally {
+    editSaving.value = false;
+  }
+}
 const selectedBook = computed(() => bookDetails.value);
 const lessons = computed(() =>
   (selectedBook.value?.chapters || []).flatMap((chapter) =>
@@ -2994,6 +3695,7 @@ async function saveAssignment() {
         maxAttempts: Number(form.maxAttempts ?? 0),
         shuffleQuestions: form.shuffleQuestions,
         shuffleOptions: form.shuffleOptions,
+        displayMode: form.displayMode || "auto",
       },
     });
     createDialog.value = false;
@@ -3008,6 +3710,7 @@ async function saveAssignment() {
     form.maxAttempts = 0;
     form.shuffleQuestions = false;
     form.shuffleOptions = false;
+    form.displayMode = "auto";
     await loadData();
     if (route.query.templateId) router.replace({ name: "assignments" });
   } catch (error) {
@@ -3783,6 +4486,21 @@ async function saveAttemptGrade(attempt) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.mode-select-card {
+  transition: all 0.2s ease;
+  border-color: #e2e8f0;
+  background: #ffffff;
+}
+.mode-select-card:hover {
+  border-color: #2f7cf6;
+  background: #f8fbff;
+}
+.mode-select-card--active {
+  border-color: #2f7cf6 !important;
+  background: #eff6ff !important;
+  box-shadow: 0 0 0 2px rgba(47, 124, 246, 0.2);
 }
 
 @media (max-width: 600px) {
