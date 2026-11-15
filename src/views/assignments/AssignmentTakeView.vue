@@ -1,7 +1,7 @@
 <template>
   <v-layout
-    class="min-vh-100 assignment-take-page"
-    :class="'mode-' + resolvedDisplayMode"
+    class="min-vh-100 assignment-take-page play-mode-container"
+    :class="`level-${currentLevel}`"
   >
     <AppHeader />
     <StudentSidebar />
@@ -122,51 +122,19 @@
             </div>
           </v-card>
 
-          <!-- DECORATOR THEO CHẾ ĐỘ HIỂN THỊ -->
-          <FunModeDecorator
-            v-if="resolvedDisplayMode === 'fun'"
-            :total-questions="totalQuestions"
-            :answered-count="answeredCount"
-            :stars="stars"
+          <!-- RENDER THEO KIỂU LÀM BÀI (PLAY MODE) -->
+          <component
+            :is="activeModeComponent"
+            :assignment="assignment"
+            :questions="assignment.questions"
+            :answers="answers"
+            :attempt-id="attemptId"
+            :loading="loading"
+            :submitting="submitting"
+            :level="currentLevel"
+            @submit="submitAttempt"
+            @answer-change="handleAnswerChange"
           />
-          <CompetitiveModeDecorator
-            v-else-if="resolvedDisplayMode === 'competitive'"
-            :total-questions="totalQuestions"
-            :answered-count="answeredCount"
-            :streak="streak"
-          />
-          <FocusModeDecorator
-            v-else
-            :total-questions="totalQuestions"
-            :answered-count="answeredCount"
-            :answered-indices="answeredIndices"
-            @jump="scrollToQuestion"
-          />
-
-          <!-- DANH SÁCH CÂU HỎI DÙNG CHUNG -->
-          <QuestionItem
-            v-for="(item, index) in assignment.questions"
-            :id="'question-card-' + index"
-            :key="item.question.id"
-            :item="item"
-            :index="index"
-            :answer="answers[item.question.id]"
-            :mode="resolvedDisplayMode"
-            @answered="handleAnswered(index)"
-          />
-
-          <div class="d-flex justify-end mt-6">
-            <v-btn
-              color="primary"
-              size="large"
-              prepend-icon="mdi-send"
-              :loading="submitting"
-              rounded="pill"
-              class="px-6 font-weight-bold"
-              @click="submitAttempt"
-              >{{ t("assignmentHub.submit") }}</v-btn
-            >
-          </div>
         </template>
       </v-container>
     </v-main>
@@ -187,11 +155,11 @@ import { useI18n } from "vue-i18n";
 import { api } from "../../services/api";
 import AppHeader from "../../components/shared/AppHeader.vue";
 import StudentSidebar from "../../components/shared/StudentSidebar.vue";
-import QuestionItem from "../../components/assignment/QuestionItem.vue";
-import FunModeDecorator from "../../components/assignment/modes/FunModeDecorator.vue";
-import CompetitiveModeDecorator from "../../components/assignment/modes/CompetitiveModeDecorator.vue";
-import FocusModeDecorator from "../../components/assignment/modes/FocusModeDecorator.vue";
-import "../../styles/display-modes.css";
+import ClassicMode from "../../components/assignment/play-modes/ClassicMode.vue";
+import TowerMode from "../../components/assignment/play-modes/TowerMode.vue";
+import PracticeMode from "../../components/assignment/play-modes/PracticeMode.vue";
+import ExamMode from "../../components/assignment/play-modes/ExamMode.vue";
+import "../../styles/play-modes-theme.css";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -205,50 +173,40 @@ const startedAt = ref(null);
 const result = ref(null);
 const answers = reactive({});
 const now = ref(Date.now());
-const stars = ref(0);
-const streak = ref(0);
 let timer = null;
 let screenHidden = false;
 
-const resolvedDisplayMode = computed(() => {
+const modeComponents = {
+  classic: ClassicMode,
+  tower: TowerMode,
+  practice: PracticeMode,
+  exam: ExamMode,
+};
+
+const resolvedPlayMode = computed(() => {
   return (
+    assignment.value?.resolved_play_mode ||
+    assignment.value?.resolvedPlayMode ||
     assignment.value?.resolved_display_mode ||
     assignment.value?.resolvedDisplayMode ||
-    "focus"
+    "classic"
   );
 });
 
-const totalQuestions = computed(() => assignment.value?.questions?.length || 0);
-
-const answeredIndices = computed(() => {
-  if (!assignment.value?.questions) return [];
-  const indices = [];
-  assignment.value.questions.forEach(({ question }, index) => {
-    const a = answers[question.id];
-    if (!a) return;
-    const hasSingle = a.selectedOptionId !== null && a.selectedOptionId !== undefined;
-    const hasMulti = Array.isArray(a.selectedOptionIds) && a.selectedOptionIds.length > 0;
-    const hasText = typeof a.answerText === "string" && a.answerText.trim().length > 0;
-    const hasImage = typeof a.imageUrl === "string" && a.imageUrl.length > 0;
-    const hasMatch = a.matchAnswers && Object.keys(a.matchAnswers).length > 0;
-    if (hasSingle || hasMulti || hasText || hasImage || hasMatch) {
-      indices.push(index);
-    }
-  });
-  return indices;
+const currentLevel = computed(() => {
+  return Number(assignment.value?.level) || 3;
 });
 
-const answeredCount = computed(() => answeredIndices.value.length);
+const activeModeComponent = computed(() => {
+  return modeComponents[resolvedPlayMode.value] || ClassicMode;
+});
 
-function handleAnswered(index) {
-  stars.value = answeredCount.value * 2;
-  streak.value = answeredCount.value;
-}
-
-function scrollToQuestion(index) {
-  const el = document.getElementById("question-card-" + index);
-  if (el) {
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+function handleAnswerChange({ questionId }) {
+  if (attemptId.value) {
+    localStorage.setItem(
+      `assignment-attempt-${attemptId.value}`,
+      JSON.stringify(answers),
+    );
   }
 }
 
@@ -357,8 +315,6 @@ async function startAttempt() {
     } catch {
       /* Ignore an invalid local draft and start with blank answers. */
     }
-    stars.value = answeredCount.value * 2;
-    streak.value = answeredCount.value;
   } catch (error) {
     errorMessage.value = error.message;
   } finally {

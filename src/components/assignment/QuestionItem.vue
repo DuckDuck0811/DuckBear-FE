@@ -203,7 +203,8 @@ const props = defineProps({
   item: { type: Object, required: true },
   index: { type: Number, required: true },
   answer: { type: Object, required: true },
-  mode: { type: String, default: "focus" },
+  mode: { type: String, default: "classic" },
+  level: { type: Number, default: 3 },
   disabled: { type: Boolean, default: false },
 });
 
@@ -211,8 +212,8 @@ const emit = defineEmits(["answered"]);
 const { t } = useI18n();
 
 const modeColor = computed(() => {
-  if (props.mode === "fun") return "amber-darken-2";
-  if (props.mode === "competitive") return "indigo";
+  if (props.level === 1 || props.mode === "tower") return "success";
+  if (props.level === 2) return "indigo";
   return "primary";
 });
 
