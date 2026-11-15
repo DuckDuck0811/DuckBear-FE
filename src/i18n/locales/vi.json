@@ -1165,5 +1165,10 @@
     "viewAssignment": "Xem bài",
     "viewRequest": "Xem yêu cầu",
     "close": "Đóng"
+  },
+  "playModes": {
+    "comingSoon": "Sắp ra mắt",
+    "inDevelopment": "Đang phát triển",
+    "usingClassicFallback": "Chế độ {mode} chưa có giao diện – hiện đang dùng Cơ bản"
   }
 }

@@ -132,6 +132,7 @@
             :loading="loading"
             :submitting="submitting"
             :level="currentLevel"
+            :selected-play-mode="selectedPlayMode"
             @submit="submitAttempt"
             @answer-change="handleAnswerChange"
           />
@@ -159,6 +160,7 @@ import ClassicMode from "../../components/assignment/play-modes/ClassicMode.vue"
 import TowerMode from "../../components/assignment/play-modes/TowerMode.vue";
 import PracticeMode from "../../components/assignment/play-modes/PracticeMode.vue";
 import ExamMode from "../../components/assignment/play-modes/ExamMode.vue";
+import PlaceholderMode from "../../components/assignment/play-modes/PlaceholderMode.vue";
 import "../../styles/play-modes-theme.css";
 
 const { t } = useI18n();
@@ -193,12 +195,29 @@ const resolvedPlayMode = computed(() => {
   );
 });
 
+/** Kiểu giáo viên chọn thủ công (raw, chưa resolve) */
+const selectedPlayMode = computed(() => {
+  return (
+    assignment.value?.play_mode ||
+    assignment.value?.playMode ||
+    "auto"
+  );
+});
+
 const currentLevel = computed(() => {
   return Number(assignment.value?.level) || 3;
 });
 
 const activeModeComponent = computed(() => {
-  return modeComponents[resolvedPlayMode.value] || ClassicMode;
+  // Nếu kiểu đã resolve có component thực → dùng
+  if (modeComponents[resolvedPlayMode.value]) {
+    return modeComponents[resolvedPlayMode.value];
+  }
+  // Giáo viên chọn thủ công kiểu chưa implement → Placeholder (không phải auto)
+  if (selectedPlayMode.value && selectedPlayMode.value !== "auto" && selectedPlayMode.value !== "classic") {
+    return PlaceholderMode;
+  }
+  return ClassicMode;
 });
 
 function handleAnswerChange({ questionId }) {

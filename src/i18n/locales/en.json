@@ -1170,5 +1170,10 @@
     "viewAssignment": "View assignment",
     "viewRequest": "View request",
     "close": "Close"
+  },
+  "playModes": {
+    "comingSoon": "Coming soon",
+    "inDevelopment": "In development",
+    "usingClassicFallback": "{mode} mode UI is not ready yet – using Classic layout"
   }
 }
