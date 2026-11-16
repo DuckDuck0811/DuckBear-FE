@@ -45,16 +45,44 @@
         </div>
       </div>
 
-      <!-- Các quả táo đáp án treo lơ lửng -->
+      <!-- Các quả táo đáp án hoặc ô điền câu trả lời -->
       <div v-if="currentQuestionItem" class="tree-fruits-area mt-4">
-        <FruitAnswerInput
-          :question="currentQuestionItem.question"
-          :model-value="session.answers[currentQuestionItem.question.id]"
-          :disabled="isChecking"
-          :feedback="checkFeedback"
-          @update:model-value="onAnswerChange"
-          @confirm="onFruitConfirm"
-        />
+        <!-- Trắc nghiệm: Quả táo lơ lửng -->
+        <div v-if="isMcqType">
+          <FruitAnswerInput
+            :question="currentQuestionItem.question"
+            :model-value="session.answers[currentQuestionItem.question.id]"
+            :disabled="isChecking"
+            :feedback="checkFeedback"
+            @update:model-value="onAnswerChange"
+            @confirm="onFruitConfirm"
+          />
+        </div>
+
+        <!-- Dạng điền khuyết (FILL), tự luận (ESSAY)... -->
+        <div v-else class="non-mcq-fallback-card pa-4 pa-md-5 bg-white rounded-xl elevation-2 text-slate-800">
+          <QuestionItem
+            :item="currentQuestionItem"
+            :index="session.currentIndex.value"
+            :answer="session.answers[currentQuestionItem.question.id] || {}"
+            :level="1"
+            mode="fruit"
+            :disabled="isChecking"
+            @answered="onAnswerChange"
+          />
+          <div class="mt-4 d-flex justify-center">
+            <v-btn
+              color="emerald-darken-2"
+              size="large"
+              rounded="pill"
+              class="font-weight-black px-8 elevation-3"
+              :disabled="isChecking || !hasAnswer"
+              @click="onFruitConfirm"
+            >
+              🍎 Xác Nhận & Hái Quả!
+            </v-btn>
+          </div>
+        </div>
       </div>
 
       <!-- Giỏ đựng quả ở gốc cây -->
@@ -94,6 +122,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import FruitAnswerInput from "./FruitAnswerInput.vue";
+import QuestionItem from "../../QuestionItem.vue";
 
 const props = defineProps({
   session: { type: Object, required: true },
@@ -107,6 +136,20 @@ const isComplete = ref(false);
 const currentQuestionItem = computed(() => props.session.currentQuestionItem.value);
 const totalQuestions = computed(() => props.session.totalQuestions.value || 1);
 const currentNum = computed(() => props.session.currentIndex.value + 1);
+
+const isMcqType = computed(() => {
+  const t = currentQuestionItem.value?.question?.type;
+  return (
+    (t === "MCQ" || t === "MULTI_MCQ" || t === "TRUE_FALSE") &&
+    Array.isArray(currentQuestionItem.value?.question?.options) &&
+    currentQuestionItem.value?.question?.options.length > 0
+  );
+});
+
+const hasAnswer = computed(() => {
+  const qId = currentQuestionItem.value?.question?.id;
+  return qId ? props.session.hasAnswer(qId) : false;
+});
 
 function onAnswerChange(payload) {
   const qId = currentQuestionItem.value?.question?.id;
@@ -202,12 +245,12 @@ async function onFruitConfirm() {
 }
 
 .wooden-board {
-  background: #fef3c7;
-  border: 4px solid #b45309;
+  background: #ffffff;
+  border: 3.5px solid #16a34a;
   border-radius: 20px;
   padding: 20px 28px;
   text-align: center;
-  box-shadow: 0 10px 24px rgba(180, 83, 9, 0.2);
+  box-shadow: 0 10px 25px rgba(22, 163, 74, 0.15);
   max-width: 680px;
   z-index: 10;
 }
@@ -215,7 +258,7 @@ async function onFruitConfirm() {
 .question-content-text {
   font-size: 1.45rem;
   font-weight: 900;
-  color: #78350f;
+  color: #0f172a;
   line-height: 1.5;
 }
 

@@ -51,14 +51,42 @@
 
     <!-- ANSWER INPUT -->
     <div v-if="currentQuestionItem && !isComplete" class="answer-area mt-4">
-      <SpeedAnswerInput
-        :question="currentQuestionItem.question"
-        :model-value="session.answers[currentQuestionItem.question.id]"
-        :disabled="isChecking || countdown === 0"
-        :feedback="checkFeedback"
-        @update:model-value="onAnswerChange"
-        @confirm="onSpeedConfirm"
-      />
+      <!-- Trắc nghiệm: Grid 2x2 nút tốc độ -->
+      <div v-if="isMcqType">
+        <SpeedAnswerInput
+          :question="currentQuestionItem.question"
+          :model-value="session.answers[currentQuestionItem.question.id]"
+          :disabled="isChecking || countdown === 0"
+          :feedback="checkFeedback"
+          @update:model-value="onAnswerChange"
+          @confirm="onSpeedConfirm"
+        />
+      </div>
+
+      <!-- Dạng điền khuyết (FILL), tự luận (ESSAY)... -->
+      <div v-else class="non-mcq-fallback-card pa-4 pa-md-5 bg-white rounded-xl elevation-2 text-slate-800">
+        <QuestionItem
+          :item="currentQuestionItem"
+          :index="session.currentIndex.value"
+          :answer="session.answers[currentQuestionItem.question.id] || {}"
+          :level="2"
+          mode="speed"
+          :disabled="isChecking || countdown === 0"
+          @answered="onAnswerChange"
+        />
+        <div class="mt-4 d-flex justify-center">
+          <v-btn
+            color="purple-darken-3"
+            size="large"
+            rounded="pill"
+            class="font-weight-black px-8 elevation-3"
+            :disabled="isChecking || countdown === 0 || !hasAnswer"
+            @click="onSpeedConfirm"
+          >
+            ⚡ Trả Lời Ngay!
+          </v-btn>
+        </div>
+      </div>
     </div>
 
     <!-- Submit button (last question done) -->
@@ -85,6 +113,7 @@
 <script setup>
 import { computed, ref, watch, onMounted, onBeforeUnmount } from "vue";
 import SpeedAnswerInput from "./SpeedAnswerInput.vue";
+import QuestionItem from "../../QuestionItem.vue";
 
 const props = defineProps({
   session: { type: Object, required: true },
@@ -108,6 +137,20 @@ let countdownTimer = null;
 const currentQuestionItem = computed(() => props.session.currentQuestionItem.value);
 const totalQuestions = computed(() => props.session.totalQuestions.value || 1);
 const currentNum = computed(() => props.session.currentIndex.value + 1);
+
+const isMcqType = computed(() => {
+  const t = currentQuestionItem.value?.question?.type;
+  return (
+    (t === "MCQ" || t === "MULTI_MCQ" || t === "TRUE_FALSE") &&
+    Array.isArray(currentQuestionItem.value?.question?.options) &&
+    currentQuestionItem.value?.question?.options.length > 0
+  );
+});
+
+const hasAnswer = computed(() => {
+  const qId = currentQuestionItem.value?.question?.id;
+  return qId ? props.session.hasAnswer(qId) : false;
+});
 
 const overallProgressPercent = computed(() =>
   Math.round(((currentNum.value - 1) / totalQuestions.value) * 100)
@@ -413,25 +456,25 @@ async function onSpeedConfirm() {
 
 /* Question card */
 .speed-question-card {
-  background: #0f172a;
-  border: 3px solid #6366f1;
+  background: #ffffff;
+  border: 3.5px solid #6366f1;
   border-radius: 24px;
-  padding: 22px 24px;
-  box-shadow: 0 0 28px rgba(99,102,241,0.25);
+  padding: 24px 28px;
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15);
 }
 
 .question-tag {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 900;
-  color: #818cf8;
+  color: #4f46e5;
   letter-spacing: 1px;
   margin-bottom: 10px;
 }
 
 .question-content {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: #f8fafc;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #0f172a;
   line-height: 1.55;
 }
 

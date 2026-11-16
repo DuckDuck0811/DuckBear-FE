@@ -50,19 +50,46 @@
 
     <!-- ANSWER INPUT -->
     <div v-if="currentQuestionItem && !isVictory" class="answer-area">
-      <StreakAnswerInput
-        :question="currentQuestionItem.question"
-        :model-value="session.answers[currentQuestionItem.question.id]"
-        :disabled="isChecking"
-        :feedback="checkFeedback"
-        @update:model-value="onAnswerChange"
-        @confirm="onConfirm"
-      />
-    </div>
+      <!-- Trắc nghiệm: Nút Combo phím tắt -->
+      <div v-if="isMcqType">
+        <StreakAnswerInput
+          :question="currentQuestionItem.question"
+          :model-value="session.answers[currentQuestionItem.question.id]"
+          :disabled="isChecking"
+          :feedback="checkFeedback"
+          @update:model-value="onAnswerChange"
+          @confirm="onConfirm"
+        />
+        <!-- KEYBOARD HINT -->
+        <div class="keyboard-hint text-caption text-orange-400 mt-3 text-center">
+          Phím tắt: A B C D
+        </div>
+      </div>
 
-    <!-- KEYBOARD HINT -->
-    <div class="keyboard-hint text-caption text-orange-400 mt-3 text-center">
-      Phím tắt: A B C D
+      <!-- Dạng điền khuyết (FILL), tự luận (ESSAY)... -->
+      <div v-else class="non-mcq-fallback-card pa-4 pa-md-5 bg-white rounded-xl elevation-2 text-slate-800">
+        <QuestionItem
+          :item="currentQuestionItem"
+          :index="currentIndex"
+          :answer="session.answers[currentQuestionItem.question.id] || {}"
+          :level="2"
+          mode="streak"
+          :disabled="isChecking"
+          @answered="onAnswerChange"
+        />
+        <div class="mt-4 d-flex justify-center">
+          <v-btn
+            color="deep-orange-darken-2"
+            size="large"
+            rounded="pill"
+            class="font-weight-black px-8 elevation-3"
+            :disabled="isChecking || !hasAnswer"
+            @click="onConfirm"
+          >
+            🔥 Duy Trì Chuỗi Lửa!
+          </v-btn>
+        </div>
+      </div>
     </div>
 
     <!-- VICTORY -->
@@ -110,6 +137,7 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import StreakAnswerInput from './StreakAnswerInput.vue'
+import QuestionItem from '../../QuestionItem.vue'
 
 const props = defineProps({
   session: { type: Object, required: true },
@@ -129,6 +157,20 @@ const currentQuestionItem = computed(() => props.session.currentQuestionItem.val
 const currentIndex = computed(() => props.session.currentIndex.value)
 const totalQuestions = computed(() => props.session.totalQuestions.value || 1)
 const currentNum = computed(() => currentIndex.value + 1)
+
+const isMcqType = computed(() => {
+  const t = currentQuestionItem.value?.question?.type
+  return (
+    (t === 'MCQ' || t === 'MULTI_MCQ' || t === 'TRUE_FALSE') &&
+    Array.isArray(currentQuestionItem.value?.question?.options) &&
+    currentQuestionItem.value?.question?.options.length > 0
+  )
+})
+
+const hasAnswer = computed(() => {
+  const qId = currentQuestionItem.value?.question?.id
+  return qId ? props.session.hasAnswer(qId) : false
+})
 
 const feedbackClass = computed(() =>
   checkFeedback.value === 'correct' ? 'feedback--correct' : 'feedback--wrong'
@@ -284,18 +326,18 @@ async function onConfirm() {
 
 /* QUESTION CARD */
 .streak-question-card {
-  background: rgba(0,0,0,0.3);
-  border: 2px solid rgba(255,255,255,0.25);
+  background: #ffffff;
+  border: 3.5px solid #f97316;
   border-radius: 24px;
   padding: 24px 28px;
   margin-bottom: 16px;
-  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.2);
 }
 
 .question-text {
-  font-size: 1.4rem;
+  font-size: 1.45rem;
   font-weight: 900;
-  color: #fff;
+  color: #0f172a;
   line-height: 1.6;
 }
 

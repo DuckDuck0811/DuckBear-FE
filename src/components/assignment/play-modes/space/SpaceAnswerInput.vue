@@ -117,9 +117,11 @@ function choosePlanet(optionId) {
 
 .planets-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
 }
 
 .planet-item {
@@ -189,22 +191,23 @@ function choosePlanet(optionId) {
 
 .planet-label {
   margin-top: 10px;
-  background: rgba(255,255,255,0.1);
-  border: 1.5px solid rgba(255,255,255,0.3);
-  border-radius: 12px;
-  padding: 8px 12px;
+  background: #ffffff;
+  border: 2px solid rgba(255,255,255,0.6);
+  border-radius: 14px;
+  padding: 10px 14px;
   text-align: center;
-  color: #e2e8f0;
-  font-size: 0.95rem;
-  font-weight: 700;
+  color: #0f172a;
+  font-size: 1.15rem;
+  font-weight: 800;
   width: 100%;
-  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
 
 .planet--selected .planet-label {
-  border-color: #fff;
-  background: rgba(255,255,255,0.18);
-  color: #fff;
+  border-color: #22d3ee;
+  background: #ecfeff;
+  color: #0891b2;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.4);
 }
 
 .star-burst {

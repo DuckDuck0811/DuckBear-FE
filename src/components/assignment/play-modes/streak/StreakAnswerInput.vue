@@ -102,25 +102,26 @@ function chooseOption(optionId) {
 .option-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: rgba(255,255,255,0.12);
-  border: 2.5px solid rgba(255,255,255,0.25);
+  gap: 14px;
+  background: #ffffff;
+  border: 3px solid #cbd5e1;
   border-radius: 18px;
-  padding: 18px 16px;
+  padding: 18px 20px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   text-align: left;
-  color: #fff;
-  font-size: 1.05rem;
+  color: #0f172a;
+  font-size: 1.25rem;
   font-weight: 800;
   min-height: 72px;
-  backdrop-filter: blur(4px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 }
 
 .option-btn:hover:not(.option--disabled) {
-  background: rgba(255,255,255,0.22);
-  border-color: rgba(255,255,255,0.6);
-  transform: scale(1.03);
+  background: #fff7ed;
+  border-color: #f97316;
+  transform: scale(1.02);
+  box-shadow: 0 10px 24px rgba(249, 115, 22, 0.2);
 }
 
 .option-btn:disabled,
@@ -130,32 +131,33 @@ function chooseOption(optionId) {
 }
 
 .option--selected {
-  background: rgba(251,191,36,0.2) !important;
-  border-color: #fbbf24 !important;
-  box-shadow: 0 0 16px rgba(251,191,36,0.4);
+  background: #ffedd5 !important;
+  border-color: #ea580c !important;
+  box-shadow: 0 0 20px rgba(234, 88, 12, 0.35) !important;
 }
 
 .option--correct {
-  background: rgba(34,197,94,0.25) !important;
-  border-color: #22c55e !important;
-  box-shadow: 0 0 20px rgba(34,197,94,0.5);
+  background: #ecfdf5 !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5) !important;
 }
 
 .option--wrong {
-  background: rgba(239,68,68,0.2) !important;
+  background: #fef2f2 !important;
   border-color: #ef4444 !important;
   animation: optionShake 0.4s ease;
 }
 
 .option-key-badge {
-  min-width: 32px;
-  height: 32px;
+  min-width: 34px;
+  height: 34px;
   border-radius: 8px;
-  background: rgba(255,255,255,0.2);
+  background: #ffedd5;
+  color: #c2410c;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 900;
   flex-shrink: 0;
 }

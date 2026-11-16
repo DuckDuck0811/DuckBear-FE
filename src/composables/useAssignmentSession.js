@@ -150,6 +150,8 @@ export function useAssignmentSession() {
 
     const body = {
       selectedOptionIds: selectedIds,
+      answerText: payload.answerText !== undefined ? payload.answerText : a.answerText,
+      matchAnswers: payload.matchAnswers !== undefined ? payload.matchAnswers : a.matchAnswers,
     };
 
     const assignmentId = assignment.value?.id || route.params.id;
