@@ -56,13 +56,13 @@
               <v-icon :icon="opt.icon" size="18" :color="opt.color" />
               <span class="font-weight-bold text-body-2">{{ opt.title }}</span>
               <v-chip
-                v-if="opt.implemented"
+                v-if="!opt.implemented"
                 size="x-small"
-                color="success"
+                color="warning"
                 variant="tonal"
                 class="ml-auto font-weight-medium"
               >
-                GĐ1
+                {{ t("playModes.comingSoon") || "Sắp có (tạm dùng classic)" }}
               </v-chip>
             </div>
             <span class="text-caption text-secondary" style="line-height: 1.3">
@@ -94,45 +94,45 @@ function selectMode(val) {
 
 const modeGroups = computed(() => [
   {
-    title: t("assignmentHub.level1Group"),
+    title: t("assignmentHub.level1Group") || "Cấp 1: Tiểu học (Lớp 1 - 5)",
     color: "success",
     items: [
       {
         value: "tower",
-        title: t("assignmentHub.modeTower"),
-        desc: t("assignmentHub.modeTowerDesc"),
+        title: t("playModes.modes.tower.name") || "Leo tháp",
+        desc: t("playModes.modes.tower.description") || "Mỗi lần 1 câu; đúng leo 1 tầng, sai đứng yên.",
         icon: "mdi-castle",
         color: "emerald-darken-1",
         implemented: true,
       },
       {
         value: "fruit",
-        title: t("assignmentHub.modeFruit"),
-        desc: t("assignmentHub.modeFruitDesc"),
+        title: t("playModes.modes.fruit.name") || "Hái quả",
+        desc: t("playModes.modes.fruit.description") || "Đúng thì hái 1 quả bỏ vào giỏ, sai quả vẫn treo.",
         icon: "mdi-fruit-cherries",
         color: "green",
         implemented: false,
       },
       {
         value: "race",
-        title: t("assignmentHub.modeRace"),
-        desc: t("assignmentHub.modeRaceDesc"),
+        title: t("playModes.modes.race.name") || "Đua xe",
+        desc: t("playModes.modes.race.description") || "Đúng thì xe tiến 1 đoạn, về đích khi hết bài.",
         icon: "mdi-racing-helmet",
         color: "amber-darken-3",
         implemented: false,
       },
       {
         value: "treasure",
-        title: t("assignmentHub.modeTreasure"),
-        desc: t("assignmentHub.modeTreasureDesc"),
+        title: t("playModes.modes.treasure.name") || "Săn kho báu",
+        desc: t("playModes.modes.treasure.description") || "Đúng mở 1 mảnh bản đồ, đủ mảnh mở rương.",
         icon: "mdi-treasure-chest",
         color: "orange",
         implemented: false,
       },
       {
         value: "space",
-        title: t("assignmentHub.modeSpace"),
-        desc: t("assignmentHub.modeSpaceDesc"),
+        title: t("playModes.modes.space.name") || "Du hành vũ trụ",
+        desc: t("playModes.modes.space.description") || "Tên lửa bay qua các hành tinh, mỗi hành tinh 5 câu.",
         icon: "mdi-rocket-launch",
         color: "cyan",
         implemented: false,
@@ -140,37 +140,37 @@ const modeGroups = computed(() => [
     ],
   },
   {
-    title: t("assignmentHub.level2Group"),
+    title: t("assignmentHub.level2Group") || "Cấp 2: THCS (Lớp 6 - 9)",
     color: "indigo",
     items: [
       {
         value: "streak",
-        title: t("assignmentHub.modeStreak"),
-        desc: t("assignmentHub.modeStreakDesc"),
+        title: t("playModes.modes.streak.name") || "Chuỗi lửa",
+        desc: t("playModes.modes.streak.description") || "Đúng liên tiếp tăng combo, sai thì reset; huy hiệu mốc 5, 10, 20.",
         icon: "mdi-fire",
         color: "deep-orange",
         implemented: false,
       },
       {
         value: "boss",
-        title: t("assignmentHub.modeBoss"),
-        desc: t("assignmentHub.modeBossDesc"),
+        title: t("playModes.modes.boss.name") || "Đánh trùm",
+        desc: t("playModes.modes.boss.description") || "Mỗi câu đúng giảm thanh máu boss.",
         icon: "mdi-sword-cross",
         color: "red-darken-2",
         implemented: false,
       },
       {
         value: "map",
-        title: t("assignmentHub.modeMap"),
-        desc: t("assignmentHub.modeMapDesc"),
+        title: t("playModes.modes.map.name") || "Chinh phục bản đồ",
+        desc: t("playModes.modes.map.description") || "Chia chặng (~5 câu/chặng), xong chặng mở vùng mới.",
         icon: "mdi-map-legend",
         color: "indigo",
         implemented: false,
       },
       {
         value: "speed",
-        title: t("assignmentHub.modeSpeed"),
-        desc: t("assignmentHub.modeSpeedDesc"),
+        title: t("playModes.modes.speed.name") || "Vượt tốc",
+        desc: t("playModes.modes.speed.description") || "Mỗi câu đếm ngược ngắn, hết giờ tự qua câu và tính là bỏ trống.",
         icon: "mdi-timer-fast-outline",
         color: "purple",
         implemented: false,
@@ -178,29 +178,29 @@ const modeGroups = computed(() => [
     ],
   },
   {
-    title: t("assignmentHub.level3Group"),
+    title: t("assignmentHub.level3Group") || "Cấp 3: THPT (Lớp 10 - 12)",
     color: "blue-darken-2",
     items: [
       {
         value: "practice",
-        title: t("assignmentHub.modePractice"),
-        desc: t("assignmentHub.modePracticeDesc"),
+        title: t("playModes.modes.practice.name") || "Luyện tập",
+        desc: t("playModes.modes.practice.description") || "Mỗi lần 1 câu, trả lời xong hiện đúng/sai + lời giải ngay.",
         icon: "mdi-book-open-page-variant",
         color: "blue-darken-2",
         implemented: true,
       },
       {
         value: "exam",
-        title: t("assignmentHub.modeExam"),
-        desc: t("assignmentHub.modeExamDesc"),
+        title: t("playModes.modes.exam.name") || "Phòng thi",
+        desc: t("playModes.modes.exam.description") || "Đồng hồ, bảng số câu, nút xem lại, không hiện đúng/sai.",
         icon: "mdi-file-document-edit-outline",
         color: "blue-grey-darken-3",
         implemented: true,
       },
       {
         value: "mock",
-        title: t("assignmentHub.modeMock"),
-        desc: t("assignmentHub.modeMockDesc"),
+        title: t("playModes.modes.mock.name") || "Thi thử THPT",
+        desc: t("playModes.modes.mock.description") || "Chia phần, đồng hồ tổng, nộp một lần, chỉ hiện kết quả sau khi nộp.",
         icon: "mdi-school-outline",
         color: "teal-darken-2",
         implemented: false,
@@ -208,13 +208,13 @@ const modeGroups = computed(() => [
     ],
   },
   {
-    title: t("assignmentHub.classicGroup"),
+    title: t("assignmentHub.classicGroup") || "Kiểu dự phòng",
     color: "blue-grey",
     items: [
       {
         value: "classic",
-        title: t("assignmentHub.modeClassic"),
-        desc: t("assignmentHub.modeClassicDesc"),
+        title: t("playModes.modes.classic.name") || "Cơ bản (Classic)",
+        desc: t("playModes.modes.classic.description") || "Giao diện truyền thống, thanh tiến độ, bảng số câu 1..N.",
         icon: "mdi-view-headline",
         color: "blue-grey-darken-2",
         implemented: true,

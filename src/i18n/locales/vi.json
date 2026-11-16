@@ -1167,8 +1167,64 @@
     "close": "Đóng"
   },
   "playModes": {
-    "comingSoon": "Sắp ra mắt",
+    "comingSoon": "Sắp có (tạm dùng classic)",
     "inDevelopment": "Đang phát triển",
-    "usingClassicFallback": "Chế độ {mode} chưa có giao diện – hiện đang dùng Cơ bản"
+    "usingClassicFallback": "Chế độ {mode} chưa có giao diện – hiện đang dùng Cơ bản",
+    "title": "Kiểu làm bài",
+    "auto": "Mặc định theo lớp",
+    "modes": {
+      "classic": {
+        "name": "Cơ bản (Classic)",
+        "description": "Giao diện truyền thống, thanh tiến độ, bảng số câu 1..N."
+      },
+      "tower": {
+        "name": "Leo tháp",
+        "description": "Mỗi lần 1 câu; đúng leo 1 tầng, sai đứng yên (không tụt, không chặn)."
+      },
+      "fruit": {
+        "name": "Hái quả",
+        "description": "Đúng thì hái 1 quả bỏ vào giỏ, sai thì quả vẫn treo."
+      },
+      "race": {
+        "name": "Đua xe",
+        "description": "Đúng thì xe tiến 1 đoạn, về đích khi hết bài."
+      },
+      "treasure": {
+        "name": "Săn kho báu",
+        "description": "Đúng thì mở 1 mảnh bản đồ, đủ mảnh thì mở rương."
+      },
+      "space": {
+        "name": "Du hành vũ trụ",
+        "description": "Tên lửa bay qua các hành tinh, mỗi hành tinh 5 câu."
+      },
+      "streak": {
+        "name": "Chuỗi lửa",
+        "description": "Đúng liên tiếp tăng combo, sai thì reset; huy hiệu mốc 5, 10, 20."
+      },
+      "boss": {
+        "name": "Đánh trùm",
+        "description": "Mỗi câu đúng giảm thanh máu boss."
+      },
+      "map": {
+        "name": "Chinh phục bản đồ",
+        "description": "Chia chặng (~5 câu/chặng), xong chặng mở vùng mới."
+      },
+      "speed": {
+        "name": "Vượt tốc",
+        "description": "Mỗi câu đếm ngược ngắn, hết giờ tự qua câu và tính là bỏ trống."
+      },
+      "practice": {
+        "name": "Luyện tập",
+        "description": "Mỗi lần 1 câu, trả lời xong hiện đúng/sai + lời giải ngay."
+      },
+      "exam": {
+        "name": "Phòng thi",
+        "description": "Đồng hồ, bảng số câu, nút xem lại, không hiện đúng/sai."
+      },
+      "mock": {
+        "name": "Thi thử THPT",
+        "description": "Chia phần, đồng hồ tổng, nộp một lần, chỉ hiện kết quả sau khi nộp."
+      }
+    }
   }
 }
