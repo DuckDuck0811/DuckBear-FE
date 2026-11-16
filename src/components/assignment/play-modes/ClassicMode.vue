@@ -134,9 +134,8 @@ function isQuestionAnswered(questionId) {
   const hasSingle = a.selectedOptionId !== null && a.selectedOptionId !== undefined;
   const hasMulti = Array.isArray(a.selectedOptionIds) && a.selectedOptionIds.length > 0;
   const hasText = typeof a.answerText === "string" && a.answerText.trim().length > 0;
-  const hasImage = typeof a.imageUrl === "string" && a.imageUrl.length > 0;
   const hasMatch = a.matchAnswers && Object.keys(a.matchAnswers).length > 0;
-  return hasSingle || hasMulti || hasText || hasImage || hasMatch;
+  return hasSingle || hasMulti || hasText || hasMatch;
 }
 
 const answeredCount = computed(() => {

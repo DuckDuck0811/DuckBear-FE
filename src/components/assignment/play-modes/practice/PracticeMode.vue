@@ -23,7 +23,8 @@
         height="28"
         class="nav-btn"
         @click="session.goTo(i)"
-      >{{ i + 1 }}</v-btn>
+        >{{ i + 1 }}</v-btn
+      >
     </div>
 
     <!-- ── MAIN CONTENT ── -->
@@ -31,10 +32,17 @@
       <v-row>
         <!-- LEFT: question -->
         <v-col cols="12" md="7" class="d-flex flex-column">
-          <v-card class="question-card flex-grow-1 mb-3" rounded="lg" elevation="2">
+          <v-card
+            class="question-card flex-grow-1 mb-3"
+            rounded="lg"
+            elevation="2"
+          >
             <v-card-text>
               <!-- Question text -->
-              <div class="question-text text-body-1 mb-4" v-html="currentQuestion.content" />
+              <div
+                class="question-text text-body-1 mb-4"
+                v-html="currentQuestion.content"
+              />
 
               <!-- Options (MCQ) -->
               <template v-if="isMcq">
@@ -87,16 +95,32 @@
             <v-card
               v-if="checked"
               class="explanation-card"
-              :color="checkResult.isCorrect ? 'green-lighten-5' : 'red-lighten-5'"
+              :color="
+                checkResult.isCorrect ? 'green-lighten-5' : 'red-lighten-5'
+              "
               rounded="lg"
               elevation="2"
             >
               <v-card-title class="d-flex align-center gap-2 py-3">
-                <v-icon :color="checkResult.isCorrect ? 'green-darken-2' : 'red-darken-2'">
-                  {{ checkResult.isCorrect ? 'mdi-check-circle' : 'mdi-close-circle' }}
+                <v-icon
+                  :color="
+                    checkResult.isCorrect ? 'green-darken-2' : 'red-darken-2'
+                  "
+                >
+                  {{
+                    checkResult.isCorrect
+                      ? "mdi-check-circle"
+                      : "mdi-close-circle"
+                  }}
                 </v-icon>
-                <span :class="checkResult.isCorrect ? 'text-green-darken-2' : 'text-red-darken-2'">
-                  {{ checkResult.isCorrect ? 'Chính xác! 🎉' : 'Chưa đúng 😕' }}
+                <span
+                  :class="
+                    checkResult.isCorrect
+                      ? 'text-green-darken-2'
+                      : 'text-red-darken-2'
+                  "
+                >
+                  {{ checkResult.isCorrect ? "Chính xác! 🎉" : "Chưa đúng 😕" }}
                 </span>
               </v-card-title>
 
@@ -104,12 +128,18 @@
 
               <v-card-text>
                 <div v-if="checkResult.answerText" class="mb-3">
-                  <div class="text-caption text-grey-darken-1 mb-1">ĐÁP ÁN ĐÚNG</div>
-                  <div class="text-body-2 font-weight-medium">{{ checkResult.answerText }}</div>
+                  <div class="text-caption text-grey-darken-1 mb-1">
+                    ĐÁP ÁN ĐÚNG
+                  </div>
+                  <div class="text-body-2 font-weight-medium">
+                    {{ checkResult.answerText }}
+                  </div>
                 </div>
 
                 <div v-if="checkResult.explanation">
-                  <div class="text-caption text-grey-darken-1 mb-1">GIẢI THÍCH</div>
+                  <div class="text-caption text-grey-darken-1 mb-1">
+                    GIẢI THÍCH
+                  </div>
                   <div class="text-body-2" v-html="checkResult.explanation" />
                 </div>
               </v-card-text>
@@ -126,7 +156,9 @@
           >
             <v-card-text class="text-center text-grey py-8">
               <v-icon size="40" class="mb-2">mdi-lightbulb-outline</v-icon>
-              <div class="text-body-2">Nhấn "Kiểm tra ngay" để xem kết quả & giải thích</div>
+              <div class="text-body-2">
+                Nhấn "Kiểm tra ngay" để xem kết quả & giải thích
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
@@ -156,11 +188,7 @@
         </v-btn>
       </template>
       <template v-else>
-        <v-btn
-          color="teal-darken-2"
-          rounded="lg"
-          @click="session.next()"
-        >
+        <v-btn color="teal-darken-2" rounded="lg" @click="session.next()">
           Câu kế tiếp <v-icon end>mdi-arrow-right</v-icon>
         </v-btn>
       </template>
@@ -169,82 +197,87 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
-import QuestionItem from '../../QuestionItem.vue'
+import { computed, ref, watch } from "vue";
+import QuestionItem from "../../QuestionItem.vue";
 
 const props = defineProps({
-  session: { type: Object, required: true }
-})
+  session: { type: Object, required: true },
+});
 
 // ── Shortcuts ──────────────────────────────────────────────
-const currentIndex = computed(() => props.session.currentIndex.value)
+const currentIndex = computed(() => props.session.currentIndex.value);
 const currentQuestion = computed(
-  () => props.session.currentQuestionItem.value?.question ?? {}
-)
+  () => props.session.currentQuestionItem.value?.question ?? {},
+);
 const isMcq = computed(() =>
-  ['single_choice', 'multiple_choice', 'true_false'].includes(currentQuestion.value.type)
-)
+  ["single_choice", "multiple_choice", "true_false"].includes(
+    currentQuestion.value.type,
+  ),
+);
 
 // ── Per-question state ──────────────────────────────────────
-const checked = ref(false)
-const checkResult = ref(null)
+const checked = ref(false);
+const checkResult = ref(null);
 
 watch(currentIndex, () => {
-  checked.value = false
-  checkResult.value = null
-})
+  checked.value = false;
+  checkResult.value = null;
+});
 
 // ── Answer handling ─────────────────────────────────────────
 function selectOption(optId) {
-  props.session.setAnswer(currentQuestion.value.id, { selectedOptionId: optId })
+  props.session.setAnswer(currentQuestion.value.id, {
+    selectedOptionId: optId,
+  });
 }
 
 function onAnswered(payload) {
-  props.session.setAnswer(currentQuestion.value.id, payload)
+  props.session.setAnswer(currentQuestion.value.id, payload);
 }
 
 // ── Check ───────────────────────────────────────────────────
 async function doCheck() {
-  const result = await props.session.checkQuestion(currentQuestion.value.id)
-  checkResult.value = result
-  checked.value = true
+  const result = await props.session.checkQuestion(currentQuestion.value.id);
+  checkResult.value = result;
+  checked.value = true;
 }
 
 // ── Nav-dot color ───────────────────────────────────────────
-const checkCache = {}
+const checkCache = {};
 
 function navColor(qId) {
-  const ans = props.session.answers[qId]
-  if (!ans) return 'grey-lighten-1'
-  if (ans.status === 'correct') return 'green'
-  if (ans.status === 'incorrect') return 'red'
-  return 'teal'   // answered but unchecked
+  const ans = props.session.answers[qId];
+  if (!ans) return "grey-lighten-1";
+  if (ans.status === "correct") return "green";
+  if (ans.status === "incorrect") return "red";
+  return "teal"; // answered but unchecked
 }
 
 // ── Option highlight ────────────────────────────────────────
 function optionClass(optId) {
-  const ans = props.session.answers[currentQuestion.value.id]
-  const selected = ans?.selectedOptionId === optId
+  const ans = props.session.answers[currentQuestion.value.id];
+  const selected = ans?.selectedOptionId === optId;
 
   if (!checked.value) {
-    return selected ? 'option-selected' : 'option-idle'
+    return selected ? "option-selected" : "option-idle";
   }
 
   // After check
-  const correctId = checkResult.value?.correctOptionId
-  if (optId === correctId) return 'option-correct'
-  if (selected) return 'option-wrong'
-  return 'option-idle'
+  const correctId = checkResult.value?.correctOptionId;
+  if (optId === correctId) return "option-correct";
+  if (selected) return "option-wrong";
+  return "option-idle";
 }
 
 function optionIcon(optId) {
-  const ans = props.session.answers[currentQuestion.value.id]
-  const selected = ans?.selectedOptionId === optId
-  if (!checked.value) return selected ? 'mdi-radiobox-marked' : 'mdi-radiobox-blank'
-  const correctId = checkResult.value?.correctOptionId
-  if (optId === correctId) return 'mdi-check-circle'
-  if (selected) return 'mdi-close-circle'
-  return 'mdi-radiobox-blank'
+  const ans = props.session.answers[currentQuestion.value.id];
+  const selected = ans?.selectedOptionId === optId;
+  if (!checked.value)
+    return selected ? "mdi-radiobox-marked" : "mdi-radiobox-blank";
+  const correctId = checkResult.value?.correctOptionId;
+  if (optId === correctId) return "mdi-check-circle";
+  if (selected) return "mdi-close-circle";
+  return "mdi-radiobox-blank";
 }
 </script>
 

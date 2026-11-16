@@ -86,7 +86,6 @@ export function useAssignmentSession() {
         selectedOptionId: null,
         selectedOptionIds: [],
         answerText: "",
-        imageUrl: null,
         matchAnswers: {},
         dropTargets: {},
       };
@@ -131,9 +130,8 @@ export function useAssignmentSession() {
       Array.isArray(a.selectedOptionIds) && a.selectedOptionIds.length > 0;
     const hasText =
       typeof a.answerText === "string" && a.answerText.trim().length > 0;
-    const hasImage = typeof a.imageUrl === "string" && a.imageUrl.length > 0;
     const hasMatch = a.matchAnswers && Object.keys(a.matchAnswers).length > 0;
-    return hasSingle || hasMulti || hasText || hasImage || hasMatch;
+    return hasSingle || hasMulti || hasText || hasMatch;
   }
 
   async function checkQuestion(questionId, payload = {}) {
@@ -186,7 +184,6 @@ export function useAssignmentSession() {
                     ? [answers[question.id].selectedOptionId]
                     : [],
               answerText: answers[question.id]?.answerText || undefined,
-              imageUrl: answers[question.id]?.imageUrl || undefined,
               matchAnswers:
                 question.type === "MATCHING"
                   ? answers[question.id]?.matchAnswers
@@ -246,7 +243,6 @@ export function useAssignmentSession() {
           selectedOptionId: null,
           selectedOptionIds: [],
           answerText: "",
-          imageUrl: null,
           matchAnswers: {},
           dropTargets: {},
         };

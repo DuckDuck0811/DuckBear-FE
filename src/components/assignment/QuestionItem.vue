@@ -157,40 +157,6 @@
         rounded="lg"
         @update:model-value="onAnswerChange"
       />
-      <template v-if="item.question.type === 'ESSAY'">
-        <v-file-input
-          :label="t('assignmentHub.attachWork')"
-          accept="image/png,image/jpeg,image/webp"
-          prepend-icon="mdi-camera-outline"
-          variant="outlined"
-          density="compact"
-          hide-details
-          rounded="lg"
-          class="mt-3"
-          :disabled="disabled"
-          @update:model-value="handleAnswerImage"
-        />
-        <div v-if="answer.imageUrl" class="mt-3">
-          <v-img
-            :src="answer.imageUrl"
-            max-height="240"
-            width="100%"
-            cover
-            rounded="lg"
-          />
-          <v-btn
-            v-if="!disabled"
-            size="small"
-            variant="text"
-            color="error"
-            prepend-icon="mdi-delete-outline"
-            class="mt-1"
-            @click="answer.imageUrl = null"
-          >
-            {{ t("assignmentHub.removeAttachment") }}
-          </v-btn>
-        </div>
-      </template>
     </div>
   </v-card>
 </template>
@@ -257,16 +223,4 @@ function clearDropTarget() {
   props.answer.selectedOptionId = null;
 }
 
-function handleAnswerImage(file) {
-  if (!file) {
-    props.answer.imageUrl = null;
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    props.answer.imageUrl = e.target.result;
-    onAnswerChange();
-  };
-  reader.readAsDataURL(file);
-}
 </script>
