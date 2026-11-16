@@ -8,15 +8,22 @@
     <v-main class="pb-16" :class="{ 'game-mode-main': isGameMode }">
       <v-container
         :fluid="isGameMode"
-        :class="isGameMode ? 'pa-2 pa-md-4' : 'py-7 px-4 px-md-8'"
+        :class="isGameMode ? 'game-mode-container pa-0' : 'py-7 px-4 px-md-8'"
         :style="isGameMode ? 'max-width: 100%' : 'max-width: 960px'"
       >
         <v-btn
+          v-if="isGameMode"
+          to="/assignments"
+          icon="mdi-arrow-left"
+          aria-label="Quay lại danh sách bài tập"
+          class="game-mode-back"
+        />
+        <v-btn
+          v-else
           to="/assignments"
           variant="text"
           prepend-icon="mdi-arrow-left"
           class="mb-3"
-          :density="isGameMode ? 'compact' : 'default'"
         >
           {{ t("assignmentHub.backToAssignments") }}
         </v-btn>
@@ -99,10 +106,9 @@
 
         <!-- VỎ MỎNG: RENDER TOÀN BỘ THEO TRANG RIÊNG CỦA TỪNG KIỂU CHƠI -->
         <template v-else-if="session.assignment.value">
-          <component
-            :is="activeModeComponent"
-            :session="session"
-          />
+          <div class="game-mode-stage">
+            <component :is="activeModeComponent" :session="session" />
+          </div>
         </template>
       </v-container>
     </v-main>
@@ -166,11 +172,42 @@ const isGameMode = computed(() => {
 }
 
 .game-mode-main {
-  padding-bottom: 24px !important;
+  height: 100dvh;
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: 0 !important;
+  background: #f4f8ff;
 }
 
 .game-mode-main :deep(.v-container) {
-  padding-top: 8px !important;
-  padding-bottom: 8px !important;
+  width: 100%;
+  max-width: none !important;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 8px 8px !important;
+}
+
+.game-mode-back {
+  position: static;
+  flex: 0 0 36px;
+  align-self: flex-start;
+  margin: 0 0 4px 4px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.game-mode-stage {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.game-mode-stage :deep(.waterfall-game) {
+  height: 100%;
+  min-height: 0;
 }
 </style>
