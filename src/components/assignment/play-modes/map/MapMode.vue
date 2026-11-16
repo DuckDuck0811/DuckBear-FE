@@ -52,14 +52,42 @@
 
     <!-- MapAnswerInput -->
     <div v-if="currentQuestionItem" class="answer-area mt-4">
-      <MapAnswerInput
-        :question="currentQuestionItem.question"
-        :model-value="session.answers[currentQuestionItem.question.id]"
-        :disabled="isChecking"
-        :feedback="checkFeedback"
-        @update:model-value="onAnswerChange"
-        @confirm="onDirectionConfirm"
-      />
+      <!-- Trắc nghiệm: Ngã rẽ bản đồ -->
+      <div v-if="isMcqType">
+        <MapAnswerInput
+          :question="currentQuestionItem.question"
+          :model-value="session.answers[currentQuestionItem.question.id]"
+          :disabled="isChecking"
+          :feedback="checkFeedback"
+          @update:model-value="onAnswerChange"
+          @confirm="onDirectionConfirm"
+        />
+      </div>
+
+      <!-- Dạng điền khuyết (FILL), tự luận (ESSAY)... -->
+      <div v-else class="non-mcq-fallback-card pa-4 pa-md-5 bg-white rounded-xl elevation-2 text-slate-800">
+        <QuestionItem
+          :item="currentQuestionItem"
+          :index="session.currentIndex.value"
+          :answer="session.answers[currentQuestionItem.question.id] || {}"
+          :level="2"
+          mode="map"
+          :disabled="isChecking"
+          @answered="onAnswerChange"
+        />
+        <div class="mt-4 d-flex justify-center">
+          <v-btn
+            color="green-darken-3"
+            size="large"
+            rounded="pill"
+            class="font-weight-black px-8 elevation-3"
+            :disabled="isChecking || !hasAnswer"
+            @click="onDirectionConfirm"
+          >
+            🗺️ Khám Phá Hướng Này!
+          </v-btn>
+        </div>
+      </div>
     </div>
 
     <!-- Nút nộp bài cuối -->
@@ -108,6 +136,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import MapAnswerInput from "./MapAnswerInput.vue";
+import QuestionItem from "../../QuestionItem.vue";
 
 const props = defineProps({
   session: { type: Object, required: true },
@@ -132,6 +161,20 @@ let currentSegmentCorrects = 0;
 const currentQuestionItem = computed(() => props.session.currentQuestionItem.value);
 const totalQuestions = computed(() => props.session.totalQuestions.value || 1);
 const currentNum = computed(() => props.session.currentIndex.value + 1);
+
+const isMcqType = computed(() => {
+  const t = currentQuestionItem.value?.question?.type;
+  return (
+    (t === "MCQ" || t === "MULTI_MCQ" || t === "TRUE_FALSE") &&
+    Array.isArray(currentQuestionItem.value?.question?.options) &&
+    currentQuestionItem.value?.question?.options.length > 0
+  );
+});
+
+const hasAnswer = computed(() => {
+  const qId = currentQuestionItem.value?.question?.id;
+  return qId ? props.session.hasAnswer(qId) : false;
+});
 
 const currentSegment = computed(() =>
   Math.floor(props.session.currentIndex.value / QUESTIONS_PER_SEGMENT) + 1
@@ -265,34 +308,28 @@ function onContinueExpedition() {
 }
 
 .expedition-journal {
-  background: #1b3a2b;
-  border: 3px solid #2e7d32;
+  background: #ffffff;
+  border: 3.5px solid #16a34a;
   border-radius: 24px;
   padding: 24px 28px;
   position: relative;
-  box-shadow: 0 4px 24px rgba(27, 94, 32, 0.25);
-}
-
-.expedition-journal::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: repeating-linear-gradient(90deg, #2e7d32 0px, #2e7d32 12px, #1b3a2b 12px, #1b3a2b 20px);
-  border-radius: 24px 24px 0 0;
+  box-shadow: 0 8px 30px rgba(22, 163, 74, 0.18);
 }
 
 .journal-header {
   margin-bottom: 14px;
-  opacity: 0.85;
+}
+
+.journal-header span {
+  color: #15803d !important;
+  font-size: 0.95rem !important;
+  font-weight: 900 !important;
 }
 
 .journal-question-text {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #e8f5e9;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #0f172a;
   line-height: 1.55;
 }
 

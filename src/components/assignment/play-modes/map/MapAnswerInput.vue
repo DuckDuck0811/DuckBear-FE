@@ -233,9 +233,9 @@ function onConfirm() {
 }
 
 .dir-text {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #1b5e20;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #0f172a;
   line-height: 1.3;
 }
 

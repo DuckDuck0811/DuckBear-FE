@@ -37,16 +37,44 @@
         </div>
       </div>
 
-      <!-- 4 LÀN ĐUA ĐÁP ÁN -->
+      <!-- ĐÁP ÁN -->
       <div v-if="currentQuestionItem" class="track-lanes-area mt-4">
-        <RaceAnswerInput
-          :question="currentQuestionItem.question"
-          :model-value="session.answers[currentQuestionItem.question.id]"
-          :disabled="isChecking"
-          :feedback="checkFeedback"
-          @update:model-value="onAnswerChange"
-          @confirm="onSteerConfirm"
-        />
+        <!-- 4 LÀN ĐUA ĐÁP ÁN (Dạng trắc nghiệm) -->
+        <div v-if="isMcqType">
+          <RaceAnswerInput
+            :question="currentQuestionItem.question"
+            :model-value="session.answers[currentQuestionItem.question.id]"
+            :disabled="isChecking"
+            :feedback="checkFeedback"
+            @update:model-value="onAnswerChange"
+            @confirm="onSteerConfirm"
+          />
+        </div>
+
+        <!-- Dạng điền khuyết (FILL), tự luận (ESSAY)... -->
+        <div v-else class="non-mcq-fallback-card pa-4 pa-md-5 bg-white rounded-xl elevation-2 text-slate-800">
+          <QuestionItem
+            :item="currentQuestionItem"
+            :index="session.currentIndex.value"
+            :answer="session.answers[currentQuestionItem.question.id] || {}"
+            :level="1"
+            mode="race"
+            :disabled="isChecking"
+            @answered="onAnswerChange"
+          />
+          <div class="mt-4 d-flex justify-center">
+            <v-btn
+              color="amber-darken-3"
+              size="large"
+              rounded="pill"
+              class="font-weight-black px-8 elevation-3"
+              :disabled="isChecking || !hasAnswer"
+              @click="onSteerConfirm"
+            >
+              🏎️ Nhấn Ga Tăng Tốc!
+            </v-btn>
+          </div>
+        </div>
       </div>
 
       <!-- Vạch đích khi về đích -->
@@ -77,6 +105,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import RaceAnswerInput from "./RaceAnswerInput.vue";
+import QuestionItem from "../../QuestionItem.vue";
 
 const props = defineProps({
   session: { type: Object, required: true },
@@ -91,6 +120,20 @@ const isComplete = ref(false);
 const currentQuestionItem = computed(() => props.session.currentQuestionItem.value);
 const totalQuestions = computed(() => props.session.totalQuestions.value || 1);
 const currentNum = computed(() => props.session.currentIndex.value + 1);
+
+const isMcqType = computed(() => {
+  const t = currentQuestionItem.value?.question?.type;
+  return (
+    (t === "MCQ" || t === "MULTI_MCQ" || t === "TRUE_FALSE") &&
+    Array.isArray(currentQuestionItem.value?.question?.options) &&
+    currentQuestionItem.value?.question?.options.length > 0
+  );
+});
+
+const hasAnswer = computed(() => {
+  const qId = currentQuestionItem.value?.question?.id;
+  return qId ? props.session.hasAnswer(qId) : false;
+});
 
 function onAnswerChange(payload) {
   const qId = currentQuestionItem.value?.question?.id;
@@ -174,18 +217,18 @@ async function onSteerConfirm() {
 }
 
 .billboard-board {
-  background: #1e293b;
-  border: 3px solid #f97316;
+  background: #ffffff;
+  border: 3.5px solid #ea580c;
   border-radius: 20px;
   padding: 20px 28px;
   text-align: center;
-  box-shadow: 0 0 24px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 10px 25px rgba(234, 88, 12, 0.2);
 }
 
 .billboard-tag {
   font-size: 0.85rem;
   font-weight: 900;
-  color: #fdba74;
+  color: #c2410c;
   letter-spacing: 1px;
   margin-bottom: 8px;
 }
@@ -193,7 +236,7 @@ async function onSteerConfirm() {
 .billboard-question-text {
   font-size: 1.45rem;
   font-weight: 900;
-  color: #ffffff;
+  color: #0f172a;
   line-height: 1.5;
 }
 

@@ -66,27 +66,34 @@ function digAtSite(optionId) {
 <style scoped>
 .dig-sites-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
   width: 100%;
 }
 
+@media (max-width: 540px) {
+  .dig-sites-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .dig-site-card {
-  background: #fef3c7;
-  border: 3px solid #d97706;
+  background: #ffffff;
+  border: 3px solid #f59e0b;
   border-radius: 18px;
   padding: 16px 20px;
   cursor: pointer;
   outline: none;
   text-align: left;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 6px 16px rgba(180, 83, 9, 0.15);
+  box-shadow: 0 6px 18px rgba(180, 83, 9, 0.12);
 }
 
 .dig-site-card:hover:not(:disabled) {
   transform: translateY(-4px) scale(1.02);
-  border-color: #b45309;
-  box-shadow: 0 10px 24px rgba(180, 83, 9, 0.3);
+  border-color: #d97706;
+  background: #fffbeb;
+  box-shadow: 0 10px 24px rgba(180, 83, 9, 0.25);
 }
 
 .site-header {
@@ -94,21 +101,21 @@ function digAtSite(optionId) {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
-  border-bottom: 1.5px dashed #f59e0b;
+  border-bottom: 1.5px dashed #fcd34d;
   padding-bottom: 6px;
 }
 
 .site-marker {
   font-size: 0.9rem;
   font-weight: 900;
-  color: #92400e;
+  color: #b45309;
 }
 
 .site-text {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 800;
   line-height: 1.4;
-  color: #78350f;
+  color: #0f172a;
 }
 
 .site--selected {

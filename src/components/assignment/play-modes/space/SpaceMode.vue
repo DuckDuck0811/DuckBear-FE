@@ -65,14 +65,42 @@
 
     <!-- ANSWER INPUT -->
     <div v-if="currentQuestionItem && !isVictory" class="answer-area">
-      <SpaceAnswerInput
-        :question="currentQuestionItem.question"
-        :model-value="session.answers[currentQuestionItem.question.id]"
-        :disabled="isChecking"
-        :feedback="checkFeedback"
-        @update:model-value="onAnswerChange"
-        @confirm="onConfirm"
-      />
+      <!-- Trắc nghiệm: Hành tinh -->
+      <div v-if="isMcqType">
+        <SpaceAnswerInput
+          :question="currentQuestionItem.question"
+          :model-value="session.answers[currentQuestionItem.question.id]"
+          :disabled="isChecking"
+          :feedback="checkFeedback"
+          @update:model-value="onAnswerChange"
+          @confirm="onConfirm"
+        />
+      </div>
+
+      <!-- Dạng điền khuyết (FILL), tự luận (ESSAY)... -->
+      <div v-else class="non-mcq-fallback-card pa-4 pa-md-5 bg-white rounded-xl elevation-2 text-slate-800">
+        <QuestionItem
+          :item="currentQuestionItem"
+          :index="currentIndex"
+          :answer="session.answers[currentQuestionItem.question.id] || {}"
+          :level="1"
+          mode="space"
+          :disabled="isChecking"
+          @answered="onAnswerChange"
+        />
+        <div class="mt-4 d-flex justify-center">
+          <v-btn
+            color="cyan-darken-2"
+            size="large"
+            rounded="pill"
+            class="font-weight-black px-8 elevation-3"
+            :disabled="isChecking || !hasAnswer"
+            @click="onConfirm"
+          >
+            🚀 Phóng Tàu Không Gian!
+          </v-btn>
+        </div>
+      </div>
     </div>
 
     <!-- VICTORY SCREEN -->
@@ -117,6 +145,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import SpaceAnswerInput from './SpaceAnswerInput.vue'
+import QuestionItem from '../../QuestionItem.vue'
 
 const props = defineProps({
   session: { type: Object, required: true },
@@ -133,6 +162,20 @@ const currentIndex = computed(() => props.session.currentIndex.value)
 const totalQuestions = computed(() => props.session.totalQuestions.value || 1)
 const currentNum = computed(() => currentIndex.value + 1)
 const correctCount = computed(() => Object.values(results.value).filter(Boolean).length)
+
+const isMcqType = computed(() => {
+  const t = currentQuestionItem.value?.question?.type
+  return (
+    (t === 'MCQ' || t === 'MULTI_MCQ' || t === 'TRUE_FALSE') &&
+    Array.isArray(currentQuestionItem.value?.question?.options) &&
+    currentQuestionItem.value?.question?.options.length > 0
+  )
+})
+
+const hasAnswer = computed(() => {
+  const qId = currentQuestionItem.value?.question?.id
+  return qId ? props.session.hasAnswer(qId) : false
+})
 
 const groupEmojis = ['🪐', '⭐', '🌙', '☄️', '🌍', '🌟', '💫']
 
@@ -307,13 +350,12 @@ async function onConfirm() {
 .spaceship-cabin {
   position: relative;
   z-index: 10;
-  background: rgba(0,30,80,0.7);
-  border: 2.5px solid #22d3ee;
+  background: #ffffff;
+  border: 3.5px solid #06b6d4;
   border-radius: 24px;
   padding: 24px 28px;
   margin-bottom: 16px;
-  box-shadow: 0 0 24px rgba(34,211,238,0.25), inset 0 0 40px rgba(34,211,238,0.05);
-  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(6, 182, 212, 0.25);
 }
 
 .cabin-inner {
@@ -321,10 +363,16 @@ async function onConfirm() {
   flex-direction: column;
 }
 
+.cabin-header {
+  color: #0891b2 !important;
+  font-weight: 900 !important;
+  font-size: 0.95rem !important;
+}
+
 .question-text {
-  font-size: 1.4rem;
+  font-size: 1.45rem;
   font-weight: 900;
-  color: #e2e8f0;
+  color: #0f172a;
   line-height: 1.6;
 }
 

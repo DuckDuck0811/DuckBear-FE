@@ -44,14 +44,42 @@
 
     <!-- ANSWER INPUT -->
     <div v-if="currentQuestionItem && !bossDefeated" class="answer-area">
-      <BossAnswerInput
-        :question="currentQuestionItem.question"
-        :model-value="session.answers[currentQuestionItem.question.id]"
-        :disabled="isChecking"
-        :feedback="checkFeedback"
-        @update:model-value="onAnswerChange"
-        @confirm="onConfirm"
-      />
+      <!-- Dạng trắc nghiệm: Thẻ bài ma thuật -->
+      <div v-if="isMcqType">
+        <BossAnswerInput
+          :question="currentQuestionItem.question"
+          :model-value="session.answers[currentQuestionItem.question.id]"
+          :disabled="isChecking"
+          :feedback="checkFeedback"
+          @update:model-value="onAnswerChange"
+          @confirm="onConfirm"
+        />
+      </div>
+
+      <!-- Dạng điền khuyết (FILL), tự luận (ESSAY), nối cặp... -->
+      <div v-else class="non-mcq-fallback-card pa-4 pa-md-5 bg-white rounded-xl elevation-2 text-slate-800">
+        <QuestionItem
+          :item="currentQuestionItem"
+          :index="currentIndex"
+          :answer="session.answers[currentQuestionItem.question.id] || {}"
+          :level="2"
+          mode="boss"
+          :disabled="isChecking"
+          @answered="onAnswerChange"
+        />
+        <div class="attack-row mt-4 d-flex justify-center">
+          <v-btn
+            color="red-darken-2"
+            size="large"
+            rounded="pill"
+            class="font-weight-black attack-btn px-8"
+            :disabled="isChecking || !hasAnswer"
+            @click="onConfirm"
+          >
+            TẤN CÔNG! ⚔️
+          </v-btn>
+        </div>
+      </div>
     </div>
 
     <!-- SUBMIT (last question fallback) -->
@@ -103,6 +131,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import BossAnswerInput from './BossAnswerInput.vue'
+import QuestionItem from '../../QuestionItem.vue'
 
 const props = defineProps({
   session: { type: Object, required: true },
@@ -123,6 +152,20 @@ const currentIndex = computed(() => props.session.currentIndex.value)
 const totalQuestions = computed(() => props.session.totalQuestions.value || 1)
 const currentNum = computed(() => currentIndex.value + 1)
 const hpPerQuestion = computed(() => 100 / totalQuestions.value)
+
+const isMcqType = computed(() => {
+  const t = currentQuestionItem.value?.question?.type
+  return (
+    (t === 'MCQ' || t === 'MULTI_MCQ' || t === 'TRUE_FALSE') &&
+    Array.isArray(currentQuestionItem.value?.question?.options) &&
+    currentQuestionItem.value?.question?.options.length > 0
+  )
+})
+
+const hasAnswer = computed(() => {
+  const qId = currentQuestionItem.value?.question?.id
+  return qId ? props.session.hasAnswer(qId) : false
+})
 
 const feedbackClass = computed(() =>
   checkFeedback.value === 'correct' ? 'feedback--correct' : 'feedback--wrong'
@@ -295,19 +338,24 @@ async function onConfirm() {
 
 /* QUESTION CARD */
 .boss-question-card {
-  background: rgba(45,0,96,0.7);
-  border: 2px solid rgba(167,139,250,0.4);
+  background: #ffffff;
+  border: 3px solid #c084fc;
   border-radius: 24px;
-  padding: 22px 24px;
-  margin-bottom: 14px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 0 20px rgba(139,92,246,0.2);
+  padding: 22px 28px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.question-num {
+  color: #7e22ce !important;
+  font-weight: 900 !important;
+  font-size: 0.95rem !important;
 }
 
 .question-text {
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-weight: 900;
-  color: #ede9fe;
+  color: #0f172a;
   line-height: 1.6;
 }
 

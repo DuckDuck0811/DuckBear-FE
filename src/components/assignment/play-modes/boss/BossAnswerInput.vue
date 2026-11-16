@@ -1,68 +1,42 @@
 <template>
   <div class="boss-answer-input">
-    <!-- Non-MCQ fallback -->
-    <template v-if="!isMCQ">
-      <QuestionItem
-        :question="question"
-        :model-value="modelValue"
-        :disabled="disabled"
-        @answered="(v) => emit('update:modelValue', v)"
-      />
-      <div class="attack-row mt-4">
-        <v-btn
-          color="red-darken-2"
-          size="large"
-          rounded="pill"
-          class="font-weight-black attack-btn"
-          :disabled="disabled"
-          @click="emit('confirm')"
-        >
-          TẤN CÔNG! ⚔️
-        </v-btn>
+    <div class="magic-cards-grid">
+      <div
+        v-for="(option, idx) in options"
+        :key="option.id"
+        class="magic-card"
+        :class="{
+          'card--selected': isSelected(option.id),
+          'card--correct': feedback === 'correct' && isSelected(option.id),
+          'card--wrong': feedback === 'wrong' && isSelected(option.id),
+          'card--disabled': disabled,
+        }"
+        @click="chooseCard(option.id)"
+      >
+        <div class="card-emblem">{{ cardEmblems[idx % cardEmblems.length] }}</div>
+        <div class="card-letter">{{ getLetter(idx) }}</div>
+        <div class="card-text">{{ option.content }}</div>
+        <div class="card-shine" />
       </div>
-    </template>
+    </div>
 
-    <!-- MCQ: Magic card options -->
-    <template v-else>
-      <div class="magic-cards-grid">
-        <div
-          v-for="(option, idx) in options"
-          :key="option.id"
-          class="magic-card"
-          :class="{
-            'card--selected': isSelected(option.id),
-            'card--correct': feedback === 'correct' && isSelected(option.id),
-            'card--wrong': feedback === 'wrong' && isSelected(option.id),
-            'card--disabled': disabled,
-          }"
-          @click="chooseCard(option.id)"
-        >
-          <div class="card-emblem">{{ cardEmblems[idx % cardEmblems.length] }}</div>
-          <div class="card-letter">{{ getLetter(idx) }}</div>
-          <div class="card-text">{{ option.content }}</div>
-          <div class="card-shine" />
-        </div>
-      </div>
-
-      <div class="attack-row mt-5">
-        <v-btn
-          color="red-darken-2"
-          size="large"
-          rounded="pill"
-          class="font-weight-black attack-btn"
-          :disabled="disabled || !hasSelection"
-          @click="emit('confirm')"
-        >
-          TẤN CÔNG! ⚔️
-        </v-btn>
-      </div>
-    </template>
+    <div class="attack-row mt-5">
+      <v-btn
+        color="red-darken-2"
+        size="large"
+        rounded="pill"
+        class="font-weight-black attack-btn"
+        :disabled="disabled || !hasSelection"
+        @click="emit('confirm')"
+      >
+        TẤN CÔNG! ⚔️
+      </v-btn>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import QuestionItem from '../../QuestionItem.vue'
 
 const props = defineProps({
   question: { type: Object, required: true },
@@ -74,10 +48,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
 const cardEmblems = ['⚔️', '🛡️', '🔮', '✨', '🗡️', '🏹']
-
-const isMCQ = computed(() =>
-  props.question?.type === 'MCQ' || props.question?.type === 'MULTI_MCQ'
-)
 const options = computed(() => props.question?.options || [])
 
 const hasSelection = computed(() => {
@@ -112,9 +82,15 @@ function chooseCard(optionId) {
 
 .magic-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
   width: 100%;
+}
+
+@media (max-width: 540px) {
+  .magic-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .magic-card {
@@ -122,21 +98,23 @@ function chooseCard(optionId) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  background: linear-gradient(145deg, #2d1b69, #4c1d95);
-  border: 2.5px solid rgba(167,139,250,0.4);
+  gap: 10px;
+  background: #ffffff;
+  border: 3px solid #cbd5e1;
   border-radius: 20px;
-  padding: 20px 14px 16px;
+  padding: 20px 16px 18px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: hidden;
   user-select: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
 }
 
 .magic-card:hover:not(.card--disabled) {
-  transform: translateY(-6px) scale(1.04);
-  border-color: rgba(167,139,250,0.9);
-  box-shadow: 0 8px 30px rgba(139,92,246,0.5);
+  transform: translateY(-5px) scale(1.02);
+  border-color: #8b5cf6;
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.25);
+  background: #faf5ff;
 }
 
 .card--disabled {
@@ -145,42 +123,43 @@ function chooseCard(optionId) {
 }
 
 .card--selected {
-  border-color: #a78bfa !important;
-  box-shadow: 0 0 24px rgba(167,139,250,0.7), inset 0 0 20px rgba(167,139,250,0.1) !important;
-  background: linear-gradient(145deg, #3730a3, #6d28d9) !important;
+  border-color: #7c3aed !important;
+  box-shadow: 0 0 24px rgba(124, 58, 237, 0.4) !important;
+  background: #f5f3ff !important;
 }
 
 .card--correct {
-  border-color: #22c55e !important;
-  box-shadow: 0 0 24px rgba(34,197,94,0.6) !important;
-  background: linear-gradient(145deg, #14532d, #15803d) !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.45) !important;
+  background: #ecfdf5 !important;
 }
 
 .card--wrong {
   border-color: #ef4444 !important;
-  box-shadow: 0 0 20px rgba(239,68,68,0.5) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4) !important;
+  background: #fef2f2 !important;
   animation: cardShake 0.4s ease;
 }
 
 .card-emblem {
-  font-size: 2rem;
+  font-size: 2.2rem;
   line-height: 1;
 }
 
 .card-letter {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 900;
-  color: #c4b5fd;
+  color: #6b21a8;
   letter-spacing: 1px;
-  background: rgba(255,255,255,0.1);
-  border-radius: 6px;
-  padding: 2px 10px;
+  background: #ede9fe;
+  border-radius: 8px;
+  padding: 3px 12px;
 }
 
 .card-text {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #ede9fe;
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #0f172a;
   text-align: center;
   line-height: 1.4;
 }
