@@ -2759,17 +2759,10 @@ function clearFilters() {
 const questionTypeOptions = computed(() =>
   [
     { title: t("assignmentHub.filterAllTypes"), value: "ALL" },
-    {
-      title: t("questionBank.types.MULTIPLE_CHOICE"),
-      value: "MULTIPLE_CHOICE",
-    },
-    { title: t("questionBank.types.ESSAY"), value: "ESSAY" },
-    { title: t("questionBank.types.DRAG_DROP"), value: "DRAG_DROP" },
-    { title: t("questionBank.types.MATCHING"), value: "MATCHING" },
-  ].filter(
-    (opt) =>
-      opt.value === "ALL" || questions.value.some((q) => q.type === opt.value),
-  ),
+    ...["MCQ", "MULTI_MCQ", "TRUE_FALSE", "MATCHING", "FILL", "ESSAY", "DRAG_DROP"].map(
+      (value) => ({ title: t(`questionBank.types.${value}`), value }),
+    ),
+  ],
 );
 
 const questionDifficultyOptions = computed(() =>
@@ -2796,7 +2789,11 @@ const filteredQuestions = computed(() => {
         (qn.lessonTitle || "").toLowerCase().includes(q),
     );
   if (questionTypeFilter.value !== "ALL")
-    list = list.filter((qn) => qn.type === questionTypeFilter.value);
+    list = list.filter((qn) =>
+      questionTypeFilter.value === "MCQ"
+        ? qn.type === "MCQ" || qn.type === "MULTIPLE_CHOICE"
+        : qn.type === questionTypeFilter.value,
+    );
   if (questionDifficultyFilter.value !== "ALL")
     list = list.filter(
       (qn) => qn.difficulty === questionDifficultyFilter.value,

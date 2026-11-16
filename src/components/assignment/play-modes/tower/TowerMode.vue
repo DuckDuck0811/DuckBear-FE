@@ -538,6 +538,7 @@ onMounted(() => {
 .wf-main-arena {
   display: grid;
   grid-template-columns: minmax(260px, 0.4fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   flex: 1;
   min-height: 0;
   gap: 16px;
@@ -759,6 +760,11 @@ onMounted(() => {
   gap: 10px;
   width: 100%;
   min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 4px 4px 10px;
+  scrollbar-gutter: stable;
 }
 
 /* BẢNG CÂU HỎI THỬ THÁCH (Trắng viền xanh như hình mẫu) */
@@ -904,6 +910,11 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   margin-top: 2px;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: 10px 0 6px;
+  background: linear-gradient(180deg, rgba(96, 165, 250, 0), rgba(96, 165, 250, 0.96) 35%);
 }
 
 .btn-climb-waterfall {
