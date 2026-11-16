@@ -5,13 +5,18 @@
   >
     <AppHeader />
     <StudentSidebar />
-    <v-main class="pb-16">
-      <v-container class="py-7 px-4 px-md-8" style="max-width: 960px">
+    <v-main class="pb-16" :class="{ 'game-mode-main': isGameMode }">
+      <v-container
+        :fluid="isGameMode"
+        :class="isGameMode ? 'pa-2 pa-md-4' : 'py-7 px-4 px-md-8'"
+        :style="isGameMode ? 'max-width: 100%' : 'max-width: 960px'"
+      >
         <v-btn
           to="/assignments"
           variant="text"
           prepend-icon="mdi-arrow-left"
-          class="mb-4"
+          class="mb-3"
+          :density="isGameMode ? 'compact' : 'default'"
         >
           {{ t("assignmentHub.backToAssignments") }}
         </v-btn>
@@ -148,10 +153,24 @@ const modeComponents = {
 const activeModeComponent = computed(() => {
   return modeComponents[session.resolvedPlayMode.value] || ClassicMode;
 });
+
+const isGameMode = computed(() => {
+  const m = session.resolvedPlayMode.value;
+  return m && m !== 'classic';
+});
 </script>
 
 <style scoped>
 .assignment-take-page {
   background: #f4f8ff;
+}
+
+.game-mode-main {
+  padding-bottom: 24px !important;
+}
+
+.game-mode-main :deep(.v-container) {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
 }
 </style>
