@@ -218,7 +218,7 @@ async function handleCheckAnswer() {
     }
   } catch (err) {
     // Nếu đã check trước đó
-    if (err?.response?.status === 409) {
+    if (err?.status === 409 || err?.response?.status === 409) {
       checkedQuestions[q.id] = { isCorrect: false, status: "ALREADY_CHECKED" };
     }
   } finally {

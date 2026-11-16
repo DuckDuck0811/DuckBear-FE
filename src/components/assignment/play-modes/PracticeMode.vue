@@ -217,7 +217,7 @@ async function handleCheckAnswer() {
     );
     checkedQuestions[q.id] = res;
   } catch (err) {
-    if (err?.response?.status === 409) {
+    if (err?.status === 409 || err?.response?.status === 409) {
       checkedQuestions[q.id] = { isCorrect: false, status: "ALREADY_CHECKED" };
     }
   } finally {
