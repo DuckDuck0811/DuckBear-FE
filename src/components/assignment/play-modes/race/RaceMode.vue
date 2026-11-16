@@ -848,8 +848,21 @@ onMounted(() => {
   background: #ffffff;
   border-radius: 20px;
   padding: 24px;
-  margin: 20px;
+  margin: 12px 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  position: relative;
+  scrollbar-gutter: stable;
+}
+
+.non-mcq-track-card > .d-flex {
+  position: sticky;
+  bottom: -24px;
+  z-index: 2;
+  padding: 12px 0 6px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), #ffffff 35%);
 }
 
 /* ================= BOTTOM BAR: TIẾN ĐỘ & NÚT NHẤN GA ================= */
