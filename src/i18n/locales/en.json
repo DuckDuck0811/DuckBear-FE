@@ -1172,8 +1172,64 @@
     "close": "Close"
   },
   "playModes": {
-    "comingSoon": "Coming soon",
+    "comingSoon": "Coming soon (uses classic)",
     "inDevelopment": "In development",
-    "usingClassicFallback": "{mode} mode UI is not ready yet – using Classic layout"
+    "usingClassicFallback": "{mode} mode UI is not ready yet – using Classic layout",
+    "title": "Play Mode",
+    "auto": "Default by Grade",
+    "modes": {
+      "classic": {
+        "name": "Classic",
+        "description": "Traditional layout, progress bar, 1..N question matrix."
+      },
+      "tower": {
+        "name": "Tower Climb",
+        "description": "1 question at a time; climb 1 floor on correct, stay on incorrect."
+      },
+      "fruit": {
+        "name": "Fruit Harvest",
+        "description": "Harvest 1 fruit into basket on correct, remains hanging on incorrect."
+      },
+      "race": {
+        "name": "Speed Race",
+        "description": "Car zooms forward on correct, crosses finish line at end."
+      },
+      "treasure": {
+        "name": "Treasure Hunt",
+        "description": "Unlock map piece on correct, open treasure chest when complete."
+      },
+      "space": {
+        "name": "Space Journey",
+        "description": "Rocket travels through planets, 5 questions per planet."
+      },
+      "streak": {
+        "name": "Fire Streak",
+        "description": "Consecutive correct answers boost combo, resets on mistake; badges at 5, 10, 20."
+      },
+      "boss": {
+        "name": "Boss Battle",
+        "description": "Each correct answer depletes boss HP."
+      },
+      "map": {
+        "name": "Map Conquest",
+        "description": "Stage-based (~5 questions/stage), opens new zone after each stage."
+      },
+      "speed": {
+        "name": "Speed Run",
+        "description": "Short countdown per question, auto-skips on timeout as unanswered."
+      },
+      "practice": {
+        "name": "Practice",
+        "description": "1 question at a time, instant correct/wrong and explanation."
+      },
+      "exam": {
+        "name": "Exam Room",
+        "description": "Timer, question sheet, review bookmarking, no instant results."
+      },
+      "mock": {
+        "name": "Mock Exam",
+        "description": "Sectioned layout, total timer, single submission, results revealed after submit."
+      }
+    }
   }
 }

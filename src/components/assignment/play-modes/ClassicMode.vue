@@ -1,7 +1,30 @@
 <template>
   <div class="classic-mode">
+    <!-- Header thông tin bài tập của Classic -->
+    <v-card v-if="assignment" class="pa-4 pa-md-5 mb-4" rounded="xl" elevation="1">
+      <div class="d-flex flex-wrap align-center justify-space-between ga-3">
+        <div>
+          <div class="text-overline text-primary">
+            {{ assignment.class?.name }} · {{ assignment.lesson?.title || assignment.book?.title }}
+          </div>
+          <h1 class="text-h5 font-weight-black">{{ assignment.title }}</h1>
+        </div>
+        <v-chip
+          v-if="timeLabel"
+          color="warning"
+          variant="tonal"
+          prepend-icon="mdi-timer-outline"
+        >
+          {{ timeLabel }}
+        </v-chip>
+      </div>
+      <div v-if="attemptNo" class="text-body-2 text-secondary mt-1">
+        {{ t("assignmentHub.attemptLabel", { number: attemptNo, max: assignment.maxAttempts ? assignment.maxAttempts : t("assignmentHub.unlimited") }) }}
+      </div>
+    </v-card>
+
     <!-- Header tiến độ & điều hướng nhanh -->
-    <v-card class="pa-4 pa-md-5 mb-5" elevation="1">
+    <v-card class="pa-4 pa-md-5 mb-5" elevation="1" rounded="xl">
       <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-3">
         <div>
           <span class="text-subtitle-1 font-weight-bold">
@@ -17,7 +40,7 @@
           prepend-icon="mdi-send"
           :loading="submitting"
           class="font-weight-bold"
-          @click="$emit('submit')"
+          @click="handleSubmit"
         >
           {{ t("assignmentHub.submit") }}
         </v-btn>
@@ -70,7 +93,7 @@
         prepend-icon="mdi-send"
         :loading="submitting"
         class="px-8 font-weight-bold"
-        @click="$emit('submit')"
+        @click="handleSubmit"
       >
         {{ t("assignmentHub.submit") }}
       </v-btn>
@@ -84,9 +107,11 @@ import { useI18n } from "vue-i18n";
 import QuestionItem from "../QuestionItem.vue";
 
 const props = defineProps({
-  assignment: { type: Object, required: true },
-  questions: { type: Array, required: true },
-  answers: { type: Object, required: true },
+  session: { type: Object, default: null },
+  // Fallbacks khi truyền rời props
+  assignment: { type: Object, default: () => ({}) },
+  questions: { type: Array, default: () => [] },
+  answers: { type: Object, default: () => ({}) },
   loading: { type: Boolean, default: false },
   submitting: { type: Boolean, default: false },
   level: { type: Number, default: 3 },
@@ -95,8 +120,16 @@ const props = defineProps({
 const emit = defineEmits(["submit", "answer-change"]);
 const { t } = useI18n();
 
+const assignment = computed(() => props.session?.assignment?.value || props.assignment);
+const questions = computed(() => props.session?.questions?.value || props.questions || []);
+const answers = computed(() => props.session?.answers || props.answers || {});
+const submitting = computed(() => props.session?.submitting?.value ?? props.submitting);
+const level = computed(() => props.session?.level?.value ?? props.level);
+const timeLabel = computed(() => props.session?.timeLabel?.value || "");
+const attemptNo = computed(() => props.session?.attemptNo?.value || 1);
+
 function isQuestionAnswered(questionId) {
-  const a = props.answers[questionId];
+  const a = answers.value[questionId];
   if (!a) return false;
   const hasSingle = a.selectedOptionId !== null && a.selectedOptionId !== undefined;
   const hasMulti = Array.isArray(a.selectedOptionIds) && a.selectedOptionIds.length > 0;
@@ -107,10 +140,13 @@ function isQuestionAnswered(questionId) {
 }
 
 const answeredCount = computed(() => {
-  return props.questions.filter((q) => isQuestionAnswered(q.question.id)).length;
+  return questions.value.filter((q) => isQuestionAnswered(q.question.id)).length;
 });
 
 function onAnswered(questionId, index) {
+  if (props.session) {
+    props.session.setAnswer(questionId, answers.value[questionId]);
+  }
   emit("answer-change", { questionId, index });
 }
 
@@ -118,6 +154,14 @@ function scrollToQuestion(index) {
   const el = document.getElementById("question-card-" + index);
   if (el) {
     el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+
+function handleSubmit() {
+  if (props.session) {
+    props.session.submit();
+  } else {
+    emit("submit");
   }
 }
 </script>
