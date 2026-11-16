@@ -158,8 +158,17 @@ import AppHeader from "../../components/shared/AppHeader.vue";
 import StudentSidebar from "../../components/shared/StudentSidebar.vue";
 import ClassicMode from "../../components/assignment/play-modes/ClassicMode.vue";
 import TowerMode from "../../components/assignment/play-modes/TowerMode.vue";
+import FruitMode from "../../components/assignment/play-modes/FruitMode.vue";
+import RaceMode from "../../components/assignment/play-modes/RaceMode.vue";
+import TreasureMode from "../../components/assignment/play-modes/TreasureMode.vue";
+import SpaceMode from "../../components/assignment/play-modes/SpaceMode.vue";
+import StreakMode from "../../components/assignment/play-modes/StreakMode.vue";
+import BossMode from "../../components/assignment/play-modes/BossMode.vue";
+import MapMode from "../../components/assignment/play-modes/MapMode.vue";
+import SpeedMode from "../../components/assignment/play-modes/SpeedMode.vue";
 import PracticeMode from "../../components/assignment/play-modes/PracticeMode.vue";
 import ExamMode from "../../components/assignment/play-modes/ExamMode.vue";
+import MockMode from "../../components/assignment/play-modes/MockMode.vue";
 import PlaceholderMode from "../../components/assignment/play-modes/PlaceholderMode.vue";
 import "../../styles/play-modes-theme.css";
 
@@ -181,8 +190,17 @@ let screenHidden = false;
 const modeComponents = {
   classic: ClassicMode,
   tower: TowerMode,
+  fruit: FruitMode,
+  race: RaceMode,
+  treasure: TreasureMode,
+  space: SpaceMode,
+  streak: StreakMode,
+  boss: BossMode,
+  map: MapMode,
+  speed: SpeedMode,
   practice: PracticeMode,
   exam: ExamMode,
+  mock: MockMode,
 };
 
 const resolvedPlayMode = computed(() => {
@@ -213,8 +231,16 @@ const activeModeComponent = computed(() => {
   if (modeComponents[resolvedPlayMode.value]) {
     return modeComponents[resolvedPlayMode.value];
   }
+  // Nếu kiểu giáo viên chọn thủ công có component thực → ưu tiên dùng
+  if (selectedPlayMode.value && modeComponents[selectedPlayMode.value]) {
+    return modeComponents[selectedPlayMode.value];
+  }
   // Giáo viên chọn thủ công kiểu chưa implement → Placeholder (không phải auto)
-  if (selectedPlayMode.value && selectedPlayMode.value !== "auto" && selectedPlayMode.value !== "classic") {
+  if (
+    selectedPlayMode.value &&
+    selectedPlayMode.value !== "auto" &&
+    selectedPlayMode.value !== "classic"
+  ) {
     return PlaceholderMode;
   }
   return ClassicMode;
