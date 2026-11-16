@@ -20,6 +20,7 @@ export function useAssignmentSession() {
   const startedAt = ref(null);
   const result = ref(null);
   const answers = reactive({});
+  const checkedQuestions = reactive({});  // questionId (string) → { isCorrect: boolean | null }
   const currentIndex = ref(0);
   const now = ref(Date.now());
   let timer = null;
@@ -155,10 +156,15 @@ export function useAssignmentSession() {
     };
 
     const assignmentId = assignment.value?.id || route.params.id;
-    return api.post(
+    const res = await api.post(
       `/assignments/${assignmentId}/attempts/${attemptId.value}/questions/${questionId}/check`,
       body,
     );
+    // Lưu local để mini-game biết câu nào đã check
+    if (res && res.questionId !== undefined) {
+      checkedQuestions[String(res.questionId)] = { isCorrect: res.isCorrect ?? null };
+    }
+    return res;
   }
 
   async function submit() {
@@ -227,6 +233,13 @@ export function useAssignmentSession() {
       attemptNo.value = started.attemptNo;
       startedAt.value = started.startedAt;
       assignment.value = started.assignment;
+
+      // Populate checkedQuestions từ server (để khôi phục game state)
+      if (Array.isArray(started.checkedQuestions)) {
+        for (const { questionId, isCorrect } of started.checkedQuestions) {
+          checkedQuestions[String(questionId)] = { isCorrect };
+        }
+      }
 
       for (const { question } of assignment.value.questions) {
         answers[question.id] = {
@@ -303,6 +316,7 @@ export function useAssignmentSession() {
     isFirstQuestion,
     isLastQuestion,
     answers,
+    checkedQuestions,
     attemptId,
     attemptNo,
     startedAt,

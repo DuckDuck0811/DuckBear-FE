@@ -105,24 +105,25 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, defineAsyncComponent } from "vue";
 import { useI18n } from "vue-i18n";
 import { useAssignmentSession } from "../../composables/useAssignmentSession";
 import AppHeader from "../../components/shared/AppHeader.vue";
 import StudentSidebar from "../../components/shared/StudentSidebar.vue";
 import ClassicMode from "../../components/assignment/play-modes/ClassicMode.vue";
-import TowerMode from "../../components/assignment/play-modes/tower/TowerMode.vue";
-import FruitMode from "../../components/assignment/play-modes/fruit/FruitMode.vue";
-import RaceMode from "../../components/assignment/play-modes/race/RaceMode.vue";
-import TreasureMode from "../../components/assignment/play-modes/treasure/TreasureMode.vue";
-import SpaceMode from "../../components/assignment/play-modes/space/SpaceMode.vue";
-import StreakMode from "../../components/assignment/play-modes/streak/StreakMode.vue";
-import BossMode from "../../components/assignment/play-modes/boss/BossMode.vue";
-import MapMode from "../../components/assignment/play-modes/map/MapMode.vue";
-import SpeedMode from "../../components/assignment/play-modes/speed/SpeedMode.vue";
-import PracticeMode from "../../components/assignment/play-modes/practice/PracticeMode.vue";
-import ExamMode from "../../components/assignment/play-modes/exam/ExamMode.vue";
-import MockMode from "../../components/assignment/play-modes/mock/MockMode.vue";
+
+const TowerMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/tower/TowerMode.vue"));
+const FruitMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/fruit/FruitMode.vue"));
+const RaceMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/race/RaceMode.vue"));
+const TreasureMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/treasure/TreasureMode.vue"));
+const SpaceMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/space/SpaceMode.vue"));
+const StreakMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/streak/StreakMode.vue"));
+const BossMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/boss/BossMode.vue"));
+const MapMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/map/MapMode.vue"));
+const SpeedMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/speed/SpeedMode.vue"));
+const PracticeMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/practice/PracticeMode.vue"));
+const ExamMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/exam/ExamMode.vue"));
+const MockMode = defineAsyncComponent(() => import("../../components/assignment/play-modes/mock/MockMode.vue"));
 import "../../styles/play-modes-theme.css";
 
 const { t } = useI18n();
