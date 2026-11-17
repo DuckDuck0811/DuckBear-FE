@@ -1230,6 +1230,28 @@
         "name": "Mock Exam",
         "description": "Sectioned layout, total timer, single submission, results revealed after submit."
       }
+    },
+    "shared": {
+      "soundOn": "Turn sound on",
+      "soundOff": "Turn sound off",
+      "questionNumber": "Question {current} / {total}",
+      "stars": "Stars",
+      "combo": "Combo",
+      "retry": "Retry",
+      "networkError": "Network connection error. Click to retry!"
+    },
+    "raceUI": {
+      "actionDrive": "DRIVE & OVERTAKE!",
+      "actionNitro": "🏎️ HIT NITRO BOOST!",
+      "checking": "BOOSTING...",
+      "finishHeadline": "AWESOME FINISH!",
+      "finishDesc": "Super racer completed all {total} laps with a score of {score} points!",
+      "submitNow": "🏁 CROSS FINISH LINE & SUBMIT",
+      "submitting": "SUBMITTING...",
+      "leaderboardTitle": "Racer Dashboard",
+      "racerLabel": "Racer",
+      "myScore": "Lap Score",
+      "bestCombo": "Best Combo"
     }
   }
 }

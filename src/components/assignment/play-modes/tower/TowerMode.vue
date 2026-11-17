@@ -29,15 +29,6 @@
         <span class="wf-star-icon">⭐</span>
         <strong class="wf-star-count">{{ stars }}</strong>
       </div>
-
-      <button
-        type="button"
-        class="wf-submit-early"
-        :disabled="session.submitting.value || isChecking"
-        @click="session.submit()"
-      >
-        {{ session.submitting.value ? 'ĐANG NỘP...' : 'Nộp bài' }}
-      </button>
     </header>
 
     <!-- SÂN KHẤU CHÍNH: BÊN TRÁI THÁC NƯỚC & THÁP ĐÁ, BÊN PHẢI BẢNG CÂU HỎI & NÚT -->
@@ -118,7 +109,7 @@
               <circle cx="68" cy="38" r="24" fill="#22c55e" stroke="#15803d" stroke-width="3" />
               <!-- Mõm nhô phía trước -->
               <ellipse cx="84" cy="44" rx="14" ry="11" fill="#22c55e" stroke="#15803d" stroke-width="2.5" />
-              <circle cx="86" cy="40" r="1.8" fill="#15803d" /> <!-- Lỗ mũi -->
+              <circle cx="86" cy="40" r="1.8" fill="#15803d" />
 
               <!-- Mắt to ngây thơ long lanh -->
               <ellipse cx="72" cy="34" rx="6" ry="8" fill="#ffffff" stroke="#0f172a" stroke-width="2" />
@@ -127,7 +118,6 @@
 
               <!-- Khăn quàng đỏ buộc cổ có vạt bay phấp phới -->
               <path d="M50 48 Q68 56 84 50 L84 58 Q68 64 50 54 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="2" />
-              <!-- Hai vạt khăn đỏ bay dài phía sau lưng -->
               <path d="M48 50 Q30 46 16 54 Q28 62 48 56 Z" fill="#ef4444" stroke="#b91c1c" stroke-width="2" />
               <path d="M46 54 Q32 56 22 66 Q34 68 46 58 Z" fill="#dc2626" stroke="#b91c1c" stroke-width="2" />
             </svg>
@@ -214,8 +204,8 @@
             :answer="session.answers[currentQuestionItem.question.id] || {}"
             :level="1"
             mode="tower"
-            :disabled="isChecking || isChecked"
-            @answered="onQuestionAnswered"
+            :disabled="isChecking"
+            @answered="() => {}"
           />
           <div class="wf-commit-action-wrap mt-4">
             <button
@@ -291,7 +281,6 @@ const isChecked = computed(() => {
   return qId != null && props.session.checkedQuestions?.[String(qId)] != null;
 });
 
-// Chỉ số tầng hoạt hình trên tháp đá (1 đến 5)
 const currentTierIndex = computed(() => {
   return ((displayFloor.value - 1) % 5) + 1;
 });
@@ -301,12 +290,6 @@ function onPick(optionId) {
   localSelected.value = optionId;
 }
 
-function onQuestionAnswered(questionId) {
-  const answer = props.session.answers[questionId];
-  if (answer) props.session.setAnswer(questionId, { ...answer });
-}
-
-// Hỗ trợ phím tắt A-D / 1-4 / Enter
 function onKeydown(e) {
   if (reachedPeak.value || isChecking.value || isChecked.value) return;
   if (!currentQuestionItem.value) return;
@@ -346,7 +329,6 @@ async function onConfirmClimb() {
       heroAnim.value = 'shake';
     }
 
-    // Đợi nhảy xong rồi chuyển sang tầng kế tiếp
     setTimeout(() => {
       checkFeedback.value = null;
       heroAnim.value = 'idle';
@@ -378,16 +360,10 @@ onMounted(() => {
   document.addEventListener('keydown', onKeydown);
   const checked = props.session.checkedQuestions || {};
   const checkedCount = Object.keys(checked).length;
-  const firstUnansweredIndex = props.session.questions.value.findIndex(
-    ({ question }) => !checked[String(question.id)],
-  );
-  if (firstUnansweredIndex >= 0) {
-    props.session.goTo(firstUnansweredIndex);
-  }
   if (checkedCount > 0) {
     currentFloor.value = checkedCount;
     stars.value = Object.values(checked).filter(c => c.isCorrect === true).length * 3;
-    if (firstUnansweredIndex < 0) {
+    if (checkedCount >= (props.session.totalQuestions?.value || 1)) {
       reachedPeak.value = true;
     }
   }
@@ -415,7 +391,7 @@ onMounted(() => {
 /* ================= HEADER TOP BAR ================= */
 .wf-header {
   display: grid;
-  grid-template-columns: 190px 1fr 120px auto;
+  grid-template-columns: 190px 1fr 120px;
   align-items: center;
   gap: 20px;
   padding: 14px 24px;
@@ -517,32 +493,13 @@ onMounted(() => {
   color: #b45309;
 }
 
-.wf-submit-early {
-  min-height: 44px;
-  padding: 0 18px;
-  border: 2px solid #0284c7;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #0369a1;
-  font: inherit;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.wf-submit-early:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
 /* ================= MAIN ARENA 2 CỘT RÕ RÀNG ================= */
 .wf-main-arena {
   display: grid;
-  grid-template-columns: minmax(260px, 0.4fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: 360px 1fr;
   flex: 1;
-  min-height: 0;
-  gap: 16px;
-  padding: 12px 16px;
+  gap: 24px;
+  padding: 20px 24px;
   position: relative;
   align-items: center;
 }
@@ -757,14 +714,8 @@ onMounted(() => {
 .wf-interactive-panel {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
   width: 100%;
-  min-width: 0;
-  min-height: 0;
-  max-height: 100%;
-  overflow-y: auto;
-  padding: 4px 4px 10px;
-  scrollbar-gutter: stable;
 }
 
 /* BẢNG CÂU HỎI THỬ THÁCH (Trắng viền xanh như hình mẫu) */
@@ -772,7 +723,7 @@ onMounted(() => {
   background: #fffbeb;
   border: 4px solid #0284c7;
   border-radius: 24px;
-  padding: 12px 18px;
+  padding: 18px 24px;
   box-shadow: 0 10px 25px rgba(2, 132, 199, 0.15), inset 0 2px 0 #ffffff;
   position: relative;
   text-align: center;
@@ -784,12 +735,12 @@ onMounted(() => {
   gap: 6px;
   background: #e0f2fe;
   border: 2px solid #38bdf8;
-  padding: 3px 14px;
+  padding: 4px 18px;
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 900;
   color: #0369a1;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .book-icon {
@@ -797,7 +748,7 @@ onMounted(() => {
 }
 
 .wf-question-content {
-  font-size: 1.3rem;
+  font-size: 1.45rem;
   font-weight: 900;
   color: #0f172a;
   line-height: 1.45;
@@ -808,17 +759,17 @@ onMounted(() => {
 .wf-answers-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .wf-answer-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   background: #ffffff;
   border: 3.5px solid #cbd5e1;
   border-radius: 999px;
-  padding: 6px 18px 6px 10px;
+  padding: 10px 24px 10px 12px;
   cursor: pointer;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -839,8 +790,8 @@ onMounted(() => {
 
 /* BADGE TRÒN A, B, C, D 4 MÀU RỰC RỠ CHUẨN MẪU */
 .wf-pill-badge {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -850,13 +801,13 @@ onMounted(() => {
   border: 3px solid #ffffff;
 }
 
-.pill-color-0 { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); } /* A: Vàng cam */
-.pill-color-1 { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); } /* B: Xanh dương */
-.pill-color-2 { background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); } /* C: Xanh lá */
-.pill-color-3 { background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%); } /* D: Tím */
+.pill-color-0 { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+.pill-color-1 { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); }
+.pill-color-2 { background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); }
+.pill-color-3 { background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%); }
 
 .wf-letter {
-  font-size: 1.55rem;
+  font-size: 1.8rem;
   font-weight: 900;
   color: #ffffff;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -864,7 +815,7 @@ onMounted(() => {
 
 .wf-option-text {
   flex: 1;
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #1e293b;
   line-height: 1.4;
@@ -905,16 +856,11 @@ onMounted(() => {
   cursor: default;
 }
 
-/* NÚT LEO THÁC 3D (GIỐNG NÚT LEO THÁC MÀU XÁM XANH NỔI TRÊN ẢNH) */
+/* NÚT LEO THÁC 3D */
 .wf-commit-action-wrap {
   display: flex;
   justify-content: center;
-  margin-top: 2px;
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  padding: 10px 0 6px;
-  background: linear-gradient(180deg, rgba(96, 165, 250, 0), rgba(96, 165, 250, 0.96) 35%);
+  margin-top: 8px;
 }
 
 .btn-climb-waterfall {
@@ -924,13 +870,13 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 10px 24px;
+  padding: 14px 32px;
   border-radius: 999px;
   background: linear-gradient(180deg, #94a3b8 0%, #64748b 100%);
   border: none;
   border-bottom: 5px solid #475569;
   color: #ffffff;
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   font-weight: 900;
   cursor: not-allowed;
   opacity: 0.6;
@@ -1028,10 +974,6 @@ onMounted(() => {
     grid-template-columns: 1fr;
     gap: 10px;
     padding: 10px 14px;
-  }
-
-  .wf-submit-early {
-    justify-self: stretch;
   }
 
   .wf-progress-bar-wrap {

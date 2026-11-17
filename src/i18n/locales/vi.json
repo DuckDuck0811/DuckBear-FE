@@ -1225,6 +1225,28 @@
         "name": "Thi thử THPT",
         "description": "Chia phần, đồng hồ tổng, nộp một lần, chỉ hiện kết quả sau khi nộp."
       }
+    },
+    "shared": {
+      "soundOn": "Bật âm thanh",
+      "soundOff": "Tắt âm thanh",
+      "questionNumber": "Câu hỏi {current} / {total}",
+      "stars": "Sao",
+      "combo": "Combo",
+      "retry": "Thử lại",
+      "networkError": "Có lỗi kết nối. Bấm để thử lại!"
+    },
+    "raceUI": {
+      "actionDrive": "LÁI XE VƯỢT LÀN!",
+      "actionNitro": "🏎️ NHẤN GA PHÓNG TỚI!",
+      "checking": "ĐANG PHÓNG...",
+      "finishHeadline": "VỀ ĐÍCH XUẤT SẮC!",
+      "finishDesc": "Tay đua cừ khôi đã hoàn thành toàn bộ {total} chặng đua với điểm số {score} điểm!",
+      "submitNow": "🏁 CÁN ĐÍCH & NỘP BÀI NGAY",
+      "submitting": "ĐANG NỘP BÀI...",
+      "leaderboardTitle": "Bảng thành tích",
+      "racerLabel": "Tay đua",
+      "myScore": "Điểm chặng",
+      "bestCombo": "Combo cao nhất"
     }
   }
 }

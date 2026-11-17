@@ -284,7 +284,7 @@ function optionIcon(optId) {
 <style scoped>
 .practice-mode {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #fff;
   display: flex;
   flex-direction: column;
 }
