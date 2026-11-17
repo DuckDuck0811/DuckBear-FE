@@ -1247,6 +1247,18 @@
       "racerLabel": "Tay đua",
       "myScore": "Điểm chặng",
       "bestCombo": "Combo cao nhất"
+    },
+    "towerUI": {
+      "headerCaption": "TIẾN ĐỘ THÁP",
+      "floorLabel": "Tầng {current} / {total}",
+      "questionBadge": "CÂU HỎI THỬ THÁCH {current} / {total}",
+      "actionClimb": "🏁 Leo Thác!",
+      "actionClimbContinue": "🏁 Leo Thác Tiếp!",
+      "checking": "ĐANG LEO...",
+      "finishHeadline": "CHINH PHỤC ĐỈNH THÁC THÀNH CÔNG!",
+      "finishDesc": "Bé Khủng Long đã xuất sắc vượt qua toàn bộ {total} tầng thác và rinh về {stars} ngôi sao sáng!",
+      "submitNow": "🎉 NỘP BÀI NGAY",
+      "submitting": "ĐANG NỘP BÀI..."
     }
   }
 }

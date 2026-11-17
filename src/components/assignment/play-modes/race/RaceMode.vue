@@ -50,8 +50,35 @@
     <!-- TRƯỜNG ĐUA XE CHÍNH (RACE TRACK VIEWPORT) -->
     <main class="race-track-arena" v-if="currentQuestionItem && !game.isComplete.value">
       <!-- Khán đài và cây cối phía sau -->
-      <div class="grandstand-backdrop" aria-hidden="true">
-        <div class="audience-row">👥👥👥👥👥👥👥👥👥👥👥👥👥👥👥👥👥👥👥👥👥👥👥👥</div>
+      <div class="grandstand-backdrop" :class="{ 'grandstand--correct': game.checkFeedback.value === 'correct' }" aria-hidden="true">
+        <div
+          v-for="row in spectatorRows"
+          :key="row"
+          class="audience-row"
+          :class="row === 0 ? 'audience-row--back' : 'audience-row--front'"
+        >
+          <svg
+            v-for="(spectator, index) in spectators"
+            :key="spectator.id"
+            class="spectator"
+            :class="{ 'spectator--wave': (index + row) % 4 === 0 }"
+            :style="{
+              '--shirt-color': spectator.shirt,
+              '--hair-color': spectator.hair,
+              '--skin-color': spectator.skin,
+              '--animation-delay': spectator.delay,
+              width: `${spectator.sizes[row]}px`,
+            }"
+            viewBox="0 0 28 36"
+            focusable="false"
+          >
+            <path class="spectator-arm spectator-arm--left" d="M8 22 3 27" />
+            <path class="spectator-arm spectator-arm--right" d="M20 22 25 27" />
+            <path class="spectator-body" d="M5 33a9 9 0 0 1 18 0z" />
+            <circle class="spectator-head" cx="14" cy="11" r="6" />
+            <path class="spectator-hair" d="M8 11a6 6 0 0 1 12 0V8a6 6 0 0 0-12 0z" />
+          </svg>
+        </div>
         <div class="fence-barrier"></div>
       </div>
 
@@ -115,8 +142,8 @@
                 <GameSprite
                   mode="race"
                   :name="carAssetNames[idx % 4]"
-                  width="22%"
-                  height="72%"
+                  width="100%"
+                  height="100%"
                   :alt="`Xe đua ${letters[idx]}`"
                 >
                   <svg viewBox="0 0 200 70" width="100%" height="100%" class="car-svg">
@@ -334,6 +361,18 @@ const game = useQuizGame(props.session);
 
 const letters = ['A', 'B', 'C', 'D'];
 const carAssetNames = ['carRed', 'carBlue', 'carGreen', 'carOrange'];
+const spectatorRows = [0, 1];
+const spectatorShirts = ['#f87171', '#60a5fa', '#facc15', '#c084fc', '#34d399', '#fb923c'];
+const spectatorHair = ['#422006', '#1f2937', '#7c2d12', '#111827', '#713f12'];
+const spectatorSkin = ['#f3c9a5', '#d99b72', '#f1b98e', '#b97854'];
+const spectators = Array.from({ length: 28 }, (_, id) => ({
+  id,
+  shirt: spectatorShirts[id % spectatorShirts.length],
+  hair: spectatorHair[(id * 3) % spectatorHair.length],
+  skin: spectatorSkin[(id * 2) % spectatorSkin.length],
+  delay: `${-((id * 0.17) % 1.8)}s`,
+  sizes: [18, 20, 22, 24].map((size, row) => Math.round(size * (row === 0 ? 0.8 : 1))),
+}));
 
 // Bảng màu gradient cho các xe fallback (Đỏ, Xanh dương, Xanh lá, Vàng cam)
 const carColors = [
@@ -598,20 +637,82 @@ onUnmounted(() => {
 
 /* Khán đài phía sau */
 .grandstand-backdrop {
-  height: 38px;
+  height: 58px;
   background: linear-gradient(180deg, #15803d 0%, #166534 100%);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   overflow: hidden;
   position: relative;
 }
 
 .audience-row {
-  font-size: 1rem;
-  letter-spacing: 4px;
-  opacity: 0.75;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: clamp(2px, 0.8vw, 10px);
+  flex: 1;
+  min-width: 0;
+  padding: 0 8px;
+}
+
+.audience-row--back {
+  opacity: 0.68;
+  transform: translateX(8px);
+}
+
+.spectator {
+  flex: 0 1 auto;
+  max-width: 24px;
+  overflow: visible;
+  animation: spectatorBob 2.2s ease-in-out var(--animation-delay) infinite;
+}
+
+.spectator-body {
+  fill: var(--shirt-color);
+}
+
+.spectator-head {
+  fill: var(--skin-color);
+}
+
+.spectator-hair {
+  fill: var(--hair-color);
+}
+
+.spectator-arm {
+  fill: none;
+  stroke: var(--shirt-color);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.spectator-arm--right {
+  transform-box: view-box;
+  transform-origin: 20px 22px;
+}
+
+.spectator--wave .spectator-arm--right {
+  animation: spectatorWave 1.4s ease-in-out var(--animation-delay) infinite;
+}
+
+.grandstand--correct .spectator {
+  animation-name: spectatorCelebrate;
+  animation-duration: 0.32s;
+}
+
+@keyframes spectatorBob {
+  0%, 100% { transform: translateY(2px); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes spectatorCelebrate {
+  0%, 100% { transform: translateY(2px); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes spectatorWave {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-45deg); }
 }
 
 .fence-barrier {
@@ -621,6 +722,7 @@ onUnmounted(() => {
 
 /* MẶT ĐƯỜNG ĐUA */
 .track-pavement {
+  --car-scale: 2.2;
   background: #334155;
   border-top: 5px solid #e2e8f0;
   border-bottom: 5px solid #e2e8f0;
@@ -786,15 +888,17 @@ onUnmounted(() => {
 
 /* DIỄN VIÊN XE ĐUA */
 .race-car-actor {
-  position: relative;
+  position: absolute;
+  left: -60px;
   display: flex;
   align-items: center;
-  flex: 0 0 22%;
+  flex: none;
   width: 22%;
   max-width: 22%;
-  height: 72%;
+  height: 80%;
   min-width: 0;
-  transform: translateX(0);
+  transform: scale(var(--car-scale));
+  transform-origin: left center;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 3;
 }
@@ -802,6 +906,7 @@ onUnmounted(() => {
 .race-car-actor :deep(.game-sprite-wrapper) {
   width: 100% !important;
   height: 100% !important;
+  justify-content: flex-start !important;
   max-width: 100%;
   overflow: visible;
 }
@@ -809,7 +914,7 @@ onUnmounted(() => {
 .race-car-actor :deep(.game-sprite-img),
 .car-svg {
   display: block;
-  width: 100%;
+  width: auto;
   height: 100%;
   max-width: 100%;
   max-height: 100%;
@@ -819,13 +924,13 @@ onUnmounted(() => {
 
 /* Trạng thái xe nổ máy khi chọn */
 .car--revving {
-  transform: translateX(25%);
+  transform: translateX(25%) scale(var(--car-scale));
   animation: carVibrate 0.1s infinite alternate;
 }
 
 @keyframes carVibrate {
-  from { transform: translateX(25%) translateY(-1px); }
-  to { transform: translateX(25%) translateY(1px); }
+  from { transform: translateX(25%) translateY(-1px) scale(var(--car-scale)); }
+  to { transform: translateX(25%) translateY(1px) scale(var(--car-scale)); }
 }
 
 /* Trạng thái xe TĂNG TỐC PHÓNG VÈO VỀ ĐÍCH KHI ĐÚNG */
@@ -834,10 +939,10 @@ onUnmounted(() => {
 }
 
 @keyframes nitroRocket {
-  0% { transform: translateX(25%); }
-  25% { transform: translateX(20%); }
-  60% { transform: translateX(160%); }
-  100% { transform: translateX(300%); }
+  0% { transform: translateX(25%) scale(var(--car-scale)); }
+  25% { transform: translateX(20%) scale(var(--car-scale)); }
+  60% { transform: translateX(160%) scale(var(--car-scale)); }
+  100% { transform: translateX(300%) scale(var(--car-scale)); }
 }
 
 /* Trạng thái xe ĐÂM CHƯỚNG NGẠI VẬT KHI SAI */
@@ -846,31 +951,41 @@ onUnmounted(() => {
 }
 
 @keyframes crashBump {
-  0% { transform: translateX(25%); }
-  35% { transform: translateX(70%); }
-  50% { transform: translateX(60%) rotate(-6deg); }
-  75% { transform: translateX(62%) rotate(3deg); }
-  100% { transform: translateX(60%) rotate(0deg); }
+  0% { transform: translateX(25%) scale(var(--car-scale)); }
+  35% { transform: translateX(70%) scale(var(--car-scale)); }
+  50% { transform: translateX(60%) rotate(-6deg) scale(var(--car-scale)); }
+  75% { transform: translateX(62%) rotate(3deg) scale(var(--car-scale)); }
+  100% { transform: translateX(60%) rotate(0deg) scale(var(--car-scale)); }
 }
 
 /* Lửa / khói phụt đuôi xe */
 .car-exhaust-nitro {
   position: absolute;
-  left: -28px;
+  left: 4%;
   top: 50%;
   transform: translateY(-50%);
-  width: 32px;
-  height: 18px;
-  border-radius: 999px 0 0 999px;
-  background: radial-gradient(circle at 100% 50%, #ffffff 0%, #fbbf24 40%, #ef4444 80%, transparent 100%);
+  transform-origin: right center;
+  width: 18%;
+  height: 35%;
+  clip-path: polygon(0 50%, 18% 20%, 38% 5%, 31% 32%, 67% 12%, 58% 39%, 100% 50%, 58% 61%, 68% 89%, 34% 70%, 18% 96%);
+  background: linear-gradient(90deg, #ef4444 0%, #f97316 30%, #facc15 72%, #fff7cc 100%);
   animation: nitroFlicker 0.08s infinite alternate;
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.8);
+  filter: drop-shadow(0 0 3px rgba(249, 115, 22, 0.7));
   pointer-events: none;
 }
 
+.car-exhaust-nitro::after {
+  content: "";
+  position: absolute;
+  inset: 32% 0;
+  clip-path: polygon(0 50%, 30% 0, 100% 50%, 30% 100%);
+  background: linear-gradient(90deg, #fb923c, #fef3c7);
+  opacity: 0.9;
+}
+
 @keyframes nitroFlicker {
-  from { opacity: 0.8; transform: translateY(-50%) scaleX(0.85); }
-  to { opacity: 1; transform: translateY(-50%) scaleX(1.3); }
+  from { opacity: 0.8; transform: translateY(-50%) scaleX(0.9); }
+  to { opacity: 1; transform: translateY(-50%) scaleX(1.08); }
 }
 
 /* Tường chắn va chạm khi sai */
@@ -1141,6 +1256,22 @@ onUnmounted(() => {
   .btn-nitro-fire {
     padding: 10px 20px;
     font-size: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .grandstand-backdrop {
+    height: 52px;
+  }
+
+  .spectator:nth-child(n + 13) {
+    display: none;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .spectator:nth-child(n + 21) {
+    display: none;
   }
 }
 </style>

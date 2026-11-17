@@ -1252,6 +1252,18 @@
       "racerLabel": "Racer",
       "myScore": "Lap Score",
       "bestCombo": "Best Combo"
+    },
+    "towerUI": {
+      "headerCaption": "TOWER PROGRESS",
+      "floorLabel": "Floor {current} / {total}",
+      "questionBadge": "CHALLENGE {current} / {total}",
+      "actionClimb": "🏁 Climb!",
+      "actionClimbContinue": "🏁 Keep Climbing!",
+      "checking": "CLIMBING...",
+      "finishHeadline": "TOWER CONQUERED!",
+      "finishDesc": "The little Dino climbed all {total} floors and earned {stars} stars!",
+      "submitNow": "🎉 SUBMIT NOW",
+      "submitting": "SUBMITTING..."
     }
   }
 }
