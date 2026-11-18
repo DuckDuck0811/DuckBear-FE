@@ -1429,6 +1429,15 @@
             <!-- Chọn Chế độ làm bài -->
             <!-- Kiểu làm bài -->
             <PlayModeSelect v-model="form.playMode" class="mb-4" />
+            <v-alert
+              v-if="form.playMode === 'race' && unsupportedRaceQuestions.length"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              class="mb-4"
+            >
+              Chế độ Đua xe chỉ hỗ trợ trắc nghiệm một đáp án và đúng/sai. Hãy bỏ các câu điền khuyết, nối cặp hoặc chọn nhiều đáp án.
+            </v-alert>
 
             <!-- Hai thẻ tùy chọn tráo câu hỏi / đáp án -->
             <v-row dense>
@@ -1543,7 +1552,8 @@
             class="text-none font-weight-bold px-5"
             :loading="saving"
             :disabled="
-              form.lessonId === 'ALL' && form.questionIds.length !== 40
+              unsupportedRaceQuestions.length > 0 ||
+              (form.lessonId === 'ALL' && form.questionIds.length !== 40)
             "
             @click="saveAssignment"
             >{{ t("assignmentHub.assign") }}</v-btn
@@ -1847,6 +1857,15 @@
                 v-model="wordAssignmentForm.playMode"
                 class="mt-3 mb-2"
               />
+              <v-alert
+                v-if="wordAssignmentForm.playMode === 'race' && unsupportedWordRaceQuestions.length"
+                type="warning"
+                variant="tonal"
+                density="compact"
+                class="mb-2"
+              >
+                Chế độ Đua xe chỉ hỗ trợ trắc nghiệm một đáp án và đúng/sai. Hãy bỏ các câu điền khuyết, nối cặp hoặc chọn nhiều đáp án.
+              </v-alert>
             </div>
           </template>
 
@@ -1875,6 +1894,7 @@
             :loading="wordAssignmentSaving"
             :disabled="
               !wordAssignmentQuestions.length ||
+              unsupportedWordRaceQuestions.length > 0 ||
               !wordAssignmentForm.classId ||
               !wordAssignmentForm.lessonId ||
               (wordAssignmentForm.lessonId === 'ALL' &&
@@ -2367,6 +2387,23 @@ const classes = ref([]);
 const books = ref([]);
 const bookDetails = ref(null);
 const questions = ref([]);
+const isRaceSupportedType = (type) => ["MCQ", "TRUE_FALSE"].includes(type);
+const unsupportedRaceQuestions = computed(() => {
+  if (form.playMode !== "race") return [];
+  const selectedIds = new Set(form.questionIds.map(Number));
+  return questions.value.filter(
+    (question) =>
+      selectedIds.has(Number(question.id)) &&
+      !isRaceSupportedType(question.type),
+  );
+});
+const unsupportedWordRaceQuestions = computed(() =>
+  wordAssignmentForm.playMode === "race"
+    ? wordAssignmentQuestions.value.filter(
+        (question) => !isRaceSupportedType(question.type),
+      )
+    : [],
+);
 const minDeadline = ref(toLocalDateTimeInput(Date.now()));
 
 // State chế độ xem & bộ lọc
@@ -2508,6 +2545,11 @@ async function loadWordAssignmentQuestions(lessonId) {
 
 async function createAssignmentFromWord() {
   wordAssignmentError.value = "";
+  if (unsupportedWordRaceQuestions.value.length) {
+    wordAssignmentError.value =
+      "Chế độ Đua xe chỉ hỗ trợ trắc nghiệm một đáp án và đúng/sai. Hãy bỏ các câu điền khuyết, nối cặp hoặc chọn nhiều đáp án.";
+    return;
+  }
   if (
     !wordAssignmentForm.classId ||
     !wordAssignmentForm.bookId ||
@@ -3274,6 +3316,11 @@ function isDragQuestionIncomplete(question) {
 
 async function saveAssignment() {
   formError.value = "";
+  if (unsupportedRaceQuestions.value.length) {
+    formError.value =
+      "Chế độ Đua xe chỉ hỗ trợ trắc nghiệm một đáp án và đúng/sai. Hãy bỏ các câu điền khuyết, nối cặp hoặc chọn nhiều đáp án.";
+    return;
+  }
   if (form.deadline && new Date(form.deadline).getTime() <= Date.now()) {
     formError.value = t("assignmentHub.deadlinePast");
     return;

@@ -50,6 +50,21 @@ const assetEntry = computed(() => {
 const assetScale = computed(() =>
   typeof assetEntry.value?.scale === "number" ? assetEntry.value.scale : 1,
 );
+const assetBottomAnchor = computed(() =>
+  typeof assetEntry.value?.bottomAnchor === "number"
+    ? assetEntry.value.bottomAnchor
+    : 0,
+);
+const assetTransform = computed(() => {
+  const transforms = [];
+  if (assetBottomAnchor.value) {
+    transforms.push(`translateY(${assetBottomAnchor.value}%)`);
+  }
+  if (assetScale.value !== 1) {
+    transforms.push(`scale(${assetScale.value})`);
+  }
+  return transforms.join(" ") || undefined;
+});
 
 const resolvedSrc = computed(() => {
   if (props.src) return props.src;
@@ -75,7 +90,7 @@ const wrapperStyle = computed(() => {
   return {
     width: w,
     height: h,
-    transform: assetScale.value === 1 ? undefined : `scale(${assetScale.value})`,
+    transform: assetTransform.value,
     transformOrigin: "center bottom",
     display: "inline-flex",
     alignItems: "center",
