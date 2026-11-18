@@ -1,11 +1,17 @@
 <template>
   <div class="classic-mode">
     <!-- Header thông tin bài tập của Classic -->
-    <v-card v-if="assignment" class="pa-4 pa-md-5 mb-4" rounded="xl" elevation="1">
+    <v-card
+      v-if="assignment"
+      class="pa-4 pa-md-5 mb-4"
+      rounded="xl"
+      elevation="1"
+    >
       <div class="d-flex flex-wrap align-center justify-space-between ga-3">
         <div>
           <div class="text-overline text-primary">
-            {{ assignment.class?.name }} · {{ assignment.lesson?.title || assignment.book?.title }}
+            {{ assignment.class?.name }} ·
+            {{ assignment.lesson?.title || assignment.book?.title }}
           </div>
           <h1 class="text-h5 font-weight-black">{{ assignment.title }}</h1>
         </div>
@@ -19,19 +25,29 @@
         </v-chip>
       </div>
       <div v-if="attemptNo" class="text-body-2 text-secondary mt-1">
-        {{ t("assignmentHub.attemptLabel", { number: attemptNo, max: assignment.maxAttempts ? assignment.maxAttempts : t("assignmentHub.unlimited") }) }}
+        {{
+          t("assignmentHub.attemptLabel", {
+            number: attemptNo,
+            max: assignment.maxAttempts
+              ? assignment.maxAttempts
+              : t("assignmentHub.unlimited"),
+          })
+        }}
       </div>
     </v-card>
 
     <!-- Header tiến độ & điều hướng nhanh -->
     <v-card class="pa-4 pa-md-5 mb-5" elevation="1" rounded="xl">
-      <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-3">
+      <div
+        class="d-flex flex-wrap align-center justify-space-between ga-3 mb-3"
+      >
         <div>
           <span class="text-subtitle-1 font-weight-bold">
             {{ t("questionBank.questionCount", { count: questions.length }) }}
           </span>
           <span class="text-caption text-secondary ml-2">
-            ({{ answeredCount }}/{{ questions.length }} {{ t("assignments.statusDone") || "đã làm" }})
+            ({{ answeredCount }}/{{ questions.length }}
+            {{ t("assignments.statusDone") || "đã làm" }})
           </span>
         </div>
         <v-btn
@@ -120,10 +136,16 @@ const props = defineProps({
 const emit = defineEmits(["submit", "answer-change"]);
 const { t } = useI18n();
 
-const assignment = computed(() => props.session?.assignment?.value || props.assignment);
-const questions = computed(() => props.session?.questions?.value || props.questions || []);
+const assignment = computed(
+  () => props.session?.assignment?.value || props.assignment,
+);
+const questions = computed(
+  () => props.session?.questions?.value || props.questions || [],
+);
 const answers = computed(() => props.session?.answers || props.answers || {});
-const submitting = computed(() => props.session?.submitting?.value ?? props.submitting);
+const submitting = computed(
+  () => props.session?.submitting?.value ?? props.submitting,
+);
 const level = computed(() => props.session?.level?.value ?? props.level);
 const timeLabel = computed(() => props.session?.timeLabel?.value || "");
 const attemptNo = computed(() => props.session?.attemptNo?.value || 1);
@@ -131,15 +153,19 @@ const attemptNo = computed(() => props.session?.attemptNo?.value || 1);
 function isQuestionAnswered(questionId) {
   const a = answers.value[questionId];
   if (!a) return false;
-  const hasSingle = a.selectedOptionId !== null && a.selectedOptionId !== undefined;
-  const hasMulti = Array.isArray(a.selectedOptionIds) && a.selectedOptionIds.length > 0;
-  const hasText = typeof a.answerText === "string" && a.answerText.trim().length > 0;
+  const hasSingle =
+    a.selectedOptionId !== null && a.selectedOptionId !== undefined;
+  const hasMulti =
+    Array.isArray(a.selectedOptionIds) && a.selectedOptionIds.length > 0;
+  const hasText =
+    typeof a.answerText === "string" && a.answerText.trim().length > 0;
   const hasMatch = a.matchAnswers && Object.keys(a.matchAnswers).length > 0;
   return hasSingle || hasMulti || hasText || hasMatch;
 }
 
 const answeredCount = computed(() => {
-  return questions.value.filter((q) => isQuestionAnswered(q.question.id)).length;
+  return questions.value.filter((q) => isQuestionAnswered(q.question.id))
+    .length;
 });
 
 function onAnswered(questionId, index) {
