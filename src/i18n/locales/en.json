@@ -1279,6 +1279,24 @@
       "finishDesc": "The little Squirrel harvested {stars} / {total} golden apples!",
       "submitNow": "🧺 SUBMIT HARVEST",
       "submitting": "SUBMITTING..."
+    },
+    "treasureUI": {
+      "journeyTitle": "Golden Treasure Hunt",
+      "questionProgress": "Question {current} / {total}",
+      "mapPieces": "{count} / {total} Map Pieces",
+      "goldCoins": "{amount} Gold",
+      "secretLetter": "MẶT THỨ SỐ {current}",
+      "pointLabel": "Point {letter}",
+      "actionResetSelection": "Reset Choice",
+      "actionOpenChest": "Open Chest! 🗝️",
+      "actionNextStage": "Next Stage ❯",
+      "actionFinishJourney": "Finish Journey 🏆",
+      "checking": "OPENING...",
+      "multiChoiceHint": "Select all correct answers",
+      "finishHeadline": "TREASURE HUNT CONQUERED!",
+      "finishDesc": "The little explorer found {pieces} / {total} map pieces and unlocked the treasure chest with {gold} gold!",
+      "submitNow": "💎 SUBMIT & CLAIM REWARDS",
+      "submitting": "SUBMITTING..."
     }
   }
 }

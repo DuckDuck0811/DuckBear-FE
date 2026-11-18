@@ -1,6 +1,8 @@
 <template>
-  <div class="fruit-game" :class="{ 'reduce-motion': game.prefersReducedMotion.value }">
-
+  <div
+    class="fruit-game"
+    :class="{ 'reduce-motion': game.prefersReducedMotion.value }"
+  >
     <!-- ===== HEADER: CÂY THỬ THÁCH, CỜ ĐÍCH, SAO VÀNG, ĐỒNG HỒ & ÂM THANH ===== -->
     <header class="fruit-header" role="banner">
       <!-- Góc trên trái: Bảng gỗ Cây Thử Thách X/N -->
@@ -9,7 +11,9 @@
           <span class="tree-emoji">🌳</span>
         </div>
         <div class="tree-board-text">
-          <span class="tree-board-title">{{ t('playModes.fruitUI.challengeTree') }}</span>
+          <span class="tree-board-title">{{
+            t("playModes.fruitUI.challengeTree")
+          }}</span>
           <strong class="tree-board-progress">
             {{ game.displayNum.value }} / {{ game.totalQuestions.value }}
           </strong>
@@ -35,17 +39,47 @@
             :aria-label="`Thời gian còn lại: ${countdown.timeLeft.value} giây`"
           >
             <div class="stopwatch-icon" aria-hidden="true">
-              <svg viewBox="0 0 32 32" width="22" height="22" class="stopwatch-svg">
-                <circle cx="16" cy="18" r="11" fill="#ffffff" stroke="#991b1b" stroke-width="2.5" />
+              <svg
+                viewBox="0 0 32 32"
+                width="22"
+                height="22"
+                class="stopwatch-svg"
+              >
+                <circle
+                  cx="16"
+                  cy="18"
+                  r="11"
+                  fill="#ffffff"
+                  stroke="#991b1b"
+                  stroke-width="2.5"
+                />
                 <rect x="14" y="2" width="4" height="4" rx="1" fill="#78350f" />
-                <line x1="16" y1="18" x2="16" y2="11" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" />
-                <line x1="16" y1="18" x2="21" y2="18" stroke="#dc2626" stroke-width="2" stroke-linecap="round" />
+                <line
+                  x1="16"
+                  y1="18"
+                  x2="16"
+                  y2="11"
+                  stroke="#dc2626"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                />
+                <line
+                  x1="16"
+                  y1="18"
+                  x2="21"
+                  y2="18"
+                  stroke="#dc2626"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
               </svg>
             </div>
-            <span class="stopwatch-digits">{{ countdown.timeLeft.value }}s</span>
+            <span class="stopwatch-digits"
+              >{{ countdown.timeLeft.value }}s</span
+            >
           </div>
           <div v-if="timeUpBanner" class="timeup-toast" role="alert">
-            {{ t('playModes.fruitUI.timeUp') }}
+            {{ t("playModes.fruitUI.timeUp") }}
           </div>
         </div>
 
@@ -59,10 +93,15 @@
 
     <!-- ===== ARENA CHÍNH: DÂY THỪNG LEO CÂY (TRÁI) & BẢNG GỖ CÂU HỎI (GIỮA) ===== -->
     <main class="fruit-arena">
-
       <!-- ── KHU VỰC BÊN TRÁI: DÂY TIẾN ĐỘ VÀ SÓC ĐỨNG TRÊN MẤU ── -->
-      <section ref="treeClimbingZone" class="tree-climbing-zone" aria-label="Dây tiến độ và sóc">
+      <section
+        ref="treeClimbingZone"
+        class="tree-climbing-zone"
+        aria-label="Dây tiến độ và sóc"
+      >
         <div class="tree-finish-flag-node" aria-label="Đích ngọn cây">
+          <!-- Bệ tán lá ngọn cây nâng đỡ cờ đích -->
+          <div class="tree-canopy-platform" aria-hidden="true"></div>
           <div class="flag-sprite-wrap">
             <GameSprite
               mode="fruit"
@@ -71,8 +110,21 @@
               height="var(--flag-height)"
               class="finish-flag-sprite"
             >
-              <svg viewBox="0 0 48 48" width="36" height="36" class="flag-fallback-svg">
-                <line x1="10" y1="6" x2="10" y2="44" stroke="#78350f" stroke-width="4" stroke-linecap="round" />
+              <svg
+                viewBox="0 0 48 48"
+                width="36"
+                height="36"
+                class="flag-fallback-svg"
+              >
+                <line
+                  x1="10"
+                  y1="6"
+                  x2="10"
+                  y2="44"
+                  stroke="#78350f"
+                  stroke-width="4"
+                  stroke-linecap="round"
+                />
                 <rect x="10" y="8" width="12" height="10" fill="#000000" />
                 <rect x="22" y="8" width="12" height="10" fill="#ffffff" />
                 <rect x="10" y="18" width="12" height="10" fill="#ffffff" />
@@ -81,22 +133,31 @@
               </svg>
             </GameSprite>
           </div>
-          <div class="wood-sign-finish">{{ t('playModes.fruitUI.finish') }}</div>
+          <div class="wood-sign-finish">
+            {{ t("playModes.fruitUI.finish") }}
+          </div>
         </div>
 
         <!-- Sợi dây thừng bện dọc từ gốc lên ngọn -->
         <div class="braided-rope" aria-hidden="true"></div>
 
+        <!-- Cành cây cổ thụ vươn ra từ góc đáy-trái -->
+        <div class="tree-base-branch" aria-hidden="true"></div>
+
         <div
           class="climber-progress-marker"
           :style="{ transform: `translateY(-${climbOffset}px)` }"
         >
-          <div class="wooden-peg" aria-hidden="true"></div>
+          <div class="wooden-peg" aria-hidden="true">
+            <span class="peg-leaf" aria-hidden="true">🌿</span>
+          </div>
 
           <!-- Sóc đứng trên mấu gỗ, di chuyển theo câu đang hiển thị -->
           <div class="squirrel-climber-wrap" :class="squirrelState">
             <div class="squirrel-speech-bubble" aria-live="polite">
-              <span class="bubble-caption">{{ t('playModes.fruitUI.floorBadge') }}</span>
+              <span class="bubble-caption">{{
+                t("playModes.fruitUI.floorBadge")
+              }}</span>
               <strong class="bubble-num">{{ game.displayNum.value }}</strong>
               <div class="bubble-tail" aria-hidden="true"></div>
             </div>
@@ -110,12 +171,47 @@
                 :alt="squirrelAltText"
                 class="squirrel-sprite"
               >
-                <svg viewBox="0 0 240 130" class="squirrel-fallback-svg" aria-hidden="true">
-                  <path d="M82 107C33 126 12 96 31 58c15-30 47-20 43 8-2 13-12 18-21 8" fill="#c46b24" stroke="#78350f" stroke-width="5" />
-                  <ellipse cx="132" cy="84" rx="49" ry="34" fill="#d97706" stroke="#78350f" stroke-width="5" />
-                  <path d="M100 104v14m38-16v16m18-22v22m29-27v27" stroke="#78350f" stroke-width="8" stroke-linecap="round" />
-                  <circle cx="188" cy="46" r="33" fill="#d97706" stroke="#78350f" stroke-width="5" />
-                  <path d="m166 21 5-18 17 20m11 1 16-18 4 27" fill="#d97706" stroke="#78350f" stroke-width="5" stroke-linejoin="round" />
+                <svg
+                  viewBox="0 0 240 130"
+                  class="squirrel-fallback-svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M82 107C33 126 12 96 31 58c15-30 47-20 43 8-2 13-12 18-21 8"
+                    fill="#c46b24"
+                    stroke="#78350f"
+                    stroke-width="5"
+                  />
+                  <ellipse
+                    cx="132"
+                    cy="84"
+                    rx="49"
+                    ry="34"
+                    fill="#d97706"
+                    stroke="#78350f"
+                    stroke-width="5"
+                  />
+                  <path
+                    d="M100 104v14m38-16v16m18-22v22m29-27v27"
+                    stroke="#78350f"
+                    stroke-width="8"
+                    stroke-linecap="round"
+                  />
+                  <circle
+                    cx="188"
+                    cy="46"
+                    r="33"
+                    fill="#d97706"
+                    stroke="#78350f"
+                    stroke-width="5"
+                  />
+                  <path
+                    d="m166 21 5-18 17 20m11 1 16-18 4 27"
+                    fill="#d97706"
+                    stroke="#78350f"
+                    stroke-width="5"
+                    stroke-linejoin="round"
+                  />
                   <ellipse cx="200" cy="57" rx="17" ry="12" fill="#fef3c7" />
                   <circle cx="199" cy="39" r="5" fill="#1c1917" />
                   <circle cx="213" cy="52" r="4" fill="#78350f" />
@@ -132,18 +228,17 @@
         class="tree-center-trunk"
         :class="{ 'tree-center-trunk--fallback': isFallbackType }"
       >
-
         <!-- BẢNG GỖ CÂU HỎI CÓ HẠT DẺ TRÊN ĐỈNH -->
         <div class="wood-question-card">
           <!-- Huy hiệu Hạt dẻ trên đỉnh bảng -->
           <div class="acorn-crest-badge">
-              <GameSprite
-                mode="fruit"
-                name="acorn"
-                width="var(--acorn-size)"
-                height="var(--acorn-size)"
-                class="acorn-crest-sprite"
-              >
+            <GameSprite
+              mode="fruit"
+              name="acorn"
+              width="var(--acorn-size)"
+              height="var(--acorn-size)"
+              class="acorn-crest-sprite"
+            >
               <span class="acorn-fallback-emoji" aria-hidden="true">🌰</span>
             </GameSprite>
           </div>
@@ -153,8 +248,12 @@
           <div class="wood-screw screw-tr" aria-hidden="true"></div>
           <div class="wood-screw screw-bl" aria-hidden="true"></div>
           <div class="wood-screw screw-br" aria-hidden="true"></div>
-          <span class="question-leaf question-leaf--left" aria-hidden="true">🌿</span>
-          <span class="question-leaf question-leaf--right" aria-hidden="true">🍃</span>
+          <span class="question-leaf question-leaf--left" aria-hidden="true"
+            >🌿</span
+          >
+          <span class="question-leaf question-leaf--right" aria-hidden="true"
+            >🍃</span
+          >
 
           <!-- Nội dung câu hỏi chữ đậm tương phản cao -->
           <h2 class="wood-question-text">
@@ -166,7 +265,7 @@
         <div
           v-if="isMcqType"
           class="wood-options-grid"
-          :class="{ 'grid--single-column': options.length <= 3 }"
+          :class="`grid--count-${options.length}`"
           role="listbox"
           :aria-label="`Đáp án câu hỏi ${game.displayNum.value}`"
         >
@@ -179,9 +278,9 @@
             :aria-selected="isOptionSelected(option.id)"
             :class="{
               'opt--selected': isOptionSelected(option.id),
-              'opt--correct':  getOptionStatus(option.id) === 'correct',
-              'opt--wrong':    getOptionStatus(option.id) === 'wrong',
-              'opt--dimmed':   getOptionStatus(option.id) === 'dimmed',
+              'opt--correct': getOptionStatus(option.id) === 'correct',
+              'opt--wrong': getOptionStatus(option.id) === 'wrong',
+              'opt--dimmed': getOptionStatus(option.id) === 'dimmed',
             }"
             :disabled="game.isChecking.value || isChecked"
             @click="onPick(option.id)"
@@ -190,7 +289,10 @@
             <span class="wood-leaf leaf-top-left" aria-hidden="true">🌿</span>
 
             <!-- Huy hiệu Quả Táo Đỏ viền chữ cái A, B, C, D -->
-            <div class="apple-fruit-badge" :class="`apple-${letters[idx].toLowerCase()}`">
+            <div
+              class="apple-fruit-badge"
+              :class="`apple-${letters[idx].toLowerCase()}`"
+            >
               <GameSprite
                 mode="fruit"
                 name="apple"
@@ -201,12 +303,40 @@
                 <!-- Fallback SVG Quả táo đỏ bóng bẩy có cuống lá -->
                 <svg viewBox="0 0 44 44" class="apple-fallback-svg">
                   <!-- Cuống táo & lá xanh -->
-                  <path d="M22 10 Q24 4 28 2" stroke="#78350f" stroke-width="2.5" fill="none" stroke-linecap="round" />
-                  <ellipse cx="28" cy="6" rx="5" ry="3" fill="#22c55e" stroke="#15803d" stroke-width="1" transform="rotate(-20 28 6)" />
+                  <path
+                    d="M22 10 Q24 4 28 2"
+                    stroke="#78350f"
+                    stroke-width="2.5"
+                    fill="none"
+                    stroke-linecap="round"
+                  />
+                  <ellipse
+                    cx="28"
+                    cy="6"
+                    rx="5"
+                    ry="3"
+                    fill="#22c55e"
+                    stroke="#15803d"
+                    stroke-width="1"
+                    transform="rotate(-20 28 6)"
+                  />
                   <!-- Quả táo đỏ bóng bẩy -->
-                  <path d="M22 11 Q29 7 36 14 Q42 22 37 32 Q32 41 22 39 Q12 41 7 32 Q2 22 8 14 Q15 7 22 11 Z" fill="url(#apple-grad)" stroke="#991b1b" stroke-width="2" />
+                  <path
+                    d="M22 11 Q29 7 36 14 Q42 22 37 32 Q32 41 22 39 Q12 41 7 32 Q2 22 8 14 Q15 7 22 11 Z"
+                    fill="url(#apple-grad)"
+                    stroke="#991b1b"
+                    stroke-width="2"
+                  />
                   <!-- Vệt sáng phản quang -->
-                  <ellipse cx="14" cy="18" rx="3.5" ry="5.5" fill="#ffffff" opacity="0.45" transform="rotate(-25 14 18)" />
+                  <ellipse
+                    cx="14"
+                    cy="18"
+                    rx="3.5"
+                    ry="5.5"
+                    fill="#ffffff"
+                    opacity="0.45"
+                    transform="rotate(-25 14 18)"
+                  />
                   <defs>
                     <radialGradient id="apple-grad" cx="35%" cy="35%" r="65%">
                       <stop offset="0%" stop-color="#f87171" />
@@ -225,11 +355,18 @@
 
             <!-- Biểu tượng đúng / sai sau khi kiểm tra -->
             <span
-              v-if="getOptionStatus(option.id) !== 'normal' && getOptionStatus(option.id) !== 'dimmed'"
+              v-if="
+                getOptionStatus(option.id) !== 'normal' &&
+                getOptionStatus(option.id) !== 'dimmed'
+              "
               class="option-feedback-icon"
               aria-hidden="true"
             >
-              <span v-if="getOptionStatus(option.id) === 'correct'" class="icon-star">⭐</span>
+              <span
+                v-if="getOptionStatus(option.id) === 'correct'"
+                class="icon-star"
+                >⭐</span
+              >
               <span v-else class="icon-wrong">❌</span>
             </span>
           </button>
@@ -238,65 +375,106 @@
         <!-- MULTI_MCQ: Chọn nhiều đáp án -->
         <template v-else-if="isMultiMcqType">
           <p class="multi-select-hint">
-            {{ t('playModes.fruitUI.multiSelectHint') }}
+            {{ t("playModes.fruitUI.multiSelectHint") }}
           </p>
           <div
             class="wood-options-grid"
-            :class="{ 'grid--single-column': options.length <= 3 }"
+            :class="`grid--count-${options.length}`"
             role="listbox"
             aria-multiselectable="true"
           >
-          <button
-            v-for="(option, idx) in options"
-            :key="option.id"
-            type="button"
-            class="wood-option-btn"
-            role="option"
-            :aria-selected="isOptionSelected(option.id)"
-            :class="{
-              'opt--selected': isOptionSelected(option.id),
-              'opt--correct':  getOptionStatus(option.id) === 'correct',
-              'opt--wrong':    getOptionStatus(option.id) === 'wrong',
-              'opt--dimmed':   getOptionStatus(option.id) === 'dimmed',
-            }"
-            :disabled="game.isChecking.value || isChecked"
-            @click="onToggleMulti(option.id)"
-          >
-            <span class="wood-leaf leaf-top-left" aria-hidden="true">🌿</span>
-            <div class="apple-fruit-badge" aria-hidden="true">
-              <GameSprite
-                mode="fruit"
-                name="apple"
-                width="var(--apple-size)"
-                height="var(--apple-size)"
-                class="apple-sprite"
-              >
-                <svg viewBox="0 0 44 44" class="apple-fallback-svg">
-                  <path d="M22 10 Q24 4 28 2" stroke="#78350f" stroke-width="2.5" fill="none" stroke-linecap="round" />
-                  <ellipse cx="28" cy="6" rx="5" ry="3" fill="#22c55e" stroke="#15803d" stroke-width="1" transform="rotate(-20 28 6)" />
-                  <path d="M22 11 Q29 7 36 14 Q42 22 37 32 Q32 41 22 39 Q12 41 7 32 Q2 22 8 14 Q15 7 22 11 Z" fill="url(#apple-grad)" stroke="#991b1b" stroke-width="2" />
-                  <ellipse cx="14" cy="18" rx="3.5" ry="5.5" fill="#ffffff" opacity="0.45" transform="rotate(-25 14 18)" />
-                  <defs>
-                    <radialGradient id="apple-grad" cx="35%" cy="35%" r="65%">
-                      <stop offset="0%" stop-color="#f87171" />
-                      <stop offset="40%" stop-color="#ef4444" />
-                      <stop offset="100%" stop-color="#991b1b" />
-                    </radialGradient>
-                  </defs>
-                </svg>
-              </GameSprite>
-              <span v-if="isOptionSelected(option.id)" class="apple-letter-overlay">✓</span>
-              <span v-else class="apple-letter-overlay">{{ letters[idx] }}</span>
-            </div>
-            <span class="wood-option-text">{{ option.content }}</span>
-            <span
-              v-if="getOptionStatus(option.id) !== 'normal' && getOptionStatus(option.id) !== 'dimmed'"
-              class="option-feedback-icon"
-              aria-hidden="true"
+            <button
+              v-for="(option, idx) in options"
+              :key="option.id"
+              type="button"
+              class="wood-option-btn"
+              role="option"
+              :aria-selected="isOptionSelected(option.id)"
+              :class="{
+                'opt--selected': isOptionSelected(option.id),
+                'opt--correct': getOptionStatus(option.id) === 'correct',
+                'opt--wrong': getOptionStatus(option.id) === 'wrong',
+                'opt--dimmed': getOptionStatus(option.id) === 'dimmed',
+              }"
+              :disabled="game.isChecking.value || isChecked"
+              @click="onToggleMulti(option.id)"
             >
-              <span v-if="getOptionStatus(option.id) === 'correct'" class="icon-star">⭐</span>
-              <span v-else class="icon-wrong">❌</span>
-            </span>
+              <span class="wood-leaf leaf-top-left" aria-hidden="true">🌿</span>
+              <div class="apple-fruit-badge" aria-hidden="true">
+                <GameSprite
+                  mode="fruit"
+                  name="apple"
+                  width="var(--apple-size)"
+                  height="var(--apple-size)"
+                  class="apple-sprite"
+                >
+                  <svg viewBox="0 0 44 44" class="apple-fallback-svg">
+                    <path
+                      d="M22 10 Q24 4 28 2"
+                      stroke="#78350f"
+                      stroke-width="2.5"
+                      fill="none"
+                      stroke-linecap="round"
+                    />
+                    <ellipse
+                      cx="28"
+                      cy="6"
+                      rx="5"
+                      ry="3"
+                      fill="#22c55e"
+                      stroke="#15803d"
+                      stroke-width="1"
+                      transform="rotate(-20 28 6)"
+                    />
+                    <path
+                      d="M22 11 Q29 7 36 14 Q42 22 37 32 Q32 41 22 39 Q12 41 7 32 Q2 22 8 14 Q15 7 22 11 Z"
+                      fill="url(#apple-grad)"
+                      stroke="#991b1b"
+                      stroke-width="2"
+                    />
+                    <ellipse
+                      cx="14"
+                      cy="18"
+                      rx="3.5"
+                      ry="5.5"
+                      fill="#ffffff"
+                      opacity="0.45"
+                      transform="rotate(-25 14 18)"
+                    />
+                    <defs>
+                      <radialGradient id="apple-grad" cx="35%" cy="35%" r="65%">
+                        <stop offset="0%" stop-color="#f87171" />
+                        <stop offset="40%" stop-color="#ef4444" />
+                        <stop offset="100%" stop-color="#991b1b" />
+                      </radialGradient>
+                    </defs>
+                  </svg>
+                </GameSprite>
+                <span
+                  v-if="isOptionSelected(option.id)"
+                  class="apple-letter-overlay"
+                  >✓</span
+                >
+                <span v-else class="apple-letter-overlay">{{
+                  letters[idx]
+                }}</span>
+              </div>
+              <span class="wood-option-text">{{ option.content }}</span>
+              <span
+                v-if="
+                  getOptionStatus(option.id) !== 'normal' &&
+                  getOptionStatus(option.id) !== 'dimmed'
+                "
+                class="option-feedback-icon"
+                aria-hidden="true"
+              >
+                <span
+                  v-if="getOptionStatus(option.id) === 'correct'"
+                  class="icon-star"
+                  >⭐</span
+                >
+                <span v-else class="icon-wrong">❌</span>
+              </span>
             </button>
           </div>
         </template>
@@ -316,10 +494,14 @@
         </div>
 
         <!-- Thông báo lỗi mạng + nút thử lại -->
-        <div v-if="game.networkError.value" class="network-error-banner" role="alert">
+        <div
+          v-if="game.networkError.value"
+          class="network-error-banner"
+          role="alert"
+        >
           <span>⚠️ {{ game.networkError.value }}</span>
           <button type="button" class="retry-btn" @click="onConfirmHarvest">
-            🔄 {{ t('playModes.shared.retry') }}
+            🔄 {{ t("playModes.shared.retry") }}
           </button>
         </div>
 
@@ -334,7 +516,9 @@
             :aria-label="t('playModes.fruitUI.actionContinue')"
           >
             <span class="harvest-icon" aria-hidden="true">⏩</span>
-            <span class="harvest-text">{{ t('playModes.fruitUI.actionContinue') }}</span>
+            <span class="harvest-text">{{
+              t("playModes.fruitUI.actionContinue")
+            }}</span>
           </button>
 
           <!-- Trạng thái bình thường: Nút Hái! -->
@@ -349,9 +533,11 @@
           >
             <span class="harvest-icon" aria-hidden="true">🌰</span>
             <span class="harvest-text">
-              {{ game.isChecking.value
-                 ? t('playModes.fruitUI.checking')
-                 : t('playModes.fruitUI.actionHarvest') }}
+              {{
+                game.isChecking.value
+                  ? t("playModes.fruitUI.checking")
+                  : t("playModes.fruitUI.actionHarvest")
+              }}
             </span>
           </button>
         </div>
@@ -360,25 +546,39 @@
 
     <!-- ===== MÀN CHINH PHỤC CÂY THỬ THÁCH (KẾT QUẢ) ===== -->
     <Transition name="fruit-finish-fade">
-      <div v-if="game.isComplete.value" class="fruit-finish-modal" role="dialog" aria-modal="true" aria-label="Kết quả thu hoạch">
+      <div
+        v-if="game.isComplete.value"
+        class="fruit-finish-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Kết quả thu hoạch"
+      >
         <div class="finish-wood-card">
           <div class="finish-trophy-emojis" aria-hidden="true">🏆 🧺 🍎 ✨</div>
-          <h2 class="finish-heading">{{ t('playModes.fruitUI.finishHeadline') }}</h2>
+          <h2 class="finish-heading">
+            {{ t("playModes.fruitUI.finishHeadline") }}
+          </h2>
           <p class="finish-desc">
-            {{ t('playModes.fruitUI.finishDesc', {
+            {{
+              t("playModes.fruitUI.finishDesc", {
                 stars: game.stars.value,
                 total: game.totalQuestions.value,
-              }) }}
+              })
+            }}
           </p>
 
           <div class="finish-stats-row">
             <div class="finish-stat-box">
-              <span class="stat-number">{{ game.stars.value }} / {{ game.totalQuestions.value }}</span>
+              <span class="stat-number"
+                >{{ game.stars.value }} / {{ game.totalQuestions.value }}</span
+              >
               <span class="stat-title">Quả thu hoạch 🍎</span>
             </div>
             <div class="finish-stat-box">
               <span class="stat-number">🔥 ×{{ game.maxCombo.value }}</span>
-              <span class="stat-title">{{ t('playModes.shared.combo') }} cao nhất</span>
+              <span class="stat-title"
+                >{{ t("playModes.shared.combo") }} cao nhất</span
+              >
             </div>
           </div>
 
@@ -388,9 +588,11 @@
             :disabled="session.submitting.value"
             @click="session.submit()"
           >
-            {{ session.submitting.value
-               ? t('playModes.fruitUI.submitting')
-               : t('playModes.fruitUI.submitNow') }}
+            {{
+              session.submitting.value
+                ? t("playModes.fruitUI.submitting")
+                : t("playModes.fruitUI.submitNow")
+            }}
           </button>
         </div>
       </div>
@@ -399,19 +601,19 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import QuestionItem from '../../QuestionItem.vue';
-import GameSprite from '../shared/GameSprite.vue';
-import SoundToggle from '../shared/SoundToggle.vue';
-import { useQuizGame } from '../composables/useQuizGame.js';
-import { useCountdown } from '../composables/useCountdown.js';
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import QuestionItem from "../../QuestionItem.vue";
+import GameSprite from "../shared/GameSprite.vue";
+import SoundToggle from "../shared/SoundToggle.vue";
+import { useQuizGame } from "../composables/useQuizGame.js";
+import { useCountdown } from "../composables/useCountdown.js";
 import {
   getFruitClimbProgress,
   getFruitClimbTrackDistance,
   getFruitQuestionDuration,
   hasCompleteMatchingAnswer,
-} from './fruitMode.helpers.js';
+} from "./fruitMode.helpers.js";
 
 const props = defineProps({
   session: { type: Object, required: true },
@@ -421,65 +623,79 @@ const { t } = useI18n();
 const game = useQuizGame(props.session);
 const countdown = useCountdown();
 
-const letters = ['A', 'B', 'C', 'D'];
+const letters = ["A", "B", "C", "D"];
 
 // ─── Trạng thái nhân vật & tương tác ─────────────────────────────────────────
-const squirrelState       = ref('squirrelIdle');
-const squirrelMotionClass = ref('');
-const climbTrackDistance  = ref(0);
-const treeClimbingZone    = ref(null);
-const selectedId          = ref(null);            // Single MCQ
-const selectedIds         = ref([]);              // MULTI_MCQ
-const timeUpBanner        = ref(false);
+const squirrelState = ref("squirrelIdle");
+const squirrelMotionClass = ref("");
+const climbTrackDistance = ref(0);
+const treeClimbingZone = ref(null);
+const selectedId = ref(null); // Single MCQ
+const selectedIds = ref([]); // MULTI_MCQ
+const timeUpBanner = ref(false);
 let poseTimer = null;
 let timeUpTimer = null;
 
 // ─── Computed từ session ────────────────────────────────────────────────────
-const currentQuestionItem = computed(() => props.session.currentQuestionItem?.value);
-const options             = computed(() => currentQuestionItem.value?.question?.options || []);
+const currentQuestionItem = computed(
+  () => props.session.currentQuestionItem?.value,
+);
+const options = computed(
+  () => currentQuestionItem.value?.question?.options || [],
+);
 
 const isMcqType = computed(() => {
   const tp = currentQuestionItem.value?.question?.type;
-  return tp === 'MCQ' || tp === 'TRUE_FALSE';
+  return tp === "MCQ" || tp === "TRUE_FALSE";
 });
 
 const isMultiMcqType = computed(() => {
-  return currentQuestionItem.value?.question?.type === 'MULTI_MCQ';
+  return currentQuestionItem.value?.question?.type === "MULTI_MCQ";
 });
 
-const isFallbackType = computed(() => !isMcqType.value && !isMultiMcqType.value);
+const isFallbackType = computed(
+  () => !isMcqType.value && !isMultiMcqType.value,
+);
 
 const isChecked = computed(() => {
   const qId = currentQuestionItem.value?.question?.id;
-  return qId != null && (
-    props.session.checkedQuestions?.[String(qId)] != null ||
-    game.checkedDetails?.value?.[qId] != null
+  return (
+    qId != null &&
+    (props.session.checkedQuestions?.[String(qId)] != null ||
+      game.checkedDetails?.value?.[qId] != null)
   );
 });
 
 const canCommit = computed(() => {
   if (game.isChecking.value || isChecked.value) return false;
-  if (isMcqType.value)      return selectedId.value !== null;
+  if (isMcqType.value) return selectedId.value !== null;
   if (isMultiMcqType.value) return selectedIds.value.length > 0;
   const question = currentQuestionItem.value?.question;
   const qId = question?.id;
-  if (question?.type === 'MATCHING') {
+  if (question?.type === "MATCHING") {
     return hasCompleteMatchingAnswer(question, props.session.answers[qId]);
   }
   return qId != null && props.session.hasAnswer?.(qId);
 });
 
 const squirrelAltText = computed(() => {
-  if (squirrelState.value === 'squirrelHappy') return 'Chú sóc nhảy mừng thu hoạch quả thành công';
-  if (squirrelState.value === 'squirrelSad')   return 'Chú sóc cúi đầu buồn vì trả lời sai';
-  return 'Chú sóc đứng bốn chân trên mấu gỗ';
+  if (squirrelState.value === "squirrelHappy")
+    return "Chú sóc nhảy mừng thu hoạch quả thành công";
+  if (squirrelState.value === "squirrelSad")
+    return "Chú sóc cúi đầu buồn vì trả lời sai";
+  return "Chú sóc đứng bốn chân trên mấu gỗ";
 });
 
 // ─── TIẾN ĐỘ TRÊN DÂY THEO CÂU ĐANG HIỂN THỊ ───────────────────────────────
 const climbProgress = computed(() => {
-  return getFruitClimbProgress(game.displayNum.value, game.totalQuestions.value);
+  return getFruitClimbProgress(
+    game.displayNum.value,
+    game.totalQuestions.value,
+  );
 });
-const climbOffset = computed(() => climbTrackDistance.value * climbProgress.value);
+const climbOffset = computed(
+  () => climbTrackDistance.value * climbProgress.value,
+);
 const questionTimeLimitSeconds = computed(() =>
   getFruitQuestionDuration(
     currentQuestionItem.value?.question,
@@ -491,9 +707,11 @@ const questionTimeLimitSeconds = computed(() =>
 // ─── XÁC ĐỊNH TRẠNG THÁI TỪNG ĐÁP ÁN SAU KHI CHẤM ───────────────────────────
 function getOptionStatus(optId) {
   const qId = currentQuestionItem.value?.question?.id;
-  if (!isChecked.value || !qId) return 'normal';
+  if (!isChecked.value || !qId) return "normal";
 
-  const checkInfo = game.checkedDetails?.value?.[qId] || props.session.checkedQuestions?.[String(qId)];
+  const checkInfo =
+    game.checkedDetails?.value?.[qId] ||
+    props.session.checkedQuestions?.[String(qId)];
   const isSelected = isOptionSelected(optId);
   const correctOptionIds = checkInfo?.correctOptionIds || [];
 
@@ -502,16 +720,16 @@ function getOptionStatus(optId) {
     (isSelected && checkInfo?.isCorrect === true);
 
   if (isCorrectOption) {
-    return 'correct';
+    return "correct";
   }
   if (isSelected && checkInfo?.isCorrect === false) {
-    return 'wrong';
+    return "wrong";
   }
-  return 'dimmed';
+  return "dimmed";
 }
 
 function isOptionSelected(optId) {
-  if (isMcqType.value)      return selectedId.value === optId;
+  if (isMcqType.value) return selectedId.value === optId;
   if (isMultiMcqType.value) return selectedIds.value.includes(optId);
   return false;
 }
@@ -519,14 +737,14 @@ function isOptionSelected(optId) {
 function onPick(optId) {
   if (game.isChecking.value || isChecked.value) return;
   hideTimeUpNotice();
-  game.playSfx('click');
+  game.playSfx("click");
   selectedId.value = selectedId.value === optId ? null : optId;
 }
 
 function onToggleMulti(optId) {
   if (game.isChecking.value || isChecked.value) return;
   hideTimeUpNotice();
-  game.playSfx('click');
+  game.playSfx("click");
   selectedIds.value = selectedIds.value.includes(optId)
     ? selectedIds.value.filter((id) => id !== optId)
     : [...selectedIds.value, optId];
@@ -564,8 +782,9 @@ function updateClimbTrack() {
   const zone = treeClimbingZone.value;
   if (!zone) return;
 
-  const squirrelHeight = zone.querySelector('.squirrel-climber-wrap')?.offsetHeight || 0;
-  const flag = zone.querySelector('.tree-finish-flag-node');
+  const squirrelHeight =
+    zone.querySelector(".squirrel-climber-wrap")?.offsetHeight || 0;
+  const flag = zone.querySelector(".tree-finish-flag-node");
   const flagTop = flag?.offsetTop || 0;
   const flagHeight = flag?.offsetHeight || 0;
   const baseGap = zone.clientHeight * 0.06;
@@ -588,28 +807,34 @@ async function onConfirmHarvest() {
 
   let patch;
   if (isMcqType.value && selectedId.value !== null) {
-    patch = { selectedOptionId: selectedId.value, selectedOptionIds: [selectedId.value] };
+    patch = {
+      selectedOptionId: selectedId.value,
+      selectedOptionIds: [selectedId.value],
+    };
   } else if (isMultiMcqType.value && selectedIds.value.length > 0) {
-    patch = { selectedOptionId: selectedIds.value[0], selectedOptionIds: [...selectedIds.value] };
+    patch = {
+      selectedOptionId: selectedIds.value[0],
+      selectedOptionIds: [...selectedIds.value],
+    };
   }
 
-  squirrelState.value = 'squirrelIdle';
-  squirrelMotionClass.value = '';
+  squirrelState.value = "squirrelIdle";
+  squirrelMotionClass.value = "";
 
   await game.submitAndCheck(q.id, patch, {
     delayNext: 1500,
     onResolved: (isCorrect) => {
       if (poseTimer !== null) clearTimeout(poseTimer);
       if (isCorrect) {
-        squirrelState.value = 'squirrelHappy';
-        squirrelMotionClass.value = 'squirrel--jump';
+        squirrelState.value = "squirrelHappy";
+        squirrelMotionClass.value = "squirrel--jump";
       } else {
-        squirrelState.value = 'squirrelSad';
-        squirrelMotionClass.value = 'squirrel--shake';
+        squirrelState.value = "squirrelSad";
+        squirrelMotionClass.value = "squirrel--shake";
       }
       poseTimer = setTimeout(() => {
-        squirrelState.value = 'squirrelIdle';
-        squirrelMotionClass.value = '';
+        squirrelState.value = "squirrelIdle";
+        squirrelMotionClass.value = "";
         poseTimer = null;
       }, 1500);
     },
@@ -627,11 +852,13 @@ function onKeydown(e) {
 
   if (
     e.target instanceof HTMLElement &&
-    (e.target.isContentEditable || e.target.matches('input, textarea, select, [role="combobox"]'))
-  ) return;
+    (e.target.isContentEditable ||
+      e.target.matches('input, textarea, select, [role="combobox"]'))
+  )
+    return;
 
   if (isChecked.value) {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       onContinueNext();
     }
@@ -641,16 +868,28 @@ function onKeydown(e) {
   if (game.isChecking.value) return;
 
   const opts = options.value;
-  const map  = { '1': 0, '2': 1, '3': 2, '4': 3, 'a': 0, 'b': 1, 'c': 2, 'd': 3,
-                 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
-  const idx  = map[e.key];
+  const map = {
+    1: 0,
+    2: 1,
+    3: 2,
+    4: 3,
+    a: 0,
+    b: 1,
+    c: 2,
+    d: 3,
+    A: 0,
+    B: 1,
+    C: 2,
+    D: 3,
+  };
+  const idx = map[e.key];
 
   if (idx !== undefined && opts[idx]) {
-    if (isMcqType.value)      onPick(opts[idx].id);
+    if (isMcqType.value) onPick(opts[idx].id);
     else if (isMultiMcqType.value) onToggleMulti(opts[idx].id);
   }
   if (
-    e.key === 'Enter' &&
+    e.key === "Enter" &&
     (isMcqType.value || isMultiMcqType.value) &&
     canCommit.value
   ) {
@@ -660,27 +899,30 @@ function onKeydown(e) {
 }
 
 // Khi chuyển sang câu hỏi mới
-watch(() => props.session.currentIndex?.value, () => {
-  if (poseTimer !== null) clearTimeout(poseTimer);
-  poseTimer = null;
-  selectedId.value          = null;
-  selectedIds.value         = [];
-  squirrelState.value       = 'squirrelIdle';
-  squirrelMotionClass.value = '';
-  hideTimeUpNotice();
-  startQuestionCountdown();
-});
+watch(
+  () => props.session.currentIndex?.value,
+  () => {
+    if (poseTimer !== null) clearTimeout(poseTimer);
+    poseTimer = null;
+    selectedId.value = null;
+    selectedIds.value = [];
+    squirrelState.value = "squirrelIdle";
+    squirrelMotionClass.value = "";
+    hideTimeUpNotice();
+    startQuestionCountdown();
+  },
+);
 
 onMounted(() => {
   updateClimbTrack();
-  window.addEventListener('resize', updateClimbTrack);
-  document.addEventListener('keydown', onKeydown);
+  window.addEventListener("resize", updateClimbTrack);
+  document.addEventListener("keydown", onKeydown);
   startQuestionCountdown();
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updateClimbTrack);
-  document.removeEventListener('keydown', onKeydown);
+  window.removeEventListener("resize", updateClimbTrack);
+  document.removeEventListener("keydown", onKeydown);
   countdown.stop();
   if (timeUpTimer !== null) clearTimeout(timeUpTimer);
   if (poseTimer !== null) clearTimeout(poseTimer);
@@ -694,28 +936,26 @@ onUnmounted(() => {
 .fruit-game {
   --squirrel-height: clamp(110px, 18vh, 194px);
   --squirrel-width: clamp(195px, 32vh, 345px);
-  --flag-height: clamp(36px, 8vh, 100px);
-  --apple-size: clamp(36px, 5vh, 48px);
+  --flag-height: clamp(40px, 8vh, 90px);
+  --apple-size: clamp(38px, 5.5vh, 52px);
   --acorn-size: clamp(28px, 4.5vh, 40px);
-  --peg-width: clamp(60px, 9.92vh, 108px);
-  --peg-center: clamp(37px, calc(4.96vh + 7px), 61px);
-  --bubble-size: 52px;
+  --peg-width: clamp(70px, 12vw, 120px);
+  --peg-center: clamp(40px, calc(5vh + 12px), 72px);
+  --bubble-size: 54px;
   --acorn-clearance: 27px;
-  --wood-card-max-width: 680px;
+  --wood-card-max-width: 720px;
 
   position: relative;
   width: 100%;
-  /* Khung game cao 100dvh trừ navbar, không phải cuộn */
-  height: calc(100dvh - 84px);
-  min-height: 560px;
-  max-height: calc(100dvh - 84px);
+  height: 100%;
+  min-height: 100%;
+  max-height: 100%;
   overflow: hidden;
-  border-radius: 28px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
 
   pointer-events: none;
   background-color: #38bdf8;
-  background-image: url('/assets/modes/fruit/bg.png'),
+  background-image:
+    url("/assets/modes/fruit/bg.png"),
     linear-gradient(180deg, #38bdf8 0%, #7dd3fc 45%, #86efac 85%, #4ade80 100%);
   background-size: cover;
   background-repeat: no-repeat;
@@ -748,26 +988,36 @@ onUnmounted(() => {
   pointer-events: none;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 16px;
+  gap: 12px;
+  padding: 8px 18px;
   background:
-    repeating-linear-gradient(3deg, rgba(255, 232, 179, 0.1) 0 2px, transparent 2px 8px),
-    linear-gradient(180deg, #a96332 0%, #87451f 100%);
-  border: 3px solid #6f3519;
-  border-bottom: 5px solid #51230f;
-  border-radius: 14px;
-  box-shadow: 0 4px 14px rgba(45, 24, 10, 0.4);
+    repeating-linear-gradient(
+      2deg,
+      rgba(255, 232, 179, 0.12) 0 2px,
+      transparent 2px 8px
+    ),
+    linear-gradient(180deg, #b86e37 0%, #8f4b21 100%);
+  border: 3.5px solid #632e12;
+  border-bottom: 5px solid #451a05;
+  border-radius: 18px;
+  box-shadow: 0 6px 16px rgba(45, 24, 10, 0.4);
 }
 
 .tree-icon-badge {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: radial-gradient(circle, #86efac 0%, #22c55e 70%, #15803d 100%);
+  border: 2px solid #bbf7d0;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .tree-emoji {
-  font-size: 1.6rem;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+  font-size: 1.45rem;
+  line-height: 1;
 }
 
 .tree-board-text {
@@ -777,29 +1027,45 @@ onUnmounted(() => {
 }
 
 .tree-board-title {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 800;
-  color: #ffedbd;
-  letter-spacing: 0.3px;
+  color: #ffedd5;
+  letter-spacing: 0.4px;
 }
 
 .tree-board-progress {
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   font-weight: 900;
-  color: #fff7db;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(45, 24, 10, 0.6);
 }
 
-/* Giữa đỉnh ngọn cây: Lá cờ Đích */
+/* Giữa đỉnh ngọn cây: Lá cờ Đích và bệ tán lá */
 .tree-finish-flag-node {
   pointer-events: none;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   position: absolute;
-  left: 65%;
+  left: 55%;
   transform: translateX(-50%);
-  top: 0;
-  z-index: 0;
+  top: 8px;
+  z-index: 10;
+}
+
+.tree-canopy-platform {
+  position: absolute;
+  top: 14px;
+  left: -20px;
+  right: -20px;
+  height: 22px;
+  background:
+    radial-gradient(ellipse at 50% 20%, #4ade80 0%, #15803d 75%),
+    linear-gradient(180deg, #22c55e 0%, #166534 100%);
+  border: 2px solid #14532d;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  z-index: -1;
 }
 
 .flag-sprite-wrap {
@@ -820,12 +1086,12 @@ onUnmounted(() => {
   border: 2px solid #fef08a;
   border-bottom: 4px solid #78350f;
   border-radius: 10px;
-  padding: 2px 10px;
+  padding: 3px 12px;
   color: #ffffff;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 900;
   letter-spacing: 0.5px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
 }
 
 /* Góc trên phải: Sao + Đồng hồ đỏ + Âm thanh */
@@ -843,24 +1109,26 @@ onUnmounted(() => {
 .fruit-star-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: linear-gradient(180deg, #78350f 0%, #451a03 100%);
-  border: 2.5px solid #fcd34d;
-  padding: 4px 14px;
+  gap: 8px;
+  background: linear-gradient(180deg, #b45309 0%, #78350f 100%);
+  border: 3px solid #fde047;
+  border-bottom: 5px solid #451a03;
+  padding: 5px 16px;
   border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(120, 53, 15, 0.35);
   pointer-events: none;
 }
 
 .star-icon {
-  font-size: 1.35rem;
-  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.8));
+  font-size: 1.45rem;
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.85));
 }
 
 .star-count {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 900;
   color: #fef08a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .stopwatch-wrap {
@@ -871,22 +1139,23 @@ onUnmounted(() => {
 .stopwatch-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 50%, #991b1b 100%);
-  border: 2.5px solid #fecaca;
-  border-bottom: 4px solid #7f1d1d;
-  padding: 4px 14px;
+  gap: 8px;
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+  border: 3px solid #fee2e2;
+  border-bottom: 5px solid #7f1d1d;
+  padding: 5px 16px;
   border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
   transition: all 0.3s ease;
   pointer-events: none;
 }
 
 .stopwatch-digits {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 900;
   color: #ffffff;
   letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .timeup-toast {
@@ -916,8 +1185,14 @@ onUnmounted(() => {
 }
 
 @keyframes timerPulse {
-  from { transform: scale(1); box-shadow: 0 0 10px rgba(239, 68, 68, 0.6); }
-  to   { transform: scale(1.08); box-shadow: 0 0 20px rgba(239, 68, 68, 0.95); }
+  from {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+  }
+  to {
+    transform: scale(1.08);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.95);
+  }
 }
 
 /* =====================================================================
@@ -952,33 +1227,68 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-/* Sợi dây thừng bện chạy dọc */
+/* Sợi dây thừng bện chạy dọc: Rustic braided hemp climbing rope */
 .braided-rope {
   position: absolute;
-  top: 10px;
-  bottom: 30px;
-  left: 65%;
+  top: 24px;
+  bottom: 24px;
+  left: 55%;
   width: 14px;
   transform: translateX(-50%);
   background: repeating-linear-gradient(
-    45deg,
-    #d97706,
-    #d97706 8px,
-    #b45309 8px,
-    #b45309 16px
+    -45deg,
+    #d4974f 0px,
+    #d4974f 4px,
+    #ad6f2d 5px,
+    #7e4b16 7px,
+    #d4974f 8px
   );
-  border-left: 2px solid #78350f;
-  border-right: 2px solid #78350f;
-  border-radius: 999px;
-  box-shadow: 3px 0 8px rgba(0, 0, 0, 0.3);
+  border-left: 2px solid #5c340d;
+  border-right: 2px solid #5c340d;
+  border-radius: 8px;
+  box-shadow:
+    inset 2px 0 3px rgba(255, 255, 255, 0.3),
+    inset -2px 0 3px rgba(0, 0, 0, 0.4),
+    3px 0 8px rgba(0, 0, 0, 0.35);
   z-index: 5;
   pointer-events: none;
+}
+
+/* Cành cây cổ thụ vươn ra từ góc đáy-trái */
+.tree-base-branch {
+  position: absolute;
+  bottom: 0;
+  left: -15px;
+  width: clamp(140px, 22vw, 240px);
+  height: clamp(50px, 9vh, 90px);
+  background:
+    radial-gradient(
+      circle at 30% 20%,
+      rgba(74, 222, 128, 0.35) 0%,
+      transparent 60%
+    ),
+    linear-gradient(135deg, #78350f 0%, #451a03 100%);
+  border-top: 3px solid #92400e;
+  border-radius: 0 80px 20px 0;
+  box-shadow:
+    inset 0 4px 8px rgba(0, 0, 0, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  z-index: 4;
+  pointer-events: none;
+}
+.tree-base-branch::after {
+  content: "🌿🍃";
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  font-size: 1.4rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 /* Cột mốc và mấu gỗ dịch chuyển theo câu đang hiển thị */
 .climber-progress-marker {
   position: absolute;
-  left: 65%;
+  left: 55%;
   bottom: 0;
   width: 0;
   height: 100%;
@@ -987,20 +1297,30 @@ onUnmounted(() => {
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Cành cây con gắn vào dây thừng cho Sóc đứng */
 .wooden-peg {
   position: absolute;
-  bottom: calc(6% - 18px);
-  left: 7px;
+  bottom: calc(6% - 14px);
+  left: 4px;
   width: var(--peg-width);
-  height: 18px;
+  height: 22px;
   box-sizing: border-box;
   background:
-    repeating-linear-gradient(0deg, rgba(255, 230, 174, 0.18) 0 1px, transparent 1px 5px),
-    linear-gradient(180deg, #d6a35c 0%, #9a5c2d 62%, #6f3519 100%);
-  border: 2px solid #6f3519;
-  border-radius: 4px 8px 8px 3px;
-  box-shadow: 0 3px 5px rgba(45, 24, 10, 0.35);
+    radial-gradient(ellipse at 85% 50%, #854d0e 0%, #542d0a 80%),
+    linear-gradient(180deg, #b88648 0%, #8c5825 45%, #5a320f 100%);
+  border: 2.5px solid #4a2408;
+  border-bottom: 4px solid #331703;
+  border-radius: 12px 20px 16px 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
   pointer-events: none;
+}
+
+.peg-leaf {
+  position: absolute;
+  right: -6px;
+  top: -10px;
+  font-size: 14px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
 }
 
 .squirrel-climber-wrap {
@@ -1026,8 +1346,8 @@ onUnmounted(() => {
 /* Bong bóng thoại "Tầng n" */
 .squirrel-speech-bubble {
   position: absolute;
-  top: 8%;
-  left: calc(var(--squirrel-tail-edge) - var(--bubble-size) - 10px);
+  top: -24px;
+  left: 8px;
   background: #fef08a;
   border: 3px solid #ca8a04;
   border-radius: 50%;
@@ -1038,26 +1358,30 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
   z-index: 12;
   animation: bubbleFloat 2.2s ease-in-out infinite alternate;
   pointer-events: none;
 }
 
 @keyframes bubbleFloat {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-3px); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-3px);
+  }
 }
 
 .bubble-caption {
-  font-size: 0.6rem;
+  font-size: 0.65rem;
   font-weight: 800;
   color: #854d0e;
   line-height: 1;
 }
 
 .bubble-num {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 900;
   color: #713f12;
   line-height: 1.1;
@@ -1065,8 +1389,8 @@ onUnmounted(() => {
 
 .bubble-tail {
   position: absolute;
-  bottom: -7px;
-  right: 12px;
+  bottom: -6px;
+  right: 14px;
   width: 0;
   height: 0;
   border-left: 5px solid transparent;
@@ -1109,9 +1433,15 @@ onUnmounted(() => {
 }
 
 @keyframes squirrelJumpHappy {
-  0%   { transform: translateY(0) scale(1); }
-  45%  { transform: translateY(clamp(-34px, -3.5vh, -20px)) scale(1.06); }
-  100% { transform: translateY(0) scale(1); }
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  45% {
+    transform: translateY(clamp(-34px, -3.5vh, -20px)) scale(1.06);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Sóc rung thất vọng khi trả lời sai */
@@ -1120,9 +1450,16 @@ onUnmounted(() => {
 }
 
 @keyframes squirrelShakeSad {
-  0%, 100% { transform: translateX(0); }
-  25%       { transform: translateX(-6px) rotate(-3deg); }
-  75%       { transform: translateX(6px) rotate(3deg); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px) rotate(-3deg);
+  }
+  75% {
+    transform: translateX(6px) rotate(3deg);
+  }
 }
 
 /* =====================================================================
@@ -1165,12 +1502,17 @@ onUnmounted(() => {
   box-sizing: border-box;
   min-height: 92px;
   background:
-    repeating-linear-gradient(2deg, rgba(107, 57, 25, 0.08) 0 2px, transparent 2px 11px),
+    repeating-linear-gradient(
+      2deg,
+      rgba(107, 57, 25, 0.08) 0 2px,
+      transparent 2px 11px
+    ),
     linear-gradient(180deg, #e6bc7e 0%, #cf9758 100%);
   border: 3.5px solid #7c421f;
   border-bottom: 6px solid #54280f;
   border-radius: 20px;
-  padding: var(--acorn-clearance) clamp(18px, 2.8vw, 32px) clamp(14px, 2.2vh, 22px);
+  padding: var(--acorn-clearance) clamp(18px, 2.8vw, 32px)
+    clamp(14px, 2.2vh, 22px);
   box-shadow: 0 10px 30px rgba(120, 53, 15, 0.35);
   margin-bottom: clamp(10px, 1.6vh, 18px);
   text-align: center;
@@ -1217,10 +1559,22 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-.screw-tl { top: 8px; left: 10px; }
-.screw-tr { top: 8px; right: 10px; }
-.screw-bl { bottom: 8px; left: 10px; }
-.screw-br { bottom: 8px; right: 10px; }
+.screw-tl {
+  top: 8px;
+  left: 10px;
+}
+.screw-tr {
+  top: 8px;
+  right: 10px;
+}
+.screw-bl {
+  bottom: 8px;
+  left: 10px;
+}
+.screw-br {
+  bottom: 8px;
+  right: 10px;
+}
 
 .question-leaf {
   position: absolute;
@@ -1250,20 +1604,34 @@ onUnmounted(() => {
 }
 
 /* =====================================================================
-   LƯỚI ĐÁP ÁN: 2x2 CÁC TẤM GỖ CÓ QUẢ TÁO ĐỎ A/B/C/D
+   LƯỚI ĐÁP ÁN: 2 CỘT CÁC TẤM GỖ CÓ QUẢ TÁO ĐỎ A/B/C/D
    ===================================================================== */
 .wood-options-grid {
   width: 100%;
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(10px, 1.5vh, 16px);
-  margin-bottom: clamp(10px, 1.5vh, 16px);
+  gap: clamp(10px, 1.6vh, 16px);
+  margin-bottom: clamp(12px, 1.8vh, 18px);
   pointer-events: none;
 }
 
-.wood-options-grid.grid--single-column {
-  grid-template-columns: minmax(0, 1fr);
+/* Khi có đúng 3 đáp án: 2 đáp án đầu ở hàng 1 (A và B), đáp án thứ 3 (C) căn giữa ở hàng 2, giữ đúng tỷ lệ tấm gỗ */
+.grid--count-3 .wood-option-btn:last-child {
+  grid-column: 1 / -1;
+  max-width: calc(50% - clamp(5px, 0.8vh, 8px));
+  margin: 0 auto;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .wood-options-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .grid--count-3 .wood-option-btn:last-child {
+    grid-column: auto;
+    max-width: 100%;
+  }
 }
 
 .multi-select-hint {
@@ -1275,23 +1643,29 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-/* Thẻ đáp án gỗ */
+/* Thẻ đáp án gỗ: Tấm gỗ dày dặn bo góc có vân gỗ */
 .wood-option-btn {
   position: relative;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: clamp(8px, 1.4vh, 14px) clamp(12px, 1.8vw, 18px);
-  min-height: clamp(52px, 7vh, 68px);
+  gap: 14px;
+  padding: clamp(10px, 1.6vh, 16px) clamp(14px, 2vw, 20px);
+  min-height: clamp(58px, 7.5vh, 74px);
   background:
-    repeating-linear-gradient(1deg, rgba(120, 53, 15, 0.06) 0 1px, transparent 1px 9px),
-    linear-gradient(180deg, #f4d7a4 0%, #e8c183 100%);
-  border: 2.5px solid #a15a28;
-  border-bottom: 5px solid #713a1a;
-  border-radius: 16px;
+    repeating-linear-gradient(
+      2deg,
+      rgba(120, 53, 15, 0.05) 0 2px,
+      transparent 2px 10px
+    ),
+    linear-gradient(180deg, #fae2b4 0%, #edd199 45%, #deb675 100%);
+  border: 3.5px solid #8d4e20;
+  border-bottom: 6px solid #5a2e10;
+  border-radius: 20px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(120, 53, 15, 0.18);
+  box-shadow:
+    0 6px 14px rgba(60, 25, 5, 0.25),
+    inset 0 2px 0 rgba(255, 255, 255, 0.45);
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   text-align: left;
   box-sizing: border-box;
@@ -1302,7 +1676,9 @@ onUnmounted(() => {
 .wood-option-btn:hover:not(:disabled) {
   border-color: #f59e0b;
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(217, 119, 6, 0.3);
+  box-shadow:
+    0 8px 20px rgba(217, 119, 6, 0.35),
+    inset 0 2px 0 rgba(255, 255, 255, 0.6);
 }
 
 .wood-option-btn.opt--selected {
@@ -1314,10 +1690,10 @@ onUnmounted(() => {
 /* Chồi lá xanh mọc từ góc cành gỗ */
 .wood-leaf {
   position: absolute;
-  top: -8px;
-  left: -6px;
-  font-size: 1.15rem;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.15));
+  top: -10px;
+  left: -8px;
+  font-size: 1.35rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
   pointer-events: none;
 }
 
@@ -1358,7 +1734,7 @@ onUnmounted(() => {
   left: 50%;
   transform: translate(-50%, -50%);
   color: #ffffff;
-  font-size: clamp(1.1rem, 2vh, 1.35rem);
+  font-size: clamp(1.15rem, 2.2vh, 1.45rem);
   font-weight: 900;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
   pointer-events: none;
@@ -1367,9 +1743,9 @@ onUnmounted(() => {
 .wood-option-text {
   flex: 1;
   min-width: 0;
-  font-size: clamp(1rem, 1.8vh, 1.25rem);
+  font-size: clamp(1.05rem, 2vh, 1.35rem);
   font-weight: 800;
-  color: #451a03;
+  color: #3d1a04;
   line-height: 1.35;
   pointer-events: none;
 }
@@ -1379,7 +1755,9 @@ onUnmounted(() => {
   background: #dcfce7 !important;
   border-color: #22c55e !important;
   border-bottom-color: #15803d !important;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.4), 0 6px 18px rgba(34, 197, 94, 0.25) !important;
+  box-shadow:
+    0 0 0 3px rgba(34, 197, 94, 0.4),
+    0 6px 18px rgba(34, 197, 94, 0.25) !important;
 }
 
 .wood-option-btn.opt--wrong {
@@ -1413,7 +1791,11 @@ onUnmounted(() => {
   overflow-y: auto;
   overscroll-behavior: contain;
   background:
-    repeating-linear-gradient(1deg, rgba(120, 53, 15, 0.06) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(
+      1deg,
+      rgba(120, 53, 15, 0.06) 0 1px,
+      transparent 1px 9px
+    ),
     linear-gradient(180deg, #f4d7a4 0%, #e8c183 100%);
   border: 2.5px solid #8b4b22;
   border-bottom: 5px solid #713a1a;
@@ -1447,7 +1829,8 @@ onUnmounted(() => {
   box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.3);
 }
 
-.fallback-wood-panel :deep(.quiz-card--fruit .v-field--focused .v-field__outline) {
+.fallback-wood-panel
+  :deep(.quiz-card--fruit .v-field--focused .v-field__outline) {
   color: #d97706;
 }
 
@@ -1463,9 +1846,16 @@ onUnmounted(() => {
 }
 
 @keyframes bannerShake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
 }
 
 .network-error-banner {
@@ -1514,40 +1904,46 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-width: clamp(200px, 30vw, 280px);
-  padding: clamp(10px, 1.8vh, 16px) clamp(24px, 4vw, 42px);
-  background: linear-gradient(180deg, #a1a1aa 0%, #71717a 100%);
-  border: 3px solid #e4e4e7;
-  border-bottom: 6px solid #52525b;
+  gap: 12px;
+  min-width: clamp(200px, 28vw, 290px);
+  padding: clamp(10px, 1.8vh, 16px) clamp(28px, 4.5vw, 48px);
+  background: linear-gradient(180deg, #ffc038 0%, #f59e0b 45%, #d97706 100%);
+  border: 3.5px solid #fff5c0;
+  border-bottom: 6px solid #853702;
   border-radius: 999px;
   color: #ffffff;
-  font-size: clamp(1.15rem, 2vh, 1.4rem);
+  font-size: clamp(1.2rem, 2.2vh, 1.5rem);
   font-weight: 900;
   cursor: not-allowed;
-  opacity: 0.65;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
+  opacity: 0.72;
+  filter: saturate(0.85);
+  box-shadow:
+    0 8px 20px rgba(180, 83, 9, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.65);
+  text-shadow: 0 2px 4px rgba(120, 53, 15, 0.7);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: auto;
 }
 
 .btn-harvest--ready {
-  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
-  border-color: #fef08a;
-  border-bottom-color: #92400e;
   opacity: 1;
+  filter: none;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.45);
+  box-shadow:
+    0 10px 28px rgba(217, 119, 6, 0.55),
+    inset 0 2px 0 rgba(255, 255, 255, 0.85);
 }
 
 .btn-harvest--ready:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(217, 119, 6, 0.55);
+  box-shadow:
+    0 14px 32px rgba(217, 119, 6, 0.65),
+    inset 0 2px 0 rgba(255, 255, 255, 0.9);
 }
 
 .btn-harvest--ready:active {
   transform: translateY(2px);
-  border-bottom-width: 2px;
+  border-bottom-width: 3px;
 }
 
 /* Nút Tiếp tục sau khi đã có kết quả */
@@ -1599,8 +1995,14 @@ onUnmounted(() => {
 }
 
 @keyframes finishModalPop {
-  from { transform: scale(0.7) translateY(40px); opacity: 0; }
-  to   { transform: scale(1) translateY(0); opacity: 1; }
+  from {
+    transform: scale(0.7) translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 .finish-trophy-emojis {
@@ -1671,8 +2073,12 @@ onUnmounted(() => {
   box-shadow: 0 14px 28px rgba(16, 185, 129, 0.5);
 }
 
-.fruit-finish-fade-enter-active { transition: opacity 0.4s ease; }
-.fruit-finish-fade-enter-from   { opacity: 0; }
+.fruit-finish-fade-enter-active {
+  transition: opacity 0.4s ease;
+}
+.fruit-finish-fade-enter-from {
+  opacity: 0;
+}
 
 /* =====================================================================
    RESPONSIVE: 1920x1080, 1366x768, 1280x720, 768x1024, 375x667
@@ -1744,8 +2150,12 @@ onUnmounted(() => {
     top: 8%;
   }
 
-  .bubble-caption { font-size: 0.55rem; }
-  .bubble-num { font-size: 0.95rem; }
+  .bubble-caption {
+    font-size: 0.55rem;
+  }
+  .bubble-num {
+    font-size: 0.95rem;
+  }
 
   .wood-question-card {
     padding: var(--acorn-clearance) 16px 14px;
@@ -1758,7 +2168,9 @@ onUnmounted(() => {
     top: -20px;
   }
 
-  .acorn-fallback-emoji { font-size: 1.25rem; }
+  .acorn-fallback-emoji {
+    font-size: 1.25rem;
+  }
 
   /* Trên mobile: Chuyển lưới đáp án thành 1 cột */
   .wood-options-grid {
