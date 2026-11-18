@@ -174,7 +174,7 @@ const isGameMode = computed(() => {
 .game-mode-main {
   height: 100dvh;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   padding-bottom: 0 !important;
   background: #f4f8ff;
 }
