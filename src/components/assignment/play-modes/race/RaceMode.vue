@@ -93,7 +93,7 @@
         </div>
 
         <!-- Các làn xe ngang (linh hoạt 2 đến 4 làn tùy số đáp án) -->
-        <div class="lanes-container">
+        <div class="lanes-container" :class="{ 'lanes-container--compact': options.length >= 4 }">
           <div
             v-for="(option, idx) in options"
             :key="option.id"
@@ -524,7 +524,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 4px;
   width: 100%;
 }
 
@@ -783,6 +783,19 @@ onUnmounted(() => {
   min-height: 0;
 }
 
+.lanes-container--compact .lane-button-3d {
+  height: 52px;
+  border-radius: 13px;
+}
+
+.lanes-container--compact .lane-letter {
+  font-size: 1.8rem;
+}
+
+.lanes-container--compact .lane-answer-text {
+  font-size: 1.1rem;
+}
+
 .track-lane {
   display: flex;
   align-items: center;
@@ -889,7 +902,7 @@ onUnmounted(() => {
 /* DIỄN VIÊN XE ĐUA */
 .race-car-actor {
   position: absolute;
-  left: -60px;
+  left: -140px;
   display: flex;
   align-items: center;
   flex: none;
@@ -961,7 +974,7 @@ onUnmounted(() => {
 /* Lửa / khói phụt đuôi xe */
 .car-exhaust-nitro {
   position: absolute;
-  left: 4%;
+  left: 28%;
   top: 50%;
   transform: translateY(-50%);
   transform-origin: right center;

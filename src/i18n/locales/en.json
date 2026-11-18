@@ -1264,6 +1264,21 @@
       "finishDesc": "The little Dino climbed all {total} floors and earned {stars} stars!",
       "submitNow": "🎉 SUBMIT NOW",
       "submitting": "SUBMITTING..."
+    },
+    "fruitUI": {
+      "challengeTree": "Challenge Tree",
+      "treeProgress": "{current} / {total}",
+      "finish": "Finish",
+      "floorBadge": "Floor",
+      "actionHarvest": "Harvest!",
+      "actionContinue": "Continue ❯",
+      "checking": "HARVESTING...",
+      "timeUp": "Time's up, you can still answer!",
+      "multiSelectHint": "Select all correct answers",
+      "finishHeadline": "CHALLENGE TREE CONQUERED!",
+      "finishDesc": "The little Squirrel harvested {stars} / {total} golden apples!",
+      "submitNow": "🧺 SUBMIT HARVEST",
+      "submitting": "SUBMITTING..."
     }
   }
 }

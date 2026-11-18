@@ -47,6 +47,10 @@ const assetEntry = computed(() => {
   return null;
 });
 
+const assetScale = computed(() =>
+  typeof assetEntry.value?.scale === "number" ? assetEntry.value.scale : 1,
+);
+
 const resolvedSrc = computed(() => {
   if (props.src) return props.src;
   const entry = assetEntry.value;
@@ -71,6 +75,8 @@ const wrapperStyle = computed(() => {
   return {
     width: w,
     height: h,
+    transform: assetScale.value === 1 ? undefined : `scale(${assetScale.value})`,
+    transformOrigin: "center bottom",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
