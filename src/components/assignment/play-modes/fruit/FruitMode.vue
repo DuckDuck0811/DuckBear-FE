@@ -25,23 +25,28 @@
         </div>
 
         <!-- Đồng hồ bấm giờ đỏ (15s mặc định) -->
-        <div
-          class="stopwatch-pill"
-          :class="{
-            'timer--warning': countdown.isWarning.value,
-            'timer--expired': timeUpBanner,
-          }"
-          :aria-label="`Thời gian còn lại: ${countdown.timeLeft.value} giây`"
-        >
-          <div class="stopwatch-icon" aria-hidden="true">
-            <svg viewBox="0 0 32 32" width="22" height="22" class="stopwatch-svg">
-              <circle cx="16" cy="18" r="11" fill="#ffffff" stroke="#991b1b" stroke-width="2.5" />
-              <rect x="14" y="2" width="4" height="4" rx="1" fill="#78350f" />
-              <line x1="16" y1="18" x2="16" y2="11" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" />
-              <line x1="16" y1="18" x2="21" y2="18" stroke="#dc2626" stroke-width="2" stroke-linecap="round" />
-            </svg>
+        <div class="stopwatch-wrap">
+          <div
+            class="stopwatch-pill"
+            :class="{
+              'timer--warning': countdown.isWarning.value,
+              'timer--expired': timeUpBanner,
+            }"
+            :aria-label="`Thời gian còn lại: ${countdown.timeLeft.value} giây`"
+          >
+            <div class="stopwatch-icon" aria-hidden="true">
+              <svg viewBox="0 0 32 32" width="22" height="22" class="stopwatch-svg">
+                <circle cx="16" cy="18" r="11" fill="#ffffff" stroke="#991b1b" stroke-width="2.5" />
+                <rect x="14" y="2" width="4" height="4" rx="1" fill="#78350f" />
+                <line x1="16" y1="18" x2="16" y2="11" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" />
+                <line x1="16" y1="18" x2="21" y2="18" stroke="#dc2626" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </div>
+            <span class="stopwatch-digits">{{ countdown.timeLeft.value }}s</span>
           </div>
-          <span class="stopwatch-digits">{{ countdown.timeLeft.value }}s</span>
+          <div v-if="timeUpBanner" class="timeup-toast" role="alert">
+            {{ t('playModes.fruitUI.timeUp') }}
+          </div>
         </div>
 
         <!-- Nút bật/tắt âm thanh -->
@@ -56,7 +61,7 @@
     <main class="fruit-arena">
 
       <!-- ── KHU VỰC BÊN TRÁI: DÂY TIẾN ĐỘ VÀ SÓC ĐỨNG TRÊN MẤU ── -->
-      <section class="tree-climbing-zone" aria-label="Dây tiến độ và sóc">
+      <section ref="treeClimbingZone" class="tree-climbing-zone" aria-label="Dây tiến độ và sóc">
         <div class="tree-finish-flag-node" aria-label="Đích ngọn cây">
           <div class="flag-sprite-wrap">
             <GameSprite
@@ -84,50 +89,49 @@
 
         <div
           class="climber-progress-marker"
-          :style="{ bottom: `calc(6% + ${climbPercent}%)` }"
+          :style="{ transform: `translateY(-${climbOffset}px)` }"
         >
           <div class="wooden-peg" aria-hidden="true"></div>
 
-          <!-- Sóc đứng trên mấu gỗ, di chuyển lên theo số câu trả lời đúng -->
-          <div class="squirrel-climber-wrap">
-          <!-- Bong bóng thoại "Tầng n" -->
-          <div class="squirrel-speech-bubble" aria-live="polite">
-            <span class="bubble-caption">{{ t('playModes.fruitUI.floorBadge') }}</span>
-            <strong class="bubble-num">{{ game.displayNum.value }}</strong>
-            <div class="bubble-tail" aria-hidden="true"></div>
-          </div>
+          <!-- Sóc đứng trên mấu gỗ, di chuyển theo câu đang hiển thị -->
+          <div class="squirrel-climber-wrap" :class="squirrelState">
+            <div class="squirrel-speech-bubble" aria-live="polite">
+              <span class="bubble-caption">{{ t('playModes.fruitUI.floorBadge') }}</span>
+              <strong class="bubble-num">{{ game.displayNum.value }}</strong>
+              <div class="bubble-tail" aria-hidden="true"></div>
+            </div>
 
-          <!-- Chuyển động của sóc tách khỏi mốc tiến độ -->
-          <div
-            class="squirrel-motion-container"
-            :class="squirrelMotionClass"
-          >
-            <GameSprite
-              mode="fruit"
-              :name="squirrelState"
-              width="100%"
-              height="100%"
-              :alt="squirrelAltText"
-              class="squirrel-sprite"
-            >
-              <svg viewBox="0 0 240 130" class="squirrel-fallback-svg" aria-hidden="true">
-                <path d="M82 107C33 126 12 96 31 58c15-30 47-20 43 8-2 13-12 18-21 8" fill="#c46b24" stroke="#78350f" stroke-width="5" />
-                <ellipse cx="132" cy="84" rx="49" ry="34" fill="#d97706" stroke="#78350f" stroke-width="5" />
-                <path d="M100 104v14m38-16v16m18-22v22m29-27v27" stroke="#78350f" stroke-width="8" stroke-linecap="round" />
-                <circle cx="188" cy="46" r="33" fill="#d97706" stroke="#78350f" stroke-width="5" />
-                <path d="m166 21 5-18 17 20m11 1 16-18 4 27" fill="#d97706" stroke="#78350f" stroke-width="5" stroke-linejoin="round" />
-                <ellipse cx="200" cy="57" rx="17" ry="12" fill="#fef3c7" />
-                <circle cx="199" cy="39" r="5" fill="#1c1917" />
-                <circle cx="213" cy="52" r="4" fill="#78350f" />
-              </svg>
-            </GameSprite>
+            <div class="squirrel-motion-container" :class="squirrelMotionClass">
+              <GameSprite
+                mode="fruit"
+                :name="squirrelState"
+                width="100%"
+                height="100%"
+                :alt="squirrelAltText"
+                class="squirrel-sprite"
+              >
+                <svg viewBox="0 0 240 130" class="squirrel-fallback-svg" aria-hidden="true">
+                  <path d="M82 107C33 126 12 96 31 58c15-30 47-20 43 8-2 13-12 18-21 8" fill="#c46b24" stroke="#78350f" stroke-width="5" />
+                  <ellipse cx="132" cy="84" rx="49" ry="34" fill="#d97706" stroke="#78350f" stroke-width="5" />
+                  <path d="M100 104v14m38-16v16m18-22v22m29-27v27" stroke="#78350f" stroke-width="8" stroke-linecap="round" />
+                  <circle cx="188" cy="46" r="33" fill="#d97706" stroke="#78350f" stroke-width="5" />
+                  <path d="m166 21 5-18 17 20m11 1 16-18 4 27" fill="#d97706" stroke="#78350f" stroke-width="5" stroke-linejoin="round" />
+                  <ellipse cx="200" cy="57" rx="17" ry="12" fill="#fef3c7" />
+                  <circle cx="199" cy="39" r="5" fill="#1c1917" />
+                  <circle cx="213" cy="52" r="4" fill="#78350f" />
+                </svg>
+              </GameSprite>
+            </div>
           </div>
-        </div>
         </div>
       </section>
 
       <!-- ── KHU VỰC CHÍNH GIỮA: CÂY CỔ THỤ & BẢNG GỖ CÂU HỎI + ĐÁP ÁN ── -->
-      <section class="tree-center-trunk" v-if="currentQuestionItem && !game.isComplete.value">
+      <section
+        v-if="currentQuestionItem && !game.isComplete.value"
+        class="tree-center-trunk"
+        :class="{ 'tree-center-trunk--fallback': isFallbackType }"
+      >
 
         <!-- BẢNG GỖ CÂU HỎI CÓ HẠT DẺ TRÊN ĐỈNH -->
         <div class="wood-question-card">
@@ -306,13 +310,9 @@
             :level="1"
             mode="fruit"
             :disabled="game.isChecking.value || isChecked"
+            hide-stem
             @answered="onQuestionAnswered"
           />
-        </div>
-
-        <!-- Thông báo hết giờ -->
-        <div v-if="timeUpBanner" class="timeup-banner" role="alert">
-          <span>{{ t('playModes.fruitUI.timeUp') }}</span>
         </div>
 
         <!-- Thông báo lỗi mạng + nút thử lại -->
@@ -406,6 +406,12 @@ import GameSprite from '../shared/GameSprite.vue';
 import SoundToggle from '../shared/SoundToggle.vue';
 import { useQuizGame } from '../composables/useQuizGame.js';
 import { useCountdown } from '../composables/useCountdown.js';
+import {
+  getFruitClimbProgress,
+  getFruitClimbTrackDistance,
+  getFruitQuestionDuration,
+  hasCompleteMatchingAnswer,
+} from './fruitMode.helpers.js';
 
 const props = defineProps({
   session: { type: Object, required: true },
@@ -420,11 +426,13 @@ const letters = ['A', 'B', 'C', 'D'];
 // ─── Trạng thái nhân vật & tương tác ─────────────────────────────────────────
 const squirrelState       = ref('squirrelIdle');
 const squirrelMotionClass = ref('');
-const climbSteps          = ref(game.stars.value);
+const climbTrackDistance  = ref(0);
+const treeClimbingZone    = ref(null);
 const selectedId          = ref(null);            // Single MCQ
 const selectedIds         = ref([]);              // MULTI_MCQ
 const timeUpBanner        = ref(false);
-let climbTimer = null;
+let poseTimer = null;
+let timeUpTimer = null;
 
 // ─── Computed từ session ────────────────────────────────────────────────────
 const currentQuestionItem = computed(() => props.session.currentQuestionItem?.value);
@@ -439,6 +447,8 @@ const isMultiMcqType = computed(() => {
   return currentQuestionItem.value?.question?.type === 'MULTI_MCQ';
 });
 
+const isFallbackType = computed(() => !isMcqType.value && !isMultiMcqType.value);
+
 const isChecked = computed(() => {
   const qId = currentQuestionItem.value?.question?.id;
   return qId != null && (
@@ -451,7 +461,11 @@ const canCommit = computed(() => {
   if (game.isChecking.value || isChecked.value) return false;
   if (isMcqType.value)      return selectedId.value !== null;
   if (isMultiMcqType.value) return selectedIds.value.length > 0;
-  const qId = currentQuestionItem.value?.question?.id;
+  const question = currentQuestionItem.value?.question;
+  const qId = question?.id;
+  if (question?.type === 'MATCHING') {
+    return hasCompleteMatchingAnswer(question, props.session.answers[qId]);
+  }
   return qId != null && props.session.hasAnswer?.(qId);
 });
 
@@ -461,11 +475,18 @@ const squirrelAltText = computed(() => {
   return 'Chú sóc đứng bốn chân trên mấu gỗ';
 });
 
-// ─── TIẾN ĐỘ TRÊN DÂY (MỖI CÂU ĐÚNG TIẾN MỘT NẤC) ──────────────────────────
-const climbPercent = computed(() => {
-  const total = Math.max(1, game.totalQuestions.value);
-  return (Math.min(total, climbSteps.value) / total) * 32;
+// ─── TIẾN ĐỘ TRÊN DÂY THEO CÂU ĐANG HIỂN THỊ ───────────────────────────────
+const climbProgress = computed(() => {
+  return getFruitClimbProgress(game.displayNum.value, game.totalQuestions.value);
 });
+const climbOffset = computed(() => climbTrackDistance.value * climbProgress.value);
+const questionTimeLimitSeconds = computed(() =>
+  getFruitQuestionDuration(
+    currentQuestionItem.value?.question,
+    props.session.assignment?.value,
+    props.session.remainingSeconds?.value,
+  ),
+);
 
 // ─── XÁC ĐỊNH TRẠNG THÁI TỪNG ĐÁP ÁN SAU KHI CHẤM ───────────────────────────
 function getOptionStatus(optId) {
@@ -497,12 +518,14 @@ function isOptionSelected(optId) {
 
 function onPick(optId) {
   if (game.isChecking.value || isChecked.value) return;
+  hideTimeUpNotice();
   game.playSfx('click');
   selectedId.value = selectedId.value === optId ? null : optId;
 }
 
 function onToggleMulti(optId) {
   if (game.isChecking.value || isChecked.value) return;
+  hideTimeUpNotice();
   game.playSfx('click');
   selectedIds.value = selectedIds.value.includes(optId)
     ? selectedIds.value.filter((id) => id !== optId)
@@ -510,20 +533,49 @@ function onToggleMulti(optId) {
 }
 
 function onQuestionAnswered(questionId) {
+  hideTimeUpNotice();
   const ans = props.session.answers[questionId];
   if (ans) props.session.setAnswer(questionId, { ...ans });
 }
 
-// ─── ĐỒNG HỒ ĐẾM NGƯỢC 15S MỖI CÂU ──────────────────────────────────────────
+// ─── ĐỒNG HỒ ĐẾM NGƯỢC MỖI CÂU ──────────────────────────────────────────────
 function startQuestionCountdown() {
+  hideTimeUpNotice();
+  countdown.start(questionTimeLimitSeconds.value, onTimerExpire);
+}
+
+function hideTimeUpNotice() {
+  if (timeUpTimer !== null) clearTimeout(timeUpTimer);
+  timeUpTimer = null;
   timeUpBanner.value = false;
-  countdown.start(15, onTimerExpire);
 }
 
 function onTimerExpire() {
   if (game.isComplete.value || game.isChecking.value || isChecked.value) return;
 
   timeUpBanner.value = true;
+  timeUpTimer = setTimeout(() => {
+    timeUpBanner.value = false;
+    timeUpTimer = null;
+  }, 4000);
+}
+
+function updateClimbTrack() {
+  const zone = treeClimbingZone.value;
+  if (!zone) return;
+
+  const squirrelHeight = zone.querySelector('.squirrel-climber-wrap')?.offsetHeight || 0;
+  const flag = zone.querySelector('.tree-finish-flag-node');
+  const flagTop = flag?.offsetTop || 0;
+  const flagHeight = flag?.offsetHeight || 0;
+  const baseGap = zone.clientHeight * 0.06;
+  climbTrackDistance.value = getFruitClimbTrackDistance(
+    zone.clientHeight,
+    squirrelHeight,
+    flagTop,
+    flagHeight,
+    baseGap,
+  );
 }
 
 // ─── COMMIT HÁI QUẢ VÀ HIỆU ỨNG TƯ THẾ SÓC ─────────────────────────────────
@@ -532,7 +584,7 @@ async function onConfirmHarvest() {
   if (!q || game.isChecking.value || isChecked.value) return;
 
   countdown.stop();
-  timeUpBanner.value = false;
+  hideTimeUpNotice();
 
   let patch;
   if (isMcqType.value && selectedId.value !== null) {
@@ -547,24 +599,19 @@ async function onConfirmHarvest() {
   await game.submitAndCheck(q.id, patch, {
     delayNext: 1500,
     onResolved: (isCorrect) => {
+      if (poseTimer !== null) clearTimeout(poseTimer);
       if (isCorrect) {
         squirrelState.value = 'squirrelHappy';
         squirrelMotionClass.value = 'squirrel--jump';
-        if (climbTimer !== null) clearTimeout(climbTimer);
-        const moveUpOneStep = () => {
-          climbSteps.value = Math.min(
-            Math.max(1, game.totalQuestions.value),
-            climbSteps.value + 1,
-          );
-          climbTimer = null;
-        };
-        climbTimer = game.prefersReducedMotion.value
-          ? setTimeout(moveUpOneStep, 0)
-          : setTimeout(moveUpOneStep, 560);
       } else {
         squirrelState.value = 'squirrelSad';
         squirrelMotionClass.value = 'squirrel--shake';
       }
+      poseTimer = setTimeout(() => {
+        squirrelState.value = 'squirrelIdle';
+        squirrelMotionClass.value = '';
+        poseTimer = null;
+      }, 1500);
     },
   });
 }
@@ -614,24 +661,29 @@ function onKeydown(e) {
 
 // Khi chuyển sang câu hỏi mới
 watch(() => props.session.currentIndex?.value, () => {
+  if (poseTimer !== null) clearTimeout(poseTimer);
+  poseTimer = null;
   selectedId.value          = null;
   selectedIds.value         = [];
   squirrelState.value       = 'squirrelIdle';
   squirrelMotionClass.value = '';
-  timeUpBanner.value        = false;
+  hideTimeUpNotice();
   startQuestionCountdown();
 });
 
 onMounted(() => {
-  climbSteps.value = game.stars.value;
+  updateClimbTrack();
+  window.addEventListener('resize', updateClimbTrack);
   document.addEventListener('keydown', onKeydown);
   startQuestionCountdown();
 });
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateClimbTrack);
   document.removeEventListener('keydown', onKeydown);
   countdown.stop();
-  if (climbTimer !== null) clearTimeout(climbTimer);
+  if (timeUpTimer !== null) clearTimeout(timeUpTimer);
+  if (poseTimer !== null) clearTimeout(poseTimer);
 });
 </script>
 
@@ -642,9 +694,13 @@ onUnmounted(() => {
 .fruit-game {
   --squirrel-height: clamp(110px, 18vh, 194px);
   --squirrel-width: clamp(195px, 32vh, 345px);
-  --flag-height: clamp(36px, 8vh, 68px);
+  --flag-height: clamp(36px, 8vh, 100px);
   --apple-size: clamp(36px, 5vh, 48px);
   --acorn-size: clamp(28px, 4.5vh, 40px);
+  --peg-width: clamp(60px, 9.92vh, 108px);
+  --peg-center: clamp(37px, calc(4.96vh + 7px), 61px);
+  --bubble-size: 52px;
+  --acorn-clearance: 27px;
   --wood-card-max-width: 680px;
 
   position: relative;
@@ -683,7 +739,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  z-index: 10;
+  z-index: 30;
   pointer-events: none;
 }
 
@@ -807,7 +863,11 @@ onUnmounted(() => {
   color: #fef08a;
 }
 
-/* Đồng hồ đỏ bấm giờ 15s */
+.stopwatch-wrap {
+  position: relative;
+}
+
+/* Đồng hồ đếm ngược */
 .stopwatch-pill {
   display: flex;
   align-items: center;
@@ -829,6 +889,25 @@ onUnmounted(() => {
   letter-spacing: 0.5px;
 }
 
+.timeup-toast {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: max-content;
+  max-width: min(320px, 70vw);
+  padding: 4px 8px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #7f1d1d;
+  box-shadow: 0 4px 12px rgba(120, 53, 15, 0.2);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  font-weight: 800;
+  text-align: center;
+  pointer-events: none;
+}
+
 /* Cảnh báo khi còn <= 5 giây */
 .timer--warning {
   background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
@@ -848,11 +927,12 @@ onUnmounted(() => {
   position: relative;
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(140px, 22%) 1fr;
+  grid-template-columns: minmax(240px, 32%) minmax(0, 1fr);
   gap: 16px;
   padding: 76px 24px 16px 20px;
   height: 100%;
   min-height: 0;
+  min-width: 0;
   box-sizing: border-box;
   position: relative;
   z-index: 20;
@@ -867,7 +947,8 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   min-height: 0;
-  z-index: 0;
+  min-width: 0;
+  z-index: 5;
   pointer-events: none;
 }
 
@@ -894,25 +975,28 @@ onUnmounted(() => {
   pointer-events: none;
 }
 
-/* Cột mốc và mấu gỗ dịch chuyển theo số câu đúng */
+/* Cột mốc và mấu gỗ dịch chuyển theo câu đang hiển thị */
 .climber-progress-marker {
   position: absolute;
   left: 65%;
-  bottom: 6%;
+  bottom: 0;
   width: 0;
-  height: var(--squirrel-height);
-  z-index: 6;
+  height: 100%;
+  z-index: 20;
   pointer-events: none;
-  transition: bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .wooden-peg {
   position: absolute;
-  top: 100%;
-  left: -1px;
-  width: clamp(54px, 7vw, 72px);
-  height: 12px;
-  background: linear-gradient(180deg, #d6a35c 0%, #9a5c2d 62%, #6f3519 100%);
+  bottom: calc(6% - 18px);
+  left: 7px;
+  width: var(--peg-width);
+  height: 18px;
+  box-sizing: border-box;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 230, 174, 0.18) 0 1px, transparent 1px 5px),
+    linear-gradient(180deg, #d6a35c 0%, #9a5c2d 62%, #6f3519 100%);
   border: 2px solid #6f3519;
   border-radius: 4px 8px 8px 3px;
   box-shadow: 0 3px 5px rgba(45, 24, 10, 0.35);
@@ -921,25 +1005,34 @@ onUnmounted(() => {
 
 .squirrel-climber-wrap {
   position: absolute;
-  left: 0;
-  bottom: 0;
-  transform: translateX(-62%);
+  left: var(--peg-center);
+  bottom: 6%;
+  transform: translateX(-50%);
   width: var(--squirrel-width);
   height: var(--squirrel-height);
+  --squirrel-tail-edge: 18.2%;
   z-index: 1;
   pointer-events: none;
+}
+
+.squirrel-climber-wrap.squirrelHappy {
+  --squirrel-tail-edge: 22.2%;
+}
+
+.squirrel-climber-wrap.squirrelSad {
+  --squirrel-tail-edge: 17.1%;
 }
 
 /* Bong bóng thoại "Tầng n" */
 .squirrel-speech-bubble {
   position: absolute;
   top: 8%;
-  left: 80%;
+  left: calc(var(--squirrel-tail-edge) - var(--bubble-size) - 10px);
   background: #fef08a;
   border: 3px solid #ca8a04;
   border-radius: 50%;
-  width: 52px;
-  height: 52px;
+  width: var(--bubble-size);
+  height: var(--bubble-size);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1046,22 +1139,38 @@ onUnmounted(() => {
   margin: 0 auto;
   height: 100%;
   min-height: 0;
+  min-width: 0;
   box-sizing: border-box;
   z-index: 1;
   pointer-events: none;
+}
+
+.tree-center-trunk--fallback {
+  justify-content: flex-start;
+  gap: clamp(6px, 1vh, 12px);
+}
+
+.tree-center-trunk--fallback .wood-question-card {
+  flex: 0 1 auto;
+  max-height: min(28vh, 30%);
+  overflow-y: auto;
+  margin-bottom: 0;
 }
 
 /* THẺ GỖ CÂU HỎI CHÍNH */
 .wood-question-card {
   position: relative;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 92px;
   background:
     repeating-linear-gradient(2deg, rgba(107, 57, 25, 0.08) 0 2px, transparent 2px 11px),
     linear-gradient(180deg, #e6bc7e 0%, #cf9758 100%);
   border: 3.5px solid #7c421f;
   border-bottom: 6px solid #54280f;
   border-radius: 20px;
-  padding: clamp(14px, 2.2vh, 22px) clamp(18px, 2.8vw, 32px);
+  padding: var(--acorn-clearance) clamp(18px, 2.8vw, 32px) clamp(14px, 2.2vh, 22px);
   box-shadow: 0 10px 30px rgba(120, 53, 15, 0.35);
   margin-bottom: clamp(10px, 1.6vh, 18px);
   text-align: center;
@@ -1131,11 +1240,12 @@ onUnmounted(() => {
 }
 
 .wood-question-text {
-  font-size: clamp(1.1rem, 2vh, 1.45rem);
+  font-size: clamp(1.43rem, 2.6vh, 1.9rem);
   font-weight: 800;
   color: #451a03;
   line-height: 1.4;
   margin: 0;
+  text-align: center;
   word-break: break-word;
 }
 
@@ -1144,15 +1254,16 @@ onUnmounted(() => {
    ===================================================================== */
 .wood-options-grid {
   width: 100%;
+  min-width: 0;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(10px, 1.5vh, 16px);
   margin-bottom: clamp(10px, 1.5vh, 16px);
   pointer-events: none;
 }
 
 .wood-options-grid.grid--single-column {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .multi-select-hint {
@@ -1167,6 +1278,7 @@ onUnmounted(() => {
 /* Thẻ đáp án gỗ */
 .wood-option-btn {
   position: relative;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1254,6 +1366,7 @@ onUnmounted(() => {
 
 .wood-option-text {
   flex: 1;
+  min-width: 0;
   font-size: clamp(1rem, 1.8vh, 1.25rem);
   font-weight: 800;
   color: #451a03;
@@ -1294,29 +1407,59 @@ onUnmounted(() => {
 /* Bảng fallback dạng tự luận / matching */
 .fallback-wood-panel {
   width: 100%;
-  background: #ffffff;
-  border: 3px solid #d97706;
-  border-radius: 18px;
-  padding: 14px;
-  margin-bottom: 14px;
-  max-height: 240px;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: min(45vh, 100%);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  background:
+    repeating-linear-gradient(1deg, rgba(120, 53, 15, 0.06) 0 1px, transparent 1px 9px),
+    linear-gradient(180deg, #f4d7a4 0%, #e8c183 100%);
+  border: 2.5px solid #8b4b22;
+  border-bottom: 5px solid #713a1a;
+  border-radius: 18px;
+  padding: clamp(10px, 1.5vh, 16px);
   pointer-events: auto;
 }
 
-/* Thông báo hết giờ */
-.timeup-banner {
-  width: 100%;
-  background: #fef2f2;
-  border: 2px solid #ef4444;
-  color: #991b1b;
-  font-weight: 800;
-  font-size: 0.82rem;
-  text-align: center;
-  padding: 5px 10px;
-  border-radius: 10px;
-  margin-bottom: 6px;
-  pointer-events: none;
+.fallback-wood-panel :deep(.quiz-card--fruit) {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #451a03;
+}
+
+.fallback-wood-panel :deep(.quiz-card--fruit .v-field) {
+  border-radius: 12px;
+  background: #fff8e7;
+  color: #451a03;
+}
+
+.fallback-wood-panel :deep(.quiz-card--fruit .v-field__outline) {
+  --v-field-border-opacity: 1;
+  color: #8b5a2b;
+}
+
+.fallback-wood-panel :deep(.quiz-card--fruit .v-field--focused) {
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.3);
+}
+
+.fallback-wood-panel :deep(.quiz-card--fruit .v-field--focused .v-field__outline) {
+  color: #d97706;
+}
+
+.fallback-wood-panel :deep(.quiz-card--fruit input),
+.fallback-wood-panel :deep(.quiz-card--fruit textarea),
+.fallback-wood-panel :deep(.quiz-card--fruit .v-label) {
+  color: #451a03;
+}
+
+.fallback-wood-panel :deep(.quiz-card--fruit input),
+.fallback-wood-panel :deep(.quiz-card--fruit textarea) {
+  user-select: text;
 }
 
 @keyframes bannerShake {
@@ -1359,7 +1502,12 @@ onUnmounted(() => {
   width: 100%;
   display: flex;
   justify-content: center;
+  flex: 0 0 auto;
   pointer-events: none;
+}
+
+.tree-center-trunk--fallback .wood-action-area {
+  margin-top: auto;
 }
 
 .btn-harvest {
@@ -1531,6 +1679,12 @@ onUnmounted(() => {
    ===================================================================== */
 @media (max-width: 768px) {
   .fruit-game {
+    --squirrel-height: clamp(100px, 16vh, 140px);
+    --squirrel-width: clamp(178px, 28.5vh, 250px);
+    --peg-width: clamp(56px, 8.84vh, 78px);
+    --peg-center: clamp(35px, calc(4.42vh + 7px), 46px);
+    --bubble-size: 42px;
+    --acorn-clearance: 22px;
     height: calc(100dvh - 72px);
     min-height: 0;
     max-height: calc(100dvh - 72px);
@@ -1559,24 +1713,23 @@ onUnmounted(() => {
   }
 
   .fruit-arena {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding: 68px 12px 16px 12px;
     gap: 12px;
     height: auto;
   }
 
   .tree-climbing-zone {
-    height: clamp(200px, 30vh, 260px);
-    min-height: 200px;
+    height: clamp(
+      320px,
+      calc(var(--squirrel-height) + var(--flag-height) + 180px),
+      460px
+    );
+    min-height: 320px;
   }
 
   .braided-rope {
     left: 20%;
-  }
-
-  .squirrel-climber-wrap {
-    --squirrel-height: clamp(100px, 16vh, 140px);
-    --squirrel-width: clamp(178px, 28.5vh, 250px);
   }
 
   .climber-progress-marker,
@@ -1595,7 +1748,7 @@ onUnmounted(() => {
   .bubble-num { font-size: 0.95rem; }
 
   .wood-question-card {
-    padding: 14px 16px;
+    padding: var(--acorn-clearance) 16px 14px;
     border-radius: 20px;
   }
 

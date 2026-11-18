@@ -106,6 +106,14 @@
 
         <!-- VỎ MỎNG: RENDER TOÀN BỘ THEO TRANG RIÊNG CỦA TỪNG KIỂU CHƠI -->
         <template v-else-if="session.assignment.value">
+          <v-alert
+            v-if="raceModeNeedsFallback"
+            type="info"
+            variant="tonal"
+            class="ma-4 mb-0"
+          >
+            Bài có câu điền khuyết, nối cặp hoặc chọn nhiều đáp án nên được mở ở chế độ Cơ bản.
+          </v-alert>
           <div class="game-mode-stage">
             <component :is="activeModeComponent" :session="session" />
           </div>
@@ -156,13 +164,21 @@ const modeComponents = {
   mock: MockMode,
 };
 
+const raceModeNeedsFallback = computed(() => {
+  if (session.resolvedPlayMode.value !== "race") return false;
+  return (session.questions.value || []).some((item) =>
+    !["MCQ", "TRUE_FALSE"].includes(item?.question?.type),
+  );
+});
+
 const activeModeComponent = computed(() => {
+  if (raceModeNeedsFallback.value) return ClassicMode;
   return modeComponents[session.resolvedPlayMode.value] || ClassicMode;
 });
 
 const isGameMode = computed(() => {
   const m = session.resolvedPlayMode.value;
-  return m && m !== 'classic';
+  return m && m !== 'classic' && !raceModeNeedsFallback.value;
 });
 </script>
 

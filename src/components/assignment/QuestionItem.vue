@@ -4,35 +4,37 @@
     :class="`quiz-card--${mode}`"
     rounded="xl"
   >
-    <div class="d-flex align-center justify-space-between mb-3">
-      <div class="d-flex align-center ga-2">
-        <v-chip
-          :size="mode === 'fun' ? 'default' : 'small'"
-          :color="modeColor"
-          variant="tonal"
-          class="font-weight-bold"
-        >
-          {{ t("questionBank.questionNumber", { number: index + 1 }) }}
-        </v-chip>
-        <v-chip size="x-small" variant="tonal" class="text-secondary">
-          {{ t(`questionBank.types.${item.question.type}`) }}
-        </v-chip>
+    <template v-if="!hideStem">
+      <div class="d-flex align-center justify-space-between mb-3">
+        <div class="d-flex align-center ga-2">
+          <v-chip
+            :size="mode === 'fun' ? 'default' : 'small'"
+            :color="modeColor"
+            variant="tonal"
+            class="font-weight-bold"
+          >
+            {{ t("questionBank.questionNumber", { number: index + 1 }) }}
+          </v-chip>
+          <v-chip size="x-small" variant="tonal" class="text-secondary">
+            {{ t(`questionBank.types.${item.question.type}`) }}
+          </v-chip>
+        </div>
+
+        <!-- Điểm số câu hỏi -->
+        <span class="text-caption font-weight-bold text-secondary">
+          {{ item.points || 1 }} {{ t("assignmentHub.pointsShort") || "điểm" }}
+        </span>
       </div>
 
-      <!-- Điểm số câu hỏi -->
-      <span class="text-caption font-weight-bold text-secondary">
-        {{ item.points || 1 }} {{ t("assignmentHub.pointsShort") || "điểm" }}
-      </span>
-    </div>
-
-    <!-- Nội dung câu hỏi -->
-    <div
-      class="font-weight-bold mb-4"
-      :class="mode === 'fun' ? 'text-h6' : 'text-body-1'"
-      style="line-height: 1.6"
-    >
-      {{ item.question.content }}
-    </div>
+      <!-- Nội dung câu hỏi -->
+      <div
+        class="font-weight-bold mb-4"
+        :class="mode === 'fun' ? 'text-h6' : 'text-body-1'"
+        style="line-height: 1.6"
+      >
+        {{ item.question.content }}
+      </div>
+    </template>
 
     <!-- 1. Trắc nghiệm 1 đáp án (MCQ) & Đúng / Sai (TRUE_FALSE) -->
     <v-radio-group
@@ -77,7 +79,9 @@
         v-for="option in item.question.options"
         :key="option.id"
         class="d-flex flex-column flex-sm-row align-sm-center ga-3 pa-2 rounded-lg"
-        :style="{ background: mode === 'focus' ? '#f8fafc' : '#f0fdf4' }"
+        :style="{
+          background: mode === 'fruit' ? '#e8c183' : mode === 'focus' ? '#f8fafc' : '#f0fdf4',
+        }"
       >
         <div class="flex-grow-1 font-weight-medium">{{ option.content }}</div>
         <v-select
@@ -88,6 +92,7 @@
           variant="outlined"
           density="compact"
           hide-details
+          :color="modeColor"
           style="max-width: 280px"
           @update:model-value="onAnswerChange"
         />
@@ -172,12 +177,14 @@ const props = defineProps({
   mode: { type: String, default: "classic" },
   level: { type: Number, default: 3 },
   disabled: { type: Boolean, default: false },
+  hideStem: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["answered"]);
 const { t } = useI18n();
 
 const modeColor = computed(() => {
+  if (props.mode === "fruit") return "amber-darken-3";
   if (props.level === 1 || props.mode === "tower") return "success";
   if (props.level === 2) return "indigo";
   return "primary";
