@@ -1,6 +1,6 @@
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from "vue";
 
-const SOUND_PREF_KEY = 'duckbear_quiz_sound';
+const SOUND_PREF_KEY = "duckbear_quiz_sound";
 
 // Web Audio API Synthesizer (không cần load file mp3 bên ngoài, không lo lỗi 404)
 class SoundSynthesizer {
@@ -19,13 +19,19 @@ class SoundSynthesizer {
 
   unlock() {
     this.init();
-    if (this.ctx && this.ctx.state === 'suspended') {
+    if (this.ctx && this.ctx.state === "suspended") {
       this.ctx.resume();
     }
     this.unlocked = true;
   }
 
-  playTone(freq, type = 'sine', duration = 0.15, startTime = 0, gainLevel = 0.15) {
+  playTone(
+    freq,
+    type = "sine",
+    duration = 0.15,
+    startTime = 0,
+    gainLevel = 0.15,
+  ) {
     if (!this.unlocked || !this.ctx) return;
     try {
       const osc = this.ctx.createOscillator();
@@ -35,7 +41,10 @@ class SoundSynthesizer {
       osc.frequency.setValueAtTime(freq, this.ctx.currentTime + startTime);
 
       gain.gain.setValueAtTime(gainLevel, this.ctx.currentTime + startTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + startTime + duration);
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        this.ctx.currentTime + startTime + duration,
+      );
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
@@ -47,7 +56,7 @@ class SoundSynthesizer {
     }
   }
 
-  playSweep(startFreq, endFreq, type = 'sine', duration = 0.3) {
+  playSweep(startFreq, endFreq, type = "sine", duration = 0.3) {
     if (!this.unlocked || !this.ctx) return;
     try {
       const osc = this.ctx.createOscillator();
@@ -55,10 +64,16 @@ class SoundSynthesizer {
 
       osc.type = type;
       osc.frequency.setValueAtTime(startFreq, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(endFreq, this.ctx.currentTime + duration);
+      osc.frequency.exponentialRampToValueAtTime(
+        endFreq,
+        this.ctx.currentTime + duration,
+      );
 
       gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        this.ctx.currentTime + duration,
+      );
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
@@ -71,36 +86,36 @@ class SoundSynthesizer {
   }
 
   playCorrect() {
-    this.playTone(523.25, 'triangle', 0.12, 0, 0.2);     // C5
-    this.playTone(659.25, 'triangle', 0.14, 0.08, 0.22); // E5
-    this.playTone(783.99, 'triangle', 0.22, 0.16, 0.25); // G5
+    this.playTone(523.25, "triangle", 0.12, 0, 0.2); // C5
+    this.playTone(659.25, "triangle", 0.14, 0.08, 0.22); // E5
+    this.playTone(783.99, "triangle", 0.22, 0.16, 0.25); // G5
   }
 
   playWrong() {
-    this.playTone(240, 'sawtooth', 0.18, 0, 0.15);
-    this.playTone(190, 'sawtooth', 0.25, 0.12, 0.18);
+    this.playTone(240, "sawtooth", 0.18, 0, 0.15);
+    this.playTone(190, "sawtooth", 0.25, 0.12, 0.18);
   }
 
   playClick() {
-    this.playTone(750, 'sine', 0.04, 0, 0.08);
+    this.playTone(750, "sine", 0.04, 0, 0.08);
   }
 
   playBoost() {
-    this.playSweep(180, 720, 'triangle', 0.35);
+    this.playSweep(180, 720, "triangle", 0.35);
   }
 
   playFinish() {
-    this.playTone(523.25, 'triangle', 0.15, 0, 0.2);
-    this.playTone(659.25, 'triangle', 0.15, 0.12, 0.2);
-    this.playTone(783.99, 'triangle', 0.15, 0.24, 0.2);
-    this.playTone(1046.50, 'triangle', 0.45, 0.36, 0.3); // C6
+    this.playTone(523.25, "triangle", 0.15, 0, 0.2);
+    this.playTone(659.25, "triangle", 0.15, 0.12, 0.2);
+    this.playTone(783.99, "triangle", 0.15, 0.24, 0.2);
+    this.playTone(1046.5, "triangle", 0.45, 0.36, 0.3); // C6
   }
 }
 
 const synthesizer = new SoundSynthesizer();
 
 export function useQuizGame(session, options = {}) {
-  const isSoundEnabled = ref(localStorage.getItem(SOUND_PREF_KEY) !== 'false');
+  const isSoundEnabled = ref(localStorage.getItem(SOUND_PREF_KEY) !== "false");
   const hasUserInteracted = ref(false);
 
   const combo = ref(0);
@@ -109,22 +124,27 @@ export function useQuizGame(session, options = {}) {
   const isChecking = ref(false);
   const networkError = ref(null);
   const isComplete = ref(false);
+  const checkedDetails = ref({});
+  let nextQuestionTimer = null;
 
   const prefersReducedMotion = ref(
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
 
   // Tổng số câu hỏi
   const totalQuestions = computed(() => session.totalQuestions?.value || 1);
   const currentIndex = computed(() => session.currentIndex?.value || 0);
   const displayNum = computed(() => currentIndex.value + 1);
-  const currentQuestionItem = computed(() => session.currentQuestionItem?.value);
+  const currentQuestionItem = computed(
+    () => session.currentQuestionItem?.value,
+  );
 
   // Tính số sao (sao = số câu đã check đúng)
   const stars = computed(() => {
     const checked = session.checkedQuestions || {};
-    return Object.values(checked).filter((c) => c && c.isCorrect === true).length;
+    return Object.values(checked).filter((c) => c && c.isCorrect === true)
+      .length;
   });
 
   // Điểm số hiển thị (Visual score)
@@ -153,26 +173,48 @@ export function useQuizGame(session, options = {}) {
     if (!isSoundEnabled.value) return;
     onUserInteraction();
     switch (type) {
-      case 'correct':
+      case "correct":
         synthesizer.playCorrect();
         break;
-      case 'wrong':
+      case "wrong":
         synthesizer.playWrong();
         break;
-      case 'click':
+      case "click":
         synthesizer.playClick();
         break;
-      case 'boost':
+      case "boost":
         synthesizer.playBoost();
         break;
-      case 'finish':
+      case "finish":
         synthesizer.playFinish();
         break;
     }
   }
 
+  function advanceAfterCheck() {
+    checkFeedback.value = null;
+    if (!session.isLastQuestion?.value) {
+      session.next();
+    } else {
+      isComplete.value = true;
+      playSfx("finish");
+    }
+  }
+
+  function continueToNext() {
+    if (nextQuestionTimer !== null) {
+      clearTimeout(nextQuestionTimer);
+    }
+    nextQuestionTimer = null;
+    advanceAfterCheck();
+  }
+
   // Gửi câu trả lời và kiểm tra đúng/sai qua session
-  async function submitAndCheck(questionId, answerPatch, { onResolved, delayNext = 1200 } = {}) {
+  async function submitAndCheck(
+    questionId,
+    answerPatch,
+    { onResolved, delayNext = 1200 } = {},
+  ) {
     if (!questionId || isChecking.value) return null;
 
     onUserInteraction();
@@ -188,37 +230,49 @@ export function useQuizGame(session, options = {}) {
       const result = await session.checkQuestion(questionId);
       const isCorrect = result?.isCorrect === true;
 
+      checkedDetails.value[questionId] = {
+        isCorrect,
+        correctOptionIds:
+          result?.correctOptionIds ||
+          (isCorrect && answerPatch?.selectedOptionId
+            ? [answerPatch.selectedOptionId]
+            : []),
+        selectedOptionId: answerPatch?.selectedOptionId,
+        selectedOptionIds:
+          answerPatch?.selectedOptionIds ||
+          (answerPatch?.selectedOptionId ? [answerPatch.selectedOptionId] : []),
+      };
+
       if (isCorrect) {
         combo.value += 1;
         if (combo.value > maxCombo.value) maxCombo.value = combo.value;
-        checkFeedback.value = 'correct';
-        playSfx('correct');
+        checkFeedback.value = "correct";
+        playSfx("correct");
       } else {
         combo.value = 0;
-        checkFeedback.value = 'wrong';
-        playSfx('wrong');
+        checkFeedback.value = "wrong";
+        playSfx("wrong");
       }
 
-      if (typeof onResolved === 'function') {
+      if (
+        typeof onResolved === "function" &&
+        typeof result?.isCorrect === "boolean"
+      ) {
         onResolved(isCorrect, result);
       }
 
       // Thời gian chờ hiệu ứng hoạt hình trước khi chuyển câu
       const delay = prefersReducedMotion.value ? 300 : delayNext;
-      setTimeout(() => {
-        checkFeedback.value = null;
-        if (!session.isLastQuestion?.value) {
-          session.next();
-        } else {
-          isComplete.value = true;
-          playSfx('finish');
-        }
+      nextQuestionTimer = setTimeout(() => {
+        nextQuestionTimer = null;
+        advanceAfterCheck();
       }, delay);
 
       return result;
     } catch (err) {
-      networkError.value = err?.message || 'Có lỗi kết nối mạng, vui lòng thử lại!';
-      playSfx('wrong');
+      networkError.value =
+        err?.message || "Có lỗi kết nối mạng, vui lòng thử lại!";
+      playSfx("wrong");
       return null;
     } finally {
       isChecking.value = false;
@@ -232,7 +286,7 @@ export function useQuizGame(session, options = {}) {
     const questions = session.questions.value || [];
 
     const firstUnansweredIndex = questions.findIndex(
-      ({ question }) => !checked[String(question.id)]
+      ({ question }) => !checked[String(question.id)],
     );
 
     if (firstUnansweredIndex >= 0) {
@@ -256,6 +310,7 @@ export function useQuizGame(session, options = {}) {
     checkFeedback,
     isChecking,
     networkError,
+    checkedDetails,
     isComplete,
     prefersReducedMotion,
     totalQuestions,
@@ -265,6 +320,7 @@ export function useQuizGame(session, options = {}) {
     toggleSound,
     playSfx,
     onUserInteraction,
+    continueToNext,
     submitAndCheck,
     restoreState,
   };

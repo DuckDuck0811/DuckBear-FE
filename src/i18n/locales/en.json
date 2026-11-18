@@ -1258,7 +1258,7 @@
       "floorLabel": "Floor {current} / {total}",
       "questionBadge": "CHALLENGE {current} / {total}",
       "actionClimb": "🏁 Climb!",
-      "actionClimbContinue": "🏁 Keep Climbing!",
+      "actionClimbContinue": "Continue",
       "checking": "CLIMBING...",
       "finishHeadline": "TOWER CONQUERED!",
       "finishDesc": "The little Dino climbed all {total} floors and earned {stars} stars!",

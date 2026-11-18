@@ -1253,7 +1253,7 @@
       "floorLabel": "Tầng {current} / {total}",
       "questionBadge": "CÂU HỎI THỬ THÁCH {current} / {total}",
       "actionClimb": "🏁 Leo Thác!",
-      "actionClimbContinue": "🏁 Leo Thác Tiếp!",
+      "actionClimbContinue": "Tiếp tục",
       "checking": "ĐANG LEO...",
       "finishHeadline": "CHINH PHỤC ĐỈNH THÁC THÀNH CÔNG!",
       "finishDesc": "Bé Khủng Long đã xuất sắc vượt qua toàn bộ {total} tầng thác và rinh về {stars} ngôi sao sáng!",

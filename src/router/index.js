@@ -1,6 +1,13 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
+  ...(import.meta.env.DEV
+    ? [{
+        path: "/dev/tower-sprites",
+        name: "tower-sprites-debug",
+        component: () => import("../views/dev/TowerSpriteDebugView.vue"),
+      }]
+    : []),
   {
     path: "/login",
     name: "login",
@@ -140,6 +147,8 @@ const router = createRouter({
 
 // Navigation Guard
 router.beforeEach((to) => {
+  if (import.meta.env.DEV && to.path === "/dev/tower-sprites") return true;
+
   const token = localStorage.getItem("accessToken");
   let user = null;
   try {
