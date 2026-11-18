@@ -72,6 +72,10 @@
           :class="{
             'tower-assembly-column--near-peak': isNearTowerPeak,
             'tower-assembly-column--far-from-peak': !isNearTowerPeak,
+            'tower-assembly-column--one-past-floor':
+              game.displayNum.value === 2,
+            'tower-assembly-column--no-past-floor':
+              game.displayNum.value === 1,
           }"
           aria-label="Tháp đá nhiều tầng"
         >
@@ -650,9 +654,10 @@ function getOptionStatus(optId) {
 const visibleFloors = computed(() => {
   const total = game.totalQuestions.value;
   const cur = game.displayNum.value;
-  const count = Math.min(isNearTowerPeak.value ? 4 : 5, total - cur + 1);
-  const topFloor = Math.min(total, cur + count - 1);
-  const bottomFloor = isNearTowerPeak.value ? Math.max(1, cur - 2) : cur;
+  const topFloor = isNearTowerPeak.value
+    ? total
+    : Math.min(total, cur + 2);
+  const bottomFloor = Math.max(1, cur - 2);
 
   const floors = [];
   for (let f = topFloor; f >= bottomFloor; f--) {
@@ -821,9 +826,9 @@ onUnmounted(() => {
   position: relative;
   width: 100%;
   /* A6. Vừa đúng 1 màn hình trừ navbar, không phải cuộn */
-  height: calc(100dvh - 84px);
+  height: calc(100dvh - 100px);
   min-height: 0;
-  max-height: calc(100dvh - 84px);
+  max-height: calc(100dvh - 100px);
   box-sizing: border-box;
   overflow: hidden;
   border-radius: 28px;
@@ -981,10 +986,12 @@ onUnmounted(() => {
 /* =====================================================================
    A2. CẢNH BÊN TRÁI: THÁP Ở KHOẢNG 25-35%, KÉO XUỐNG TẬN ĐÁY
    ===================================================================== */
+/* Account for floor artwork and overlap so the current floor stays near 67.5%. */
 .tower-scene-layer {
   container-type: size;
   --hero-height: 34cqh;
   --hero-max-height: 36cqh;
+  --tower-current-center-from-bottom: clamp(226px, 21.86vw, 294px);
   position: relative;
   width: 100%;
   height: 100%;
@@ -995,17 +1002,27 @@ onUnmounted(() => {
 /* Cột tháp đá ghép ảnh: Đứng ở 30% chiều ngang (trong khoảng 25-35%) */
 .tower-assembly-column {
   position: absolute;
-  --tower-bottom-overflow: 35px;
+  --tower-bottom-overflow: calc(
+    var(--tower-current-center-from-bottom) - 32.5cqh
+  );
   --tower-bottom-fade: 48px;
   left: 38%;
   transform: translateX(-50%);
-  bottom: -35px; /* Kéo xuống tận đáy, không lơ lửng */
+  bottom: calc(0px - var(--tower-bottom-overflow));
   width: var(--tower-width);
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 5;
   pointer-events: none;
+}
+
+.tower-assembly-column--one-past-floor {
+  --tower-current-center-from-bottom: clamp(148px, 14.37vw, 193px);
+}
+
+.tower-assembly-column--no-past-floor {
+  --tower-current-center-from-bottom: clamp(71px, 6.875vw, 92px);
 }
 
 .tower-top-cap {
@@ -1301,7 +1318,7 @@ onUnmounted(() => {
 /* Bệ đá và khủng long ở đáy-trái */
 .dino-and-platform-group {
   position: absolute;
-  bottom: 0;
+  bottom: 3%;
   left: 0;
   width: var(--platform-width);
   aspect-ratio: 774 / 432;
@@ -1542,8 +1559,7 @@ onUnmounted(() => {
   gap: clamp(8px, 1.2vh, 12px);
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  overflow: hidden;
   justify-content: flex-start;
 }
 
@@ -1874,9 +1890,9 @@ onUnmounted(() => {
    ===================================================================== */
 @media (max-width: 768px) {
   .tower-game {
-    height: calc(100dvh - 72px);
+    height: calc(100dvh - 88px);
     min-height: 0;
-    max-height: calc(100dvh - 72px);
+    max-height: calc(100dvh - 88px);
     overflow: hidden;
     --tower-width: 155px;
   }
@@ -1898,7 +1914,7 @@ onUnmounted(() => {
 
   .tower-arena {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(120px, 22%) minmax(0, 1fr);
+    grid-template-rows: minmax(180px, 30%) minmax(0, 1fr);
     padding: 70px 10px 10px;
     gap: 8px;
     height: 100%;
@@ -1908,25 +1924,23 @@ onUnmounted(() => {
   .tower-scene-layer {
     height: 100%;
     min-height: 0;
+    --tower-current-center-from-bottom: 184px;
   }
 
   .tower-assembly-column {
     left: 43%;
-    bottom: -15px;
   }
 
   .tower-assembly-column--near-peak {
-    bottom: -25px;
-    --tower-bottom-overflow: 25px;
-  }
-
-  .tower-assembly-column--near-peak .tower-floors-stack {
     --tower-bottom-fade: 36px;
   }
 
-  .tower-assembly-column--far-from-peak {
-    bottom: -15px;
-    --tower-bottom-overflow: 15px;
+  .tower-assembly-column--one-past-floor {
+    --tower-current-center-from-bottom: 121px;
+  }
+
+  .tower-assembly-column--no-past-floor {
+    --tower-current-center-from-bottom: 58px;
   }
 
   .tower-floor-module:nth-last-child(n + 4) {
@@ -1934,10 +1948,6 @@ onUnmounted(() => {
   }
 
   .tower-assembly-column--near-peak .floor--above-current {
-    display: none;
-  }
-
-  .tower-assembly-column--near-peak .floor--past-secondary {
     display: none;
   }
 
