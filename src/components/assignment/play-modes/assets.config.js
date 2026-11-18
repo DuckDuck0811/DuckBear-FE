@@ -37,11 +37,12 @@ export const GAME_ASSETS = {
 
   // 3. Hái quả (Lớp 2)
   fruit: {
-    bg: "/assets/modes/fruit/tree-bg.png",
-    hero: "/assets/modes/fruit/squirrel-climb.png",
-    heroHappy: "/assets/modes/fruit/squirrel-happy.png",
-    heroSad: "/assets/modes/fruit/squirrel-sad.png",
+    bg: "/assets/modes/fruit/bg.png",
+    squirrelIdle: { src: "/assets/modes/fruit/squirrel-idle.png", flip: false, scale: 1 },
+    squirrelHappy: { src: "/assets/modes/fruit/squirrel-happy.png", flip: false, scale: 0.96 },
+    squirrelSad: { src: "/assets/modes/fruit/squirrel-sad.png", flip: false, scale: 1.04 },
     apple: "/assets/modes/fruit/apple.png",
+    acorn: "/assets/modes/fruit/acorn.png",
     flag: "/assets/modes/fruit/flag.png",
   },
 

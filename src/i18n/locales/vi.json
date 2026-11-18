@@ -1259,6 +1259,21 @@
       "finishDesc": "Bé Khủng Long đã xuất sắc vượt qua toàn bộ {total} tầng thác và rinh về {stars} ngôi sao sáng!",
       "submitNow": "🎉 NỘP BÀI NGAY",
       "submitting": "ĐANG NỘP BÀI..."
+    },
+    "fruitUI": {
+      "challengeTree": "Cây Thử Thách",
+      "treeProgress": "{current} / {total}",
+      "finish": "Đích",
+      "floorBadge": "Tầng",
+      "actionHarvest": "Hái!",
+      "actionContinue": "Tiếp tục ❯",
+      "checking": "Đang hái...",
+      "timeUp": "Hết giờ rồi, em vẫn có thể trả lời nhé",
+      "multiSelectHint": "Chọn tất cả đáp án đúng",
+      "finishHeadline": "CHINH PHỤC CÂY THỬ THÁCH THÀNH CÔNG!",
+      "finishDesc": "Chú Sóc Nâu đã thu hoạch được {stars} / {total} quả táo vàng rực rỡ!",
+      "submitNow": "🧺 NỘP BÀI THU HOẠCH",
+      "submitting": "ĐANG NỘP BÀI..."
     }
   }
 }
