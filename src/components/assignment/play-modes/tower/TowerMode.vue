@@ -353,7 +353,7 @@
           >
             <!-- A5. Huy hiệu A/B/C/D bo hình khác nhau có bóng nổi -->
             <div class="answer-pill" :class="`pill-${idx % 4}`">
-              <span class="pill-letter">{{ letters[idx] }}</span>
+              <span class="pill-letter">{{ getOptionLabel(idx) }}</span>
             </div>
 
             <!-- Nội dung chữ có độ tương phản cao -->
@@ -405,7 +405,9 @@
               <span v-if="isOptionSelected(option.id)" class="pill-letter"
                 >✓</span
               >
-              <span v-else class="pill-letter">{{ letters[idx] }}</span>
+              <span v-else class="pill-letter">{{
+                getOptionLabel(idx)
+              }}</span>
             </div>
             <span class="answer-text">{{ option.content }}</span>
             <span
@@ -558,7 +560,7 @@ const props = defineProps({
 const { t } = useI18n();
 const game = useQuizGame(props.session);
 
-const letters = ["A", "B", "C", "D"];
+const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 // ─── Trạng thái local ───────────────────────────────────────────────────────
 const heroState = ref("idle");
@@ -726,6 +728,10 @@ function onQuestionAnswered(questionId) {
   if (ans) props.session.setAnswer(questionId, { ...ans });
 }
 
+function getOptionLabel(index) {
+  return letters[index] || String(index + 1);
+}
+
 // ─── B4. COMMIT CÂU TRẢ LỜI & HIỆU ỨNG LEO THÁP ────────────────────────────
 async function onConfirmClimb() {
   const q = currentQuestionItem.value?.question;
@@ -764,21 +770,12 @@ async function onConfirmClimb() {
 function onKeydown(e) {
   if (game.isComplete.value || game.isChecking.value || isChecked.value) return;
   const opts = options.value;
-  const map = {
-    1: 0,
-    2: 1,
-    3: 2,
-    4: 3,
-    a: 0,
-    b: 1,
-    c: 2,
-    d: 3,
-    A: 0,
-    B: 1,
-    C: 2,
-    D: 3,
-  };
-  const idx = map[e.key];
+  const key = e.key.toUpperCase();
+  const idx = /^[1-9]$/.test(e.key)
+    ? Number(e.key) - 1
+    : /^[A-Z]$/.test(key)
+      ? key.charCodeAt(0) - 65
+      : undefined;
 
   if (idx !== undefined && opts[idx]) {
     if (isMcqType.value) onPick(opts[idx].id);
@@ -824,9 +821,10 @@ onUnmounted(() => {
   position: relative;
   width: 100%;
   /* A6. Vừa đúng 1 màn hình trừ navbar, không phải cuộn */
-  height: calc(100vh - 84px);
-  min-height: 560px;
-  max-height: calc(100vh - 84px);
+  height: calc(100dvh - 84px);
+  min-height: 0;
+  max-height: calc(100dvh - 84px);
+  box-sizing: border-box;
   overflow: hidden;
   border-radius: 28px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
@@ -1444,7 +1442,7 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 14px;
   background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(14px);
@@ -1457,7 +1455,7 @@ onUnmounted(() => {
   max-height: calc(100% - 24px);
   align-self: center;
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow: hidden;
   z-index: 20;
 }
 
@@ -1466,25 +1464,24 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  background: rgba(254, 252, 232, 0.95);
-  border: 2px solid #fef08a;
-  border-radius: 20px;
-  padding: 20px 24px;
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.12);
+  justify-content: flex-start;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fcff 100%);
+  border: 1px solid #dbeafe;
+  border-left: 5px solid #38bdf8;
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.06);
   margin-bottom: 0;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 38%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* Tia sáng ✦ cạnh thẻ câu hỏi */
 .sparkle {
-  position: absolute;
-  color: #eab308;
-  font-size: 1.15rem;
-  font-weight: 900;
-  pointer-events: none;
-  animation: sparkleTwinkle 2s ease-in-out infinite alternate;
-  filter: drop-shadow(0 0 4px rgba(250, 204, 21, 0.7));
+  display: none;
 }
 
 .sparkle-tl {
@@ -1509,31 +1506,31 @@ onUnmounted(() => {
 }
 
 .quiz-board-header {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .quiz-board-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: #ffffff;
-  border: 1.5px solid #fde047;
-  color: #854d0e;
-  font-size: 0.75rem;
+  background: #eff8ff;
+  border: 1px solid #bfdbfe;
+  color: #0369a1;
+  font-size: 0.72rem;
   font-weight: 800;
   padding: 3px 12px;
   border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .quiz-question-text {
-  font-size: clamp(1.5rem, 2.7vh, 1.95rem);
-  font-weight: 800;
+  font-size: clamp(1.2rem, 2.35vh, 1.65rem);
+  font-weight: 750;
   color: #0f172a;
-  line-height: 1.45;
+  line-height: 1.4;
   margin: 0;
   word-break: break-word;
-  text-align: center;
+  text-align: left;
 }
 
 /* =====================================================================
@@ -1543,12 +1540,15 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: clamp(8px, 1.2vh, 12px);
-  flex: 0 0 auto;
-  min-height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   justify-content: flex-start;
 }
 
 .answer-btn {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -1655,10 +1655,12 @@ onUnmounted(() => {
 
 .answer-text {
   flex: 1;
+  min-width: 0;
   font-size: clamp(0.95rem, 1.6vh, 1.15rem);
   font-weight: 700;
   color: #1e293b;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .answer-feedback-icon {
@@ -1671,8 +1673,10 @@ onUnmounted(() => {
 }
 
 .fallback-card {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 12px;
   background: #ffffff;
   border-radius: 18px;
@@ -1681,6 +1685,7 @@ onUnmounted(() => {
 
 /* Lỗi mạng */
 .network-error-banner {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1869,10 +1874,10 @@ onUnmounted(() => {
    ===================================================================== */
 @media (max-width: 768px) {
   .tower-game {
-    height: auto;
-    min-height: calc(100vh - 72px);
-    max-height: none;
-    overflow-y: auto;
+    height: calc(100dvh - 72px);
+    min-height: 0;
+    max-height: calc(100dvh - 72px);
+    overflow: hidden;
     --tower-width: 155px;
   }
 
@@ -1892,15 +1897,17 @@ onUnmounted(() => {
   }
 
   .tower-arena {
-    grid-template-columns: 1fr;
-    padding: 76px 12px 16px 12px;
-    gap: 12px;
-    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(120px, 22%) minmax(0, 1fr);
+    padding: 70px 10px 10px;
+    gap: 8px;
+    height: 100%;
+    min-height: 0;
   }
 
   .tower-scene-layer {
-    height: 220px;
-    min-height: 200px;
+    height: 100%;
+    min-height: 0;
   }
 
   .tower-assembly-column {
@@ -1941,14 +1948,25 @@ onUnmounted(() => {
   }
 
   .tower-quiz-panel {
-    height: auto;
-    max-height: none;
-    border-radius: 22px;
-    padding: 18px;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    border-radius: 18px;
+    padding: 12px;
+    gap: 8px;
   }
 
   .quiz-board {
-    padding: 20px 24px;
+    max-height: 34%;
+    padding: 12px 14px;
+  }
+
+  .quiz-board-header {
+    margin-bottom: 6px;
+  }
+
+  .quiz-question-text {
+    font-size: clamp(1rem, 2.1vh, 1.35rem);
   }
 
   .answers-list {
@@ -1956,12 +1974,23 @@ onUnmounted(() => {
   }
 
   .answer-btn {
-    padding: 10px 12px;
-    min-height: 52px;
+    padding: 7px 10px;
+    min-height: 44px;
+    gap: 10px;
+  }
+
+  .answer-pill {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+  }
+
+  .answer-text {
+    font-size: clamp(0.85rem, 1.7vh, 1rem);
   }
 
   .btn-climb {
-    padding: 12px 20px;
+    padding: 9px 16px;
   }
 }
 

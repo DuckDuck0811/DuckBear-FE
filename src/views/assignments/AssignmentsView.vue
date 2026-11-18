@@ -1843,7 +1843,10 @@
 
               <!-- Chọn Chế độ làm bài trong đề Word -->
               <!-- Kiểu làm bài -->
-              <PlayModeSelect v-model="wordAssignmentForm.playMode" class="mt-3 mb-2" />
+              <PlayModeSelect
+                v-model="wordAssignmentForm.playMode"
+                class="mt-3 mb-2"
+              />
             </div>
           </template>
 
@@ -2288,9 +2291,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    
-  </v-layout> 
+  </v-layout>
 </template>
 
 <script setup>
@@ -2756,14 +2757,18 @@ function clearFilters() {
 }
 
 // Helpers cho Question Picker
-const questionTypeOptions = computed(() =>
-  [
-    { title: t("assignmentHub.filterAllTypes"), value: "ALL" },
-    ...["MCQ", "MULTI_MCQ", "TRUE_FALSE", "MATCHING", "FILL", "ESSAY", "DRAG_DROP"].map(
-      (value) => ({ title: t(`questionBank.types.${value}`), value }),
-    ),
-  ],
-);
+const questionTypeOptions = computed(() => [
+  { title: t("assignmentHub.filterAllTypes"), value: "ALL" },
+  ...[
+    "MCQ",
+    "MULTI_MCQ",
+    "TRUE_FALSE",
+    "MATCHING",
+    "FILL",
+    "ESSAY",
+    "DRAG_DROP",
+  ].map((value) => ({ title: t(`questionBank.types.${value}`), value })),
+]);
 
 const questionDifficultyOptions = computed(() =>
   [
