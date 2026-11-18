@@ -39,9 +39,24 @@ export const GAME_ASSETS = {
   fruit: {
     bg: "/assets/modes/fruit/bg.png",
     // Scale evens visible pose size; bottomAnchor offsets transparent pixels below the feet.
-    squirrelIdle: { src: "/assets/modes/fruit/squirrel-idle.png", flip: false, scale: 1.23, bottomAnchor: 11.4 },
-    squirrelHappy: { src: "/assets/modes/fruit/squirrel-happy.png", flip: false, scale: 1.19, bottomAnchor: 8.3 },
-    squirrelSad: { src: "/assets/modes/fruit/squirrel-sad.png", flip: false, scale: 1.31, bottomAnchor: 12.7 },
+    squirrelIdle: {
+      src: "/assets/modes/fruit/squirrel-idle.png",
+      flip: false,
+      scale: 1.23,
+      bottomAnchor: 11.4,
+    },
+    squirrelHappy: {
+      src: "/assets/modes/fruit/squirrel-happy.png",
+      flip: false,
+      scale: 1.19,
+      bottomAnchor: 8.3,
+    },
+    squirrelSad: {
+      src: "/assets/modes/fruit/squirrel-sad.png",
+      flip: false,
+      scale: 1.31,
+      bottomAnchor: 12.7,
+    },
     apple: "/assets/modes/fruit/apple.png",
     acorn: "/assets/modes/fruit/acorn.png",
     flag: "/assets/modes/fruit/flag.png",
@@ -49,11 +64,13 @@ export const GAME_ASSETS = {
 
   // 4. Săn kho báu (Lớp 4)
   treasure: {
-    bg: "/assets/modes/treasure/map-bg.png",
-    chestClosed: "/assets/modes/treasure/chest-closed.png",
-    chestOpen: "/assets/modes/treasure/chest-open.png",
-    key: "/assets/modes/treasure/key.png",
-    coin: "/assets/modes/treasure/coin.png",
+    bg: "/assets/modes/treasure/bg.png",
+    chestIdle: { src: "/assets/modes/treasure/chest-idle.png", flip: false },
+    chestHappy: { src: "/assets/modes/treasure/chest-happy.png", flip: false },
+    chestSad: { src: "/assets/modes/treasure/chest-sad.png", flip: false },
+    scroll: "/assets/modes/treasure/scroll.png",
+    parchment: "/assets/modes/treasure/parchment.png",
+    compass: "/assets/modes/treasure/compass.png",
   },
 
   // 5. Du hành vũ trụ (Lớp 5)

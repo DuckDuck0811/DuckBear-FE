@@ -1274,6 +1274,24 @@
       "finishDesc": "Chú Sóc Nâu đã thu hoạch được {stars} / {total} quả táo vàng rực rỡ!",
       "submitNow": "🧺 NỘP BÀI THU HOẠCH",
       "submitting": "ĐANG NỘP BÀI..."
+    },
+    "treasureUI": {
+      "journeyTitle": "Hành Trình Tìm Rương Vàng",
+      "questionProgress": "Câu {current} / {total}",
+      "mapPieces": "{count} / {total} Mảnh bản đồ",
+      "goldCoins": "{amount} Vàng",
+      "secretLetter": "MẶT THỨ SỐ {current}",
+      "pointLabel": "Điểm {letter}",
+      "actionResetSelection": "Khởi Quét Điểm Này",
+      "actionOpenChest": "Mở rương! 🗝️",
+      "actionNextStage": "Chặng tiếp theo ❯",
+      "actionFinishJourney": "Hoàn thành hành trình 🏆",
+      "checking": "ĐANG MỞ...",
+      "multiChoiceHint": "Chọn tất cả đáp án đúng",
+      "finishHeadline": "CHINH PHỤC KHO BÁU THÀNH CÔNG!",
+      "finishDesc": "Nhà thám hiểm nhí đã thu thập đủ {pieces} / {total} mảnh bản đồ và mở khóa rương kho báu với {gold} vàng!",
+      "submitNow": "💎 NỘP BÀI NHẬN THƯỞNG",
+      "submitting": "ĐANG NỘP BÀI..."
     }
   }
 }
