@@ -81,10 +81,43 @@
         class="progress-animated mb-2"
       />
 
+      <!-- Thanh mở rộng / thu gọn danh sách câu hỏi trên mobile (< 640px) -->
+      <div class="d-flex align-center justify-space-between mt-2 mb-1 d-sm-none mobile-expand-bar">
+        <span class="text-caption font-weight-bold text-secondary">
+          {{ t("questionBank.questionNumber", { number: currentActiveIndex + 1 }) }} / {{ questions.length }}
+        </span>
+        <button
+          type="button"
+          class="toggle-expand-btn text-caption font-weight-bold text-primary d-inline-flex align-center cursor-pointer"
+          @click="isMobileExpanded = !isMobileExpanded"
+        >
+          <v-icon
+            :icon="isMobileExpanded ? 'mdi-chevron-up' : 'mdi-view-grid-outline'"
+            size="16"
+            class="mr-1"
+          />
+          {{
+            isMobileExpanded
+              ? (t("assignmentHub.collapseQuestionGrid") || "Thu gọn")
+              : (t("assignmentHub.viewAllQuestions") || "Xem tất cả câu")
+          }}
+        </button>
+      </div>
+
       <!-- Bảng số câu 1..N: Phản hồi tức thì, ring câu đang xem, hover/focus bàn phím -->
-      <div class="question-chips-container mt-3" role="navigation" :aria-label="t('questionBank.questionCount')">
+      <div
+        id="question-chips-bar"
+        class="question-chips-container mt-2"
+        :class="{
+          'chips--single-row': !isMobileExpanded,
+          'chips--expanded': isMobileExpanded,
+        }"
+        role="navigation"
+        :aria-label="t('questionBank.questionCount')"
+      >
         <button
           v-for="(item, index) in questions"
+          :id="'chip-question-' + index"
           :key="item.question.id"
           type="button"
           class="question-nav-chip font-weight-bold"
@@ -92,12 +125,19 @@
             'chip--answered': isQuestionAnswered(item.question.id),
             'chip--unanswered': !isQuestionAnswered(item.question.id),
             'chip--active': currentActiveIndex === index,
+            'chip--flagged': isQuestionFlagged(item.question.id),
           }"
           :aria-label="`Câu ${index + 1}`"
           :aria-current="currentActiveIndex === index ? 'true' : undefined"
           @click="handleSelectQuestion(index)"
         >
           {{ index + 1 }}
+          <!-- Chấm cam nhỏ ở góc trên-phải khi đánh dấu xem lại -->
+          <span
+            v-if="isQuestionFlagged(item.question.id)"
+            class="flag-dot"
+            aria-hidden="true"
+          />
         </button>
       </div>
     </v-card>
@@ -114,10 +154,12 @@
         :level="level"
         :is-first="index === 0"
         :is-last="index === questions.length - 1"
+        :is-flagged="isQuestionFlagged(item.question.id)"
         mode="classic"
         @answered="onAnswered(item.question.id, index)"
         @prev="handlePrevQuestion(index)"
         @next="handleNextQuestion(index)"
+        @toggle-flag="toggleFlag(item.question.id)"
       />
     </div>
 
@@ -207,7 +249,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from "vue";
+import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import QuestionItem from "../QuestionItem.vue";
 
@@ -238,9 +280,27 @@ const level = computed(() => props.session?.level?.value ?? props.level);
 const timeLabel = computed(() => props.session?.timeLabel?.value || "");
 const attemptNo = computed(() => props.session?.attemptNo?.value || 1);
 
-// Quản lý trạng thái câu hỏi đang xem
+// Quản lý trạng thái câu hỏi đang xem và mở rộng ô câu trên mobile
 const currentActiveIndex = ref(0);
+const isMobileExpanded = ref(false);
 const showSubmitDialog = ref(false);
+
+// Quản lý câu hỏi được đánh dấu xem lại (Flag)
+const flaggedQuestions = ref(new Set());
+
+function isQuestionFlagged(questionId) {
+  return flaggedQuestions.value.has(questionId);
+}
+
+function toggleFlag(questionId) {
+  if (flaggedQuestions.value.has(questionId)) {
+    flaggedQuestions.value.delete(questionId);
+  } else {
+    flaggedQuestions.value.add(questionId);
+  }
+  flaggedQuestions.value = new Set(flaggedQuestions.value);
+  saveDraftToStorage();
+}
 
 // Format số lần làm bài rõ ràng
 const attemptInfoText = computed(() => {
@@ -278,7 +338,7 @@ const progressPercent = computed(() => {
   return (answeredCount.value / questions.value.length) * 100;
 });
 
-// Draft key trong localStorage để lưu tạm tránh mất bài khi reload
+// Draft key trong localStorage để lưu tạm tránh mất bài khi reload (lưu kèm cờ đánh dấu)
 function getStorageKey() {
   const assignId = assignment.value?.id;
   return assignId ? `assignment_draft_${assignId}` : null;
@@ -286,9 +346,13 @@ function getStorageKey() {
 
 function saveDraftToStorage() {
   const key = getStorageKey();
-  if (key && Object.keys(answers.value).length > 0) {
+  if (key) {
     try {
-      localStorage.setItem(key, JSON.stringify(answers.value));
+      const data = {
+        answers: answers.value,
+        flagged: Array.from(flaggedQuestions.value),
+      };
+      localStorage.setItem(key, JSON.stringify(data));
     } catch {
       // Bỏ qua lỗi quota nếu có
     }
@@ -303,14 +367,22 @@ function restoreDraftFromStorage() {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === "object") {
-        Object.entries(parsed).forEach(([qId, val]) => {
-          if (!answers.value[qId] || !isQuestionAnswered(Number(qId))) {
-            answers.value[qId] = val;
-            if (props.session) {
-              props.session.setAnswer(Number(qId), val);
+        const savedAnswers = parsed.answers || parsed;
+        const savedFlagged = Array.isArray(parsed.flagged) ? parsed.flagged : [];
+
+        if (savedAnswers && typeof savedAnswers === "object") {
+          Object.entries(savedAnswers).forEach(([qId, val]) => {
+            if (val && typeof val === "object" && (!answers.value[qId] || !isQuestionAnswered(Number(qId)))) {
+              answers.value[qId] = val;
+              if (props.session) {
+                props.session.setAnswer(Number(qId), val);
+              }
             }
-          }
-        });
+          });
+        }
+        if (savedFlagged.length > 0) {
+          flaggedQuestions.value = new Set(savedFlagged);
+        }
       }
     }
   } catch {
@@ -326,12 +398,22 @@ function onAnswered(questionId, index) {
   emit("answer-change", { questionId, index });
 }
 
+// Cờ ngăn chặn Observer ghi đè câu hiện tại khi đang chạy animation cuộn chủ động
+let isProgrammaticScrolling = false;
+let scrollTimeout = null;
+
 function scrollToQuestion(index) {
   if (index < 0 || index >= questions.value.length) return;
   currentActiveIndex.value = index;
+  isProgrammaticScrolling = true;
+  if (scrollTimeout) clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(() => {
+    isProgrammaticScrolling = false;
+  }, 750);
+
   const el = document.getElementById("question-card-" + index);
   if (el) {
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 }
 
@@ -376,15 +458,31 @@ function confirmFinalSubmit() {
   }
 }
 
+// Tự động cuộn ô số câu tương ứng vào giữa thanh cuộn ngang trên mobile
+function scrollActiveChipIntoView(index) {
+  nextTick(() => {
+    const chipEl = document.getElementById("chip-question-" + index);
+    if (chipEl) {
+      chipEl.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  });
+}
+
+watch(currentActiveIndex, (newIdx) => {
+  scrollActiveChipIntoView(newIdx);
+});
+
 // Hỗ trợ phím tắt: 1–4 hoặc A–D để chọn đáp án, mũi tên để chuyển câu
 function handleKeydown(e) {
-  // Bỏ qua nếu đang gõ văn bản
   const tag = e.target.tagName;
   if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) {
     return;
   }
 
-  // Điều hướng câu bằng mũi tên
   if (e.key === "ArrowDown" || e.key === "ArrowRight") {
     if (currentActiveIndex.value < questions.value.length - 1) {
       e.preventDefault();
@@ -400,7 +498,6 @@ function handleKeydown(e) {
     return;
   }
 
-  // Chọn đáp án bằng phím 1-4 hoặc A-D cho câu đang xem
   const keyUpper = e.key.toUpperCase();
   const digitMap = { "1": 0, "2": 1, "3": 2, "4": 3 };
   const letterMap = { "A": 0, "B": 1, "C": 2, "D": 3 };
@@ -422,25 +519,57 @@ function handleKeydown(e) {
   }
 }
 
-// IntersectionObserver để tự động cập nhật câu đang xem khi học sinh cuộn trang
+// IntersectionObserver theo dõi câu hỏi đang nằm trong vùng nhìn thấy
 let observer = null;
+const visibleCards = new Map();
+
 function setupScrollObserver() {
   if (typeof IntersectionObserver === "undefined") return;
+
   observer = new IntersectionObserver(
     (entries) => {
+      if (isProgrammaticScrolling) return;
+
+      // Khi người dùng đang ở trên đầu trang (gần header), câu hiện tại luôn là câu 1 (index 0)
+      if (window.scrollY < 120) {
+        currentActiveIndex.value = 0;
+        return;
+      }
+
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const id = entry.target.id;
-          const match = id.match(/question-card-(\d+)/);
-          if (match) {
-            currentActiveIndex.value = Number(match[1]);
+        const match = entry.target.id.match(/question-card-(\d+)/);
+        if (match) {
+          const idx = Number(match[1]);
+          if (entry.isIntersecting) {
+            visibleCards.set(idx, entry.boundingClientRect.top);
+          } else {
+            visibleCards.delete(idx);
           }
         }
       });
+
+      if (visibleCards.size > 0) {
+        // Tìm câu hỏi có vị trí đỉnh gần với mép dưới thanh sticky header nhất (~170px)
+        let closestIdx = -1;
+        let minDistance = Infinity;
+        const targetFocusY = 170;
+
+        for (const [idx, top] of visibleCards.entries()) {
+          const dist = Math.abs(top - targetFocusY);
+          if (dist < minDistance) {
+            minDistance = dist;
+            closestIdx = idx;
+          }
+        }
+
+        if (closestIdx !== -1) {
+          currentActiveIndex.value = closestIdx;
+        }
+      }
     },
     {
-      rootMargin: "-20% 0px -40% 0px",
-      threshold: 0.1,
+      rootMargin: "-80px 0px -25% 0px",
+      threshold: [0.1, 0.4, 0.7],
     },
   );
 
@@ -450,15 +579,24 @@ function setupScrollObserver() {
   });
 }
 
+function handleWindowScroll() {
+  if (isProgrammaticScrolling) return;
+  if (window.scrollY < 120) {
+    currentActiveIndex.value = 0;
+  }
+}
+
 onMounted(() => {
   restoreDraftFromStorage();
   window.addEventListener("keydown", handleKeydown);
-  // Khởi tạo observer sau khi DOM mount
+  window.addEventListener("scroll", handleWindowScroll, { passive: true });
   setTimeout(setupScrollObserver, 300);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("keydown", handleKeydown);
+  window.removeEventListener("scroll", handleWindowScroll);
+  if (scrollTimeout) clearTimeout(scrollTimeout);
   if (observer) {
     observer.disconnect();
   }
@@ -481,18 +619,19 @@ onBeforeUnmount(() => {
   transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Lưới chip số câu 1..N */
+/* Lưới chip số câu 1..N trên Desktop */
 .question-chips-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  max-height: 135px;
+  gap: 8px;
+  max-height: 140px;
   overflow-y: auto;
   padding: 4px 2px;
+  transition: all 0.25s ease;
 }
 
-/* Scrollbar tinh gọn cho danh sách câu hỏi khi nhiều câu */
 .question-chips-container::-webkit-scrollbar {
+  height: 4px;
   width: 5px;
 }
 .question-chips-container::-webkit-scrollbar-thumb {
@@ -500,18 +639,36 @@ onBeforeUnmount(() => {
   border-radius: 4px;
 }
 
+/* Ô số câu: vùng bấm tối thiểu 40px */
 .question-nav-chip {
-  min-width: 34px;
-  height: 34px;
+  min-width: 40px;
+  height: 40px;
   padding: 0 6px;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.18s ease;
   user-select: none;
+  position: relative;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* Chấm cam nhỏ ở góc trên phải khi đánh dấu xem lại */
+.flag-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  background-color: #f97316;
+  border-radius: 50%;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
 }
 
 /* Chưa làm: viền xám, nền trắng, chữ đen sẫm đạt WCAG AA */
@@ -548,11 +705,48 @@ onBeforeUnmount(() => {
   outline-offset: 2px;
 }
 
-@media (max-width: 600px) {
+/* Tự động căn lề cuộn mượt cho thẻ câu hỏi dưới sticky header */
+:deep(.quiz-card) {
+  scroll-margin-top: 175px;
+}
+
+/* Nút thu gọn / mở rộng trên mobile */
+.toggle-expand-btn {
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+.toggle-expand-btn:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+/* MOBILE RESPONSIVE (< 640px) */
+@media (max-width: 639px) {
   .question-nav-chip {
-    min-width: 30px;
-    height: 30px;
-    font-size: 0.78rem;
+    min-width: 40px;
+    height: 40px;
+    font-size: 0.88rem;
+  }
+
+  /* Mặc định trên mobile: 1 hàng duy nhất cuộn ngang */
+  .question-chips-container.chips--single-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 2px 8px 2px;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Khi bấm 'Xem tất cả câu': mở rộng lưới nhiều hàng */
+  .question-chips-container.chips--expanded {
+    flex-wrap: wrap;
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4px 2px;
   }
 }
 </style>

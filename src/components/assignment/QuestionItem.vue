@@ -31,16 +31,32 @@
           </v-chip>
         </div>
 
-        <!-- Điểm số câu hỏi -->
-        <v-chip
-          size="default"
-          variant="tonal"
-          color="secondary"
-          class="font-weight-bold px-3"
-          style="font-size: 13px !important; min-height: 28px;"
-        >
-          {{ item.points || 1 }} {{ t("assignmentHub.pointsShort") || "điểm" }}
-        </v-chip>
+        <div class="d-flex align-center ga-2">
+          <!-- Điểm số câu hỏi -->
+          <v-chip
+            size="default"
+            variant="tonal"
+            color="secondary"
+            class="font-weight-bold px-3"
+            style="font-size: 13px !important; min-height: 28px;"
+          >
+            {{ item.points || 1 }} {{ t("assignmentHub.pointsShort") || "điểm" }}
+          </v-chip>
+
+          <!-- Nút cờ: Đánh dấu xem lại -->
+          <v-btn
+            icon
+            size="small"
+            variant="text"
+            :color="isFlagged ? 'warning' : 'grey-darken-1'"
+            :aria-label="isFlagged ? (t('assignmentHub.unmarkReview') || 'Bỏ đánh dấu') : (t('assignmentHub.markReview') || 'Đánh dấu xem lại')"
+            :title="isFlagged ? (t('assignmentHub.unmarkReview') || 'Bỏ đánh dấu') : (t('assignmentHub.markReview') || 'Đánh dấu xem lại')"
+            class="flag-btn"
+            @click.stop="emit('toggle-flag', item.question.id)"
+          >
+            <v-icon :icon="isFlagged ? 'mdi-flag' : 'mdi-flag-outline'" size="20" />
+          </v-btn>
+        </div>
       </div>
 
       <!-- Nội dung câu hỏi (chữ to thoáng, dễ đọc) -->
@@ -258,20 +274,18 @@
       <!-- Spacer khi ở câu đầu để căn giữa badge -->
       <div v-else style="min-width: 120px;" />
 
-      <!-- Badge trạng thái: font to, padding thoáng -->
-      <v-chip
-        :color="isAnswered ? 'success' : 'grey'"
-        variant="tonal"
-        class="font-weight-black status-badge"
-        style="font-size: 12px; min-height: 30px; padding: 0 12px;"
+      <!-- Badge trạng thái: font to, padding cân đối, đạt WCAG AA -->
+      <div
+        class="status-badge d-inline-flex align-center font-weight-bold"
+        :class="isAnswered ? 'status-badge--answered' : 'status-badge--unanswered'"
       >
         <v-icon
-          :icon="isAnswered ? 'mdi-check-circle' : 'mdi-circle-outline'"
-          size="14"
+          :icon="isAnswered ? 'mdi-check-circle' : 'mdi-clock-outline'"
+          size="15"
           class="mr-1"
         />
-        {{ isAnswered ? t("assignmentHub.answeredStatus") : t("assignmentHub.unansweredStatus") }}
-      </v-chip>
+        {{ isAnswered ? (t("assignmentHub.answeredStatus") || "Đã làm") : (t("assignmentHub.unansweredStatus") || "Chưa làm") }}
+      </div>
 
       <!-- Nút câu sau: ẩn ở câu cuối thay thế bằng nút nộp bài -->
       <v-btn
@@ -313,9 +327,10 @@ const props = defineProps({
   hideStem: { type: Boolean, default: false },
   isFirst: { type: Boolean, default: false },
   isLast: { type: Boolean, default: false },
+  isFlagged: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["answered", "prev", "next"]);
+const emit = defineEmits(["answered", "prev", "next", "toggle-flag"]);
 const { t } = useI18n();
 
 const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -464,5 +479,38 @@ function clearDropTarget() {
 .option-badge--checked {
   background-color: #2563eb;
   color: #ffffff;
+}
+
+/* Nút cờ đánh dấu xem lại */
+.flag-btn {
+  border-radius: 8px;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+.flag-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Badge trạng thái hoàn thành / chưa hoàn thành đạt chuẩn WCAG AA */
+.status-badge {
+  min-height: 32px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.status-badge--answered {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.status-badge--unanswered {
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
 }
 </style>
