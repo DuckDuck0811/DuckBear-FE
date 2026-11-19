@@ -33,10 +33,11 @@
 
         <!-- Điểm số câu hỏi -->
         <v-chip
-          size="small"
+          size="default"
           variant="tonal"
           color="secondary"
-          class="font-weight-bold"
+          class="font-weight-bold px-3"
+          style="font-size: 13px !important; min-height: 28px;"
         >
           {{ item.points || 1 }} {{ t("assignmentHub.pointsShort") || "điểm" }}
         </v-chip>
@@ -243,35 +244,56 @@
 
     <!-- Nút điều hướng chuyển câu trước / câu sau ở cuối mỗi câu -->
     <div v-if="!hideStem" class="question-nav-row d-flex align-center justify-space-between pt-4 mt-4 border-t">
+      <!-- Nút câu trước: disabled ở câu đầu tiên -->
       <v-btn
+        v-if="!isFirst"
         variant="text"
         density="comfortable"
         prepend-icon="mdi-arrow-left"
-        :disabled="isFirst"
-        class="font-weight-bold text-caption text-sm-body-2"
+        class="font-weight-bold text-body-2"
         @click="emit('prev', index)"
       >
         {{ t("assignmentHub.prevQuestion") }}
       </v-btn>
+      <!-- Spacer khi ở câu đầu để căn giữa badge -->
+      <div v-else style="min-width: 120px;" />
 
+      <!-- Badge trạng thái: font to, padding thoáng -->
       <v-chip
-        size="x-small"
-        :color="isAnswered ? 'success' : 'grey-darken-1'"
+        :color="isAnswered ? 'success' : 'grey'"
         variant="tonal"
-        class="font-weight-bold px-2"
+        class="font-weight-black status-badge"
+        style="font-size: 12px; min-height: 30px; padding: 0 12px;"
       >
+        <v-icon
+          :icon="isAnswered ? 'mdi-check-circle' : 'mdi-circle-outline'"
+          size="14"
+          class="mr-1"
+        />
         {{ isAnswered ? t("assignmentHub.answeredStatus") : t("assignmentHub.unansweredStatus") }}
       </v-chip>
 
+      <!-- Nút câu sau: ẩn ở câu cuối thay thế bằng nút nộp bài -->
       <v-btn
+        v-if="!isLast"
         variant="text"
         density="comfortable"
-        :append-icon="isLast ? 'mdi-send' : 'mdi-arrow-right'"
-        :color="isLast ? 'primary' : undefined"
-        class="font-weight-bold text-caption text-sm-body-2"
+        append-icon="mdi-arrow-right"
+        class="font-weight-bold text-body-2"
         @click="emit('next', index)"
       >
-        {{ isLast ? t("assignmentHub.finishAndReview") : t("assignmentHub.nextQuestion") }}
+        {{ t("assignmentHub.nextQuestion") }}
+      </v-btn>
+      <v-btn
+        v-else
+        variant="tonal"
+        color="primary"
+        density="comfortable"
+        append-icon="mdi-send"
+        class="font-weight-bold text-body-2"
+        @click="emit('next', index)"
+      >
+        {{ t("assignmentHub.finishAndReview") || "Nộp bài" }}
       </v-btn>
     </div>
   </v-card>

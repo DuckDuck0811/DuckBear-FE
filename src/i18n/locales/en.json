@@ -33,6 +33,9 @@
     "save": "Save lesson",
     "close": "Close"
   },
+  "classroom": {
+    "defaultClass": "Class"
+  },
   "classesPage": {
     "tag": "CLASSROOM",
     "teacherTitle": "Class management",
@@ -941,8 +944,10 @@
     "attemptUnlimited": "Attempt #{number} · Unlimited attempts",
     "attemptLimited": "Attempt #{number} / {max}",
     "confirmSubmitTitle": "Confirm Submission",
+    "confirmSubmitCompleteTitle": "Assignment Complete!",
     "confirmSubmitIncomplete": "You have {count} unanswered question(s). Are you sure you want to submit?",
     "confirmSubmitComplete": "You have answered all {count} questions. Do you want to submit now?",
+    "onlineAssignment": "Online Assignment",
     "continueWorking": "Continue working",
     "confirmSubmitBtn": "Submit anyway",
     "submitNow": "Submit now",
@@ -950,7 +955,7 @@
     "nextQuestion": "Next question",
     "finishAndReview": "Go to submit",
     "answeredStatus": "Answered",
-    "unansweredStatus": "Unanswered",
+    "unansweredStatus": "Not answered",
     "chooseMatch": "Choose a match",
     "dragTip": "Drag one of the four choices into the blank, or tap a choice and then the answer box.",
     "draggableItems": "Drag one choice into the blank",
