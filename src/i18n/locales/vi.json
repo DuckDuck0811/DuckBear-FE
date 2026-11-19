@@ -302,6 +302,9 @@
     "profile": "Hồ sơ cá nhân",
     "comingSoon": "Sắp ra mắt"
   },
+  "assignments": {
+    "statusDone": "đã làm"
+  },
   "examBank": {
     "eyebrow": "KHO ĐỀ THI MẪU · DUCKBEAR CLASSROOM",
     "title": "Ngân hàng đề đã tạo",
@@ -391,6 +394,9 @@
     "passwordChanged": "Đã đổi mật khẩu thành công."
   },
   "questionBank": {
+    "questionCount": "Câu hỏi",
+    "trueText": "Đúng",
+    "falseText": "Sai",
     "confirmLogoutWithDrafts": "Bạn còn câu hỏi AI chưa lưu. Đăng xuất sẽ xóa các nháp này. Bạn có muốn tiếp tục không?",
     "confirmLeaveWithDrafts": "Bạn còn câu hỏi AI chưa lưu. Rời trang sẽ làm mất nháp trong phiên này. Bạn có muốn tiếp tục không?",
     "filterType": "Lọc theo loại câu",
@@ -941,6 +947,19 @@
     "score": "Điểm: {score}%",
     "points": "Điểm: {earned}/{total}",
     "attemptLabel": "Lần làm {number}/{max}",
+    "attemptUnlimited": "Lần làm thứ {number} · Không giới hạn số lần",
+    "attemptLimited": "Lần làm thứ {number} / {max}",
+    "confirmSubmitTitle": "Xác nhận nộp bài",
+    "confirmSubmitIncomplete": "Bạn còn {count} câu chưa làm. Bạn có chắc chắn muốn nộp bài không?",
+    "confirmSubmitComplete": "Bạn đã hoàn thành tất cả {count} câu hỏi. Bạn có muốn nộp bài ngay bây giờ?",
+    "continueWorking": "Làm tiếp",
+    "confirmSubmitBtn": "Vẫn nộp bài",
+    "submitNow": "Nộp bài ngay",
+    "prevQuestion": "Câu trước",
+    "nextQuestion": "Câu sau",
+    "finishAndReview": "Đến nút nộp bài",
+    "answeredStatus": "Đã chọn",
+    "unansweredStatus": "Chưa chọn",
     "chooseMatch": "Chọn vế nối",
     "dragTip": "Kéo một trong 4 lựa chọn vào chỗ trống, hoặc chạm lựa chọn rồi chạm vào ô.",
     "draggableItems": "Kéo một đáp án vào chỗ trống",
