@@ -33,6 +33,9 @@
     "save": "Lưu bài học",
     "close": "Đóng"
   },
+  "classroom": {
+    "defaultClass": "Lớp học"
+  },
   "classesPage": {
     "tag": "KHÔNG GIAN LỚP HỌC",
     "teacherTitle": "Quản lý lớp học",
@@ -950,16 +953,18 @@
     "attemptUnlimited": "Lần làm thứ {number} · Không giới hạn số lần",
     "attemptLimited": "Lần làm thứ {number} / {max}",
     "confirmSubmitTitle": "Xác nhận nộp bài",
+    "confirmSubmitCompleteTitle": "Hoàn thành bài tập!",
     "confirmSubmitIncomplete": "Bạn còn {count} câu chưa làm. Bạn có chắc chắn muốn nộp bài không?",
     "confirmSubmitComplete": "Bạn đã hoàn thành tất cả {count} câu hỏi. Bạn có muốn nộp bài ngay bây giờ?",
+    "onlineAssignment": "Bài tập trực tuyến",
     "continueWorking": "Làm tiếp",
     "confirmSubmitBtn": "Vẫn nộp bài",
     "submitNow": "Nộp bài ngay",
     "prevQuestion": "Câu trước",
     "nextQuestion": "Câu sau",
     "finishAndReview": "Đến nút nộp bài",
-    "answeredStatus": "Đã chọn",
-    "unansweredStatus": "Chưa chọn",
+    "answeredStatus": "Đã làm",
+    "unansweredStatus": "Chưa làm",
     "chooseMatch": "Chọn vế nối",
     "dragTip": "Kéo một trong 4 lựa chọn vào chỗ trống, hoặc chạm lựa chọn rồi chạm vào ô.",
     "draggableItems": "Kéo một đáp án vào chỗ trống",
