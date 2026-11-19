@@ -302,6 +302,9 @@
     "profile": "Profile",
     "comingSoon": "Coming soon"
   },
+  "assignments": {
+    "statusDone": "completed"
+  },
   "examBank": {
     "eyebrow": "EXAM TEMPLATE LIBRARY · DUCKBEAR CLASSROOM",
     "title": "Saved exam bank",
@@ -391,6 +394,9 @@
     "passwordChanged": "Password changed successfully."
   },
   "questionBank": {
+    "questionCount": "Questions",
+    "trueText": "True",
+    "falseText": "False",
     "confirmLogoutWithDrafts": "You have unsaved AI questions. Logging out will discard these drafts. Continue?",
     "confirmLeaveWithDrafts": "You have unsaved AI questions. Leaving will discard these session drafts. Continue?",
     "filterType": "Filter by question type",
@@ -932,6 +938,19 @@
     "score": "Score: {score}%",
     "points": "Points: {earned}/{total}",
     "attemptLabel": "Attempt {number} of {max}",
+    "attemptUnlimited": "Attempt #{number} · Unlimited attempts",
+    "attemptLimited": "Attempt #{number} / {max}",
+    "confirmSubmitTitle": "Confirm Submission",
+    "confirmSubmitIncomplete": "You have {count} unanswered question(s). Are you sure you want to submit?",
+    "confirmSubmitComplete": "You have answered all {count} questions. Do you want to submit now?",
+    "continueWorking": "Continue working",
+    "confirmSubmitBtn": "Submit anyway",
+    "submitNow": "Submit now",
+    "prevQuestion": "Previous question",
+    "nextQuestion": "Next question",
+    "finishAndReview": "Go to submit",
+    "answeredStatus": "Answered",
+    "unansweredStatus": "Unanswered",
     "chooseMatch": "Choose a match",
     "dragTip": "Drag one of the four choices into the blank, or tap a choice and then the answer box.",
     "draggableItems": "Drag one choice into the blank",
