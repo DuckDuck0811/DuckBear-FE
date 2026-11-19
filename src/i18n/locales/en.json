@@ -124,6 +124,8 @@
     "lessonContent": "Lesson content",
     "lessonTitleLabel": "LESSON TITLE",
     "lessonTitlePlaceholder": "For example: Lesson 1: Sets and their elements",
+    "lessonCalendarDate": "SHOW ON CALENDAR (OPTIONAL)",
+    "lessonCalendarDateHint": "Choose a date to add this lesson to the teacher calendar.",
     "optionalLessonContent": "LESSON CONTENT (OPTIONAL)",
     "lessonContentPlaceholder": "Enter the lesson text, summary, formulas, and examples...",
     "confirmDeleteLesson": "Delete lesson \"{title}\"?",
@@ -622,6 +624,9 @@
     "pageSummary": "Showing {from}–{to} of {total} attempts"
   },
   "schedule": {
+    "lessonNote": "Lesson note",
+    "allDay": "All day",
+    "planned": "Scheduled",
     "lessonAssignmentShort": "Lesson",
     "bookExamShort": "Book exam",
     "manualEventKindShort": "Manual",

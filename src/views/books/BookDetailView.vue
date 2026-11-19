@@ -473,6 +473,25 @@
               />
             </div>
 
+            <div class="mb-4">
+              <label
+                class="text-caption font-weight-bold text-secondary mb-1 d-block"
+                >{{ t("bookDetail.lessonCalendarDate") }}</label
+              >
+              <v-text-field
+                v-model="lessonForm.scheduledDate"
+                type="date"
+                variant="outlined"
+                rounded="lg"
+                density="comfortable"
+                color="primary"
+                hide-details="auto"
+              />
+              <div class="text-caption text-secondary mt-1">
+                {{ t("bookDetail.lessonCalendarDateHint") }}
+              </div>
+            </div>
+
             <div class="mb-6">
               <label
                 class="text-caption font-weight-bold text-secondary mb-1 d-block"
@@ -682,6 +701,7 @@ const lessonForm = ref({
   title: "",
   content: "",
   orderIndex: 0,
+  scheduledDate: "",
 });
 
 const showDeleteLessonConfirm = ref(false);
@@ -800,6 +820,7 @@ function openAddLessonDialog(chapterId, event) {
     title: "",
     content: "",
     orderIndex: (chapter?.lessons?.length || 0) + 1,
+    scheduledDate: "",
   };
   showLessonDialog.value = true;
 }
@@ -812,6 +833,7 @@ function openEditLessonDialog(lesson, event) {
     title: lesson.title,
     content: lesson.content || "",
     orderIndex: lesson.orderIndex ?? 0,
+    scheduledDate: lesson.scheduledDate?.slice(0, 10) || "",
   };
   showLessonDialog.value = true;
 }
@@ -826,6 +848,7 @@ async function handleSaveLesson() {
       title: lessonForm.value.title.trim(),
       content: lessonForm.value.content || "",
       orderIndex: Number(lessonForm.value.orderIndex) || 0,
+      scheduledDate: lessonForm.value.scheduledDate || null,
     };
 
     if (isEditingLesson.value) {

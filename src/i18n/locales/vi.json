@@ -124,6 +124,8 @@
     "lessonContent": "Nội dung bài giảng",
     "lessonTitleLabel": "TIÊU ĐỀ BÀI HỌC",
     "lessonTitlePlaceholder": "Ví dụ: Bài 1: Tập hợp và các phần tử",
+    "lessonCalendarDate": "NGÀY HIỂN THỊ TRÊN LỊCH (TÙY CHỌN)",
+    "lessonCalendarDateHint": "Chọn ngày để ghi bài học này vào lịch giáo viên.",
     "optionalLessonContent": "NỘI DUNG BÀI HỌC (TÙY CHỌN)",
     "lessonContentPlaceholder": "Nhập nội dung bài giảng, lý thuyết tóm tắt, công thức và ví dụ...",
     "confirmDeleteLesson": "Bạn có chắc chắn muốn xóa bài học \"{title}\"?",
@@ -623,6 +625,9 @@
     "pageSummary": "Hiển thị {from}–{to} / {total} lượt làm"
   },
   "schedule": {
+    "lessonNote": "Ghi chú bài học",
+    "allDay": "Cả ngày",
+    "planned": "Đã lên lịch",
     "lessonAssignmentShort": "Bài học",
     "bookExamShort": "Đề sách",
     "manualEventKindShort": "Thủ công",
