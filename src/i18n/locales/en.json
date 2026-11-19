@@ -528,7 +528,8 @@
     "difficulties": {
       "EASY": "Easy",
       "MEDIUM": "Medium",
-      "HARD": "Hard"
+      "HARD": "Hard",
+      "VERY_HARD": "Very Hard"
     },
     "curriculumTree": "Curriculum and lessons",
     "myBooksOnly": "My books",
@@ -722,6 +723,7 @@
     "expandCurriculum": "Expand curriculum",
     "searchCurriculum": "Search books, chapters, lessons",
     "loadingCurriculum": "Loading curriculum...",
+    "loadingChapters": "Loading chapters...",
     "noCurriculum": "You do not have any books yet.",
     "noCurriculumMatch": "No matching curriculum content found.",
     "noChapters": "This book has no chapters yet.",
@@ -856,6 +858,7 @@
     "close": "Close",
     "submissionsEyebrow": "STUDENT WORK",
     "assignmentSearch": "Search assignments",
+    "studentSearch": "Search student name or email",
     "submissionsTitle": "Student submissions",
     "submissionsSubtitle": "Review submitted work, grade essays, and return feedback.",
     "noSubmittedAssignments": "There are no submitted assignments to review yet.",
@@ -1047,6 +1050,7 @@
     "assignmentsTitle": "Class assignments",
     "assignmentsCount": "assignments",
     "assignmentSearch": "Search assignments",
+    "studentSearch": "Search student name or email",
     "questions": "questions",
     "attempts": "attempts",
     "studentSearch": "Search student name or email",
