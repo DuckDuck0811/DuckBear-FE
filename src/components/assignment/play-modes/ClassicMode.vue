@@ -624,8 +624,8 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  max-height: 140px;
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
   padding: 4px 2px;
   transition: all 0.25s ease;
 }
