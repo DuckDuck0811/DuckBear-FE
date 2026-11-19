@@ -1426,19 +1426,6 @@
               </v-col>
             </v-row>
 
-            <!-- Chọn Chế độ làm bài -->
-            <!-- Kiểu làm bài -->
-            <PlayModeSelect v-model="form.playMode" class="mb-4" />
-            <v-alert
-              v-if="form.playMode === 'race' && unsupportedRaceQuestions.length"
-              type="warning"
-              variant="tonal"
-              density="compact"
-              class="mb-4"
-            >
-              Chế độ Đua xe chỉ hỗ trợ trắc nghiệm một đáp án và đúng/sai. Hãy bỏ các câu điền khuyết, nối cặp hoặc chọn nhiều đáp án.
-            </v-alert>
-
             <!-- Hai thẻ tùy chọn tráo câu hỏi / đáp án -->
             <v-row dense>
               <v-col cols="12" sm="6">
@@ -1851,21 +1838,7 @@
                 </v-col>
               </v-row>
 
-              <!-- Chọn Chế độ làm bài trong đề Word -->
-              <!-- Kiểu làm bài -->
-              <PlayModeSelect
-                v-model="wordAssignmentForm.playMode"
-                class="mt-3 mb-2"
-              />
-              <v-alert
-                v-if="wordAssignmentForm.playMode === 'race' && unsupportedWordRaceQuestions.length"
-                type="warning"
-                variant="tonal"
-                density="compact"
-                class="mb-2"
-              >
-                Chế độ Đua xe chỉ hỗ trợ trắc nghiệm một đáp án và đúng/sai. Hãy bỏ các câu điền khuyết, nối cặp hoặc chọn nhiều đáp án.
-              </v-alert>
+              <!-- Hai thẻ tùy chọn tráo câu hỏi / đáp án (Word) -->
             </div>
           </template>
 
@@ -2173,13 +2146,6 @@
             />
           </div>
 
-          <!-- Kiểu làm bài -->
-          <PlayModeSelect
-            v-model="editForm.playMode"
-            :disabled="editForm.hasAttempts"
-            class="mb-4"
-          />
-
           <!-- Thời hạn nộp & Thời lượng & Số lần làm -->
           <v-row dense class="mb-3">
             <v-col cols="12" sm="6">
@@ -2325,7 +2291,6 @@ import AppHeader from "../../components/shared/AppHeader.vue";
 import TeacherSidebar from "../../components/shared/TeacherSidebar.vue";
 import StudentSidebar from "../../components/shared/StudentSidebar.vue";
 import ListPagination from "../../components/shared/ListPagination.vue";
-import PlayModeSelect from "../../components/assignment/PlayModeSelect.vue";
 
 const { t, locale } = useI18n();
 const router = useRouter();
@@ -2352,7 +2317,7 @@ const wordAssignmentForm = reactive({
   deadline: "",
   durationMinutes: null,
   maxAttempts: 0,
-  playMode: "auto",
+  playMode: "classic",
 });
 const editDialog = ref(false);
 const editingAssignment = ref(null);
@@ -2366,7 +2331,7 @@ const editForm = reactive({
   maxAttempts: 0,
   shuffleQuestions: false,
   shuffleOptions: false,
-  playMode: "auto",
+  playMode: "classic",
   hasAttempts: false,
 });
 const submissionsDialog = ref(false);
@@ -2727,7 +2692,7 @@ async function createAssignmentFromWord() {
         maxAttempts: Number(wordAssignmentForm.maxAttempts || 0),
         shuffleQuestions: false,
         shuffleOptions: false,
-        playMode: wordAssignmentForm.playMode || "auto",
+        playMode: "classic",
       },
     });
     wordAssignmentDialog.value = false;
@@ -3109,10 +3074,8 @@ const form = reactive({
   shuffleQuestions: false,
   shuffleOptions: false,
   publishTemplate: false,
-  playMode: "auto",
+  playMode: "classic",
 });
-
-// playModeOptions managed in PlayModeSelect component
 
 function openEditAssignment(item) {
   editingAssignment.value = item;
@@ -3125,7 +3088,7 @@ function openEditAssignment(item) {
   editForm.maxAttempts = item.maxAttempts ?? 0;
   editForm.shuffleQuestions = Boolean(item.shuffleQuestions);
   editForm.shuffleOptions = Boolean(item.shuffleOptions);
-  editForm.playMode = item.playMode || item.play_mode || "auto";
+  editForm.playMode = "classic";
   editForm.hasAttempts =
     (item._count?.attempts ?? 0) > 0 || (item.attempts?.length ?? 0) > 0;
   editError.value = "";
@@ -3361,7 +3324,7 @@ async function saveAssignment() {
         maxAttempts: Number(form.maxAttempts ?? 0),
         shuffleQuestions: form.shuffleQuestions,
         shuffleOptions: form.shuffleOptions,
-        playMode: form.playMode || "auto",
+        playMode: "classic",
       },
     });
     createDialog.value = false;
@@ -3376,7 +3339,7 @@ async function saveAssignment() {
     form.maxAttempts = 0;
     form.shuffleQuestions = false;
     form.shuffleOptions = false;
-    form.playMode = "auto";
+    form.playMode = "classic";
     await loadData();
     if (route.query.templateId) router.replace({ name: "assignments" });
   } catch (error) {

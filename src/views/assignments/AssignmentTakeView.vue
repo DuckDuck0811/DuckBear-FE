@@ -1,40 +1,15 @@
 <template>
   <v-layout
     class="min-vh-100 assignment-take-page play-mode-container"
-    :class="[
-      `level-${session.level.value}`,
-      { 'layout--fullscreen-exam': isTakingExam },
-    ]"
+    :class="`level-${session.level.value}`"
   >
-    <!-- Chỉ hiển thị Header & Sidebar khi ĐÃ nộp bài xong để học sinh xem lại và điều hướng -->
-    <AppHeader v-if="session.result.value" />
-    <StudentSidebar v-if="session.result.value" />
+    <!-- Header và Sidebar học sinh hiển thị chuẩn như ngày trước -->
+    <AppHeader />
+    <StudentSidebar />
 
-    <v-main
-      :class="{
-        'game-mode-main': isGameMode && !session.result.value,
-        'taking-exam-main': isTakingExam,
-        'pb-16': session.result.value,
-      }"
-    >
-      <v-container
-        :fluid="isTakingExam || isGameMode"
-        :class="
-          isTakingExam
-            ? 'taking-exam-container pa-0'
-            : isGameMode
-              ? 'game-mode-container pa-0'
-              : 'py-7 px-4 px-md-8'
-        "
-        :style="
-          isTakingExam
-            ? 'max-width: 100vw; width: 100vw; height: 100dvh;'
-            : isGameMode
-              ? 'max-width: 100%'
-              : 'max-width: 960px'
-        "
-      >
-        <!-- Nút quay lại chỉ hiển thị khi đã nộp bài xong ở chế độ cổ điển -->
+    <v-main class="pb-16">
+      <v-container class="py-7 px-4 px-md-8" style="max-width: 960px">
+        <!-- Nút quay lại chỉ hiển thị khi đã nộp bài xong -->
         <v-btn
           v-if="session.result.value"
           to="/assignments"
@@ -160,20 +135,9 @@
           </v-card>
         </template>
 
-        <!-- ĐANG THAM GIA LÀM BÀI: TOÀN MÀN HÌNH FULL-BLEED (KHÔNG CÓ SIDEBAR) -->
+        <!-- ĐANG THAM GIA LÀM BÀI: CHẾ ĐỘ CƠ BẢN (CLASSIC / BASIC) NHƯ NGÀY TRƯỚC -->
         <template v-else-if="session.assignment.value">
-          <v-alert
-            v-if="raceModeNeedsFallback"
-            type="info"
-            variant="tonal"
-            class="ma-4 mb-0"
-          >
-            Bài có câu điền khuyết, nối cặp hoặc chọn nhiều đáp án nên được mở ở
-            chế độ Cơ bản.
-          </v-alert>
-          <div class="game-mode-stage">
-            <component :is="activeModeComponent" :session="session" />
-          </div>
+          <ClassicMode :session="session" />
         </template>
       </v-container>
     </v-main>
@@ -227,13 +191,7 @@
 </template>
 
 <script setup>
-import {
-  computed,
-  defineAsyncComponent,
-  onMounted,
-  onBeforeUnmount,
-  ref,
-} from "vue";
+import { computed, onMounted, onBeforeUnmount, ref } from "vue";
 import { onBeforeRouteLeave, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useAssignmentSession } from "../../composables/useAssignmentSession";
@@ -241,82 +199,9 @@ import AppHeader from "../../components/shared/AppHeader.vue";
 import StudentSidebar from "../../components/shared/StudentSidebar.vue";
 import ClassicMode from "../../components/assignment/play-modes/ClassicMode.vue";
 
-const TowerMode = defineAsyncComponent(
-  () => import("../../components/assignment/play-modes/tower/TowerMode.vue"),
-);
-const FruitMode = defineAsyncComponent(
-  () => import("../../components/assignment/play-modes/fruit/FruitMode.vue"),
-);
-const RaceMode = defineAsyncComponent(
-  () => import("../../components/assignment/play-modes/race/RaceMode.vue"),
-);
-const TreasureMode = defineAsyncComponent(
-  () =>
-    import("../../components/assignment/play-modes/treasure/TreasureMode.vue"),
-);
-const SpaceMode = defineAsyncComponent(
-  () => import("../../components/assignment/play-modes/space/SpaceMode.vue"),
-);
-const StreakMode = defineAsyncComponent(
-  () => import("../../components/assignment/play-modes/streak/StreakMode.vue"),
-);
-const BossMode = defineAsyncComponent(
-  () => import("../../components/assignment/play-modes/boss/BossMode.vue"),
-);
-const MapMode = defineAsyncComponent(
-  () => import("../../components/assignment/play-modes/map/MapMode.vue"),
-);
-const SpeedMode = defineAsyncComponent(
-  () => import("../../components/assignment/play-modes/speed/SpeedMode.vue"),
-);
-const PracticeMode = defineAsyncComponent(
-  () =>
-    import("../../components/assignment/play-modes/practice/PracticeMode.vue"),
-);
-const ExamMode = defineAsyncComponent(
-  () => import("../../components/assignment/play-modes/exam/ExamMode.vue"),
-);
-const MockMode = defineAsyncComponent(
-  () => import("../../components/assignment/play-modes/mock/MockMode.vue"),
-);
-import "../../styles/play-modes-theme.css";
-
 const { t } = useI18n();
 const session = useAssignmentSession();
 const router = useRouter();
-
-const modeComponents = {
-  classic: ClassicMode,
-  tower: TowerMode,
-  fruit: FruitMode,
-  race: RaceMode,
-  treasure: TreasureMode,
-  space: SpaceMode,
-  streak: StreakMode,
-  boss: BossMode,
-  map: MapMode,
-  speed: SpeedMode,
-  practice: PracticeMode,
-  exam: ExamMode,
-  mock: MockMode,
-};
-
-const raceModeNeedsFallback = computed(() => {
-  if (session.resolvedPlayMode.value !== "race") return false;
-  return (session.questions.value || []).some(
-    (item) => !["MCQ", "TRUE_FALSE"].includes(item?.question?.type),
-  );
-});
-
-const activeModeComponent = computed(() => {
-  if (raceModeNeedsFallback.value) return ClassicMode;
-  return modeComponents[session.resolvedPlayMode.value] || ClassicMode;
-});
-
-const isGameMode = computed(() => {
-  const m = session.resolvedPlayMode.value;
-  return m && m !== "classic" && !raceModeNeedsFallback.value;
-});
 
 // Học sinh đang trong quá trình làm bài (đã tải xong đề bài, chưa nộp bài)
 const isTakingExam = computed(() => {
@@ -372,59 +257,5 @@ onBeforeUnmount(() => {
 <style scoped>
 .assignment-take-page {
   background: #f4f8ff;
-}
-
-/* KHI ĐANG THAM GIA LÀM BÀI: 100% TOÀN MÀN HÌNH */
-.layout--fullscreen-exam {
-  width: 100vw !important;
-  height: 100dvh !important;
-  max-width: 100vw !important;
-  max-height: 100dvh !important;
-  overflow: hidden !important;
-  background: #0f172a;
-}
-
-.taking-exam-main {
-  height: 100dvh !important;
-  max-height: 100dvh !important;
-  width: 100vw !important;
-  max-width: 100vw !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-.taking-exam-container {
-  width: 100vw !important;
-  max-width: 100vw !important;
-  height: 100dvh !important;
-  max-height: 100dvh !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-}
-
-.game-mode-stage {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Các game mode mở rộng 100% chiều cao và loại bỏ viền cong ngoài để tràn viền */
-.game-mode-stage :deep(.fruit-game),
-.game-mode-stage :deep(.tower-game),
-.game-mode-stage :deep(.race-game),
-.game-mode-stage :deep(.treasure-game) {
-  width: 100%;
-  height: 100dvh !important;
-  max-height: 100dvh !important;
-  border-radius: 0 !important;
-  border: none !important;
 }
 </style>
