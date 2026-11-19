@@ -132,7 +132,7 @@
             <span class="stat-chip-label">{{
               t("schedule.assignmentsThisMonth")
             }}</span>
-            <strong class="stat-chip-value">{{ monthEvents.length }}</strong>
+            <strong class="stat-chip-value">{{ monthAssignmentCount }}</strong>
           </div>
         </div>
 
@@ -183,7 +183,7 @@
                 size="19"
               />
               <span
-                ><strong>{{ monthEvents.length }}</strong>
+                ><strong>{{ monthAssignmentCount }}</strong>
                 {{ t("schedule.deadlinesMonth") }}</span
               >
             </div>
@@ -843,10 +843,15 @@
                               class="month-event-pill"
                               :class="[
                                 `month-event-${event.status}`,
-                                { 'month-event-draggable': isTeacher },
+                                {
+                                  'month-event-draggable':
+                                    isTeacher && event.type !== 'lesson-note',
+                                },
                               ]"
                               :style="eventClassStyle(event)"
-                              :draggable="isTeacher"
+                              :draggable="
+                                isTeacher && event.type !== 'lesson-note'
+                              "
                               role="button"
                               tabindex="0"
                               :aria-label="eventTooltip(event)"
@@ -860,7 +865,9 @@
                             >
                               <span class="month-event-meta-row">
                                 <span class="month-event-time">{{
-                                  formatTime(event.deadline)
+                                  event.type === "lesson-note"
+                                    ? t("schedule.allDay")
+                                    : formatTime(event.deadline)
                                 }}</span>
                                 <v-icon
                                   :icon="eventKindIcon(event)"
@@ -944,7 +951,11 @@
                 >
                   <div class="agenda-event-time">
                     <v-icon icon="mdi-clock-outline" size="17" />
-                    <span>{{ formatTime(event.deadline) }}</span>
+                    <span>{{
+                      event.type === "lesson-note"
+                        ? t("schedule.allDay")
+                        : formatTime(event.deadline)
+                    }}</span>
                   </div>
                   <div class="agenda-event-main">
                     <div class="agenda-event-title" :title="event.title">
@@ -1107,7 +1118,11 @@
                           size="14"
                           class="mr-1"
                         />
-                        <span>{{ formatTime(event.deadline) }}</span>
+                        <span>{{
+                          event.type === "lesson-note"
+                            ? t("schedule.allDay")
+                            : formatTime(event.deadline)
+                        }}</span>
                       </div>
                       <v-chip
                         size="x-small"
@@ -1730,7 +1745,11 @@
               <div class="agenda-event-top">
                 <div class="agenda-event-time">
                   <v-icon icon="mdi-clock-outline" size="14" />
-                  <span>{{ formatTime(event.deadline) }}</span>
+                  <span>{{
+                    event.type === "lesson-note"
+                      ? t("schedule.allDay")
+                      : formatTime(event.deadline)
+                  }}</span>
                 </div>
                 <v-chip
                   size="x-small"
@@ -2852,12 +2871,14 @@ function dateKey(date) {
 }
 
 function eventKindShortLabel(event) {
+  if (event.type === "lesson-note") return t("schedule.lessonNote");
   if (event.type === "manual") return t("schedule.manualEventKindShort");
   if (event.scope === "BOOK") return t("schedule.bookExamShort");
   return t("schedule.lessonAssignmentShort");
 }
 
 function eventKindIcon(event) {
+  if (event.type === "lesson-note") return "mdi-note-text-outline";
   if (event.type === "manual") return "mdi-paperclip";
   return event.scope === "BOOK"
     ? "mdi-clipboard-text-search-outline"
@@ -2865,6 +2886,10 @@ function eventKindIcon(event) {
 }
 
 function eventSource(event) {
+  if (event.type === "lesson-note")
+    return [event.book?.title, event.lesson?.chapter?.title]
+      .filter(Boolean)
+      .join(" › ") || t("schedule.lessonSource");
   if (event.type === "manual")
     return event.class?.name || t("schedule.manualAssignmentShort");
   if (event.scope === "BOOK")
@@ -2884,6 +2909,7 @@ function eventTooltip(event) {
 }
 
 function getEventStatus(assignment, deadline) {
+  if (assignment.type === "lesson-note") return "planned";
   if (isStudent.value) {
     if (assignment.type === "manual") {
       if (assignment.submissions?.some((submission) => submission.submittedAt))
@@ -2898,9 +2924,39 @@ function getEventStatus(assignment, deadline) {
   return deadline < new Date() ? "overdue" : "upcoming";
 }
 
+const calendarLessonEvents = computed(() => {
+  if (!isTeacher.value) return [];
+  return curriculumBooks.value.flatMap((book) =>
+    Number(book.createdById) === Number(authStore.user?.id)
+      ? (book.chapters || []).flatMap((chapter) =>
+          (chapter.lessons || [])
+            .filter((lesson) => lesson.scheduledDate)
+            .map((lesson) => {
+              const date = new Date(
+                `${String(lesson.scheduledDate).slice(0, 10)}T12:00:00`,
+              );
+              return {
+                id: `lesson-note-${lesson.id}`,
+                type: "lesson-note",
+                title: lesson.title,
+                lessonId: lesson.id,
+                lesson: { ...lesson, chapter },
+                book,
+                bookId: book.id,
+                deadline: date,
+                deadlineDate: date,
+                status: "planned",
+              };
+            }),
+        )
+      : [],
+  );
+});
+
 const allEvents = computed(() =>
   [
     ...assignments.value,
+    ...calendarLessonEvents.value,
     ...manualAssignments.value.map((assignment) => ({
       ...assignment,
       type: "manual",
@@ -2924,6 +2980,7 @@ const allEvents = computed(() =>
 const visibleEvents = computed(() =>
   allEvents.value.filter(
     (event) =>
+      event.type === "lesson-note" ||
       selectedClassId.value === null ||
       Number(event.classId || event.class?.id) ===
         Number(selectedClassId.value),
@@ -2937,17 +2994,25 @@ const monthEvents = computed(() =>
       event.deadlineDate.getMonth() === monthDate.value.getMonth(),
   ),
 );
+const monthAssignmentCount = computed(
+  () =>
+    monthEvents.value.filter((event) => event.type !== "lesson-note").length,
+);
 
 const pendingCount = computed(
   () =>
-    monthEvents.value.filter((event) =>
-      isStudent.value
-        ? event.status !== "submitted"
-        : event.status !== "overdue",
+    monthEvents.value.filter(
+      (event) =>
+        event.type !== "lesson-note" &&
+        (isStudent.value
+          ? event.status !== "submitted"
+          : event.status !== "overdue"),
     ).length,
 );
 const dueWithinSevenDays = computed(() =>
-  scheduleStore.dueWithinSevenDays(visibleEvents.value),
+  scheduleStore.dueWithinSevenDays(
+    visibleEvents.value.filter((event) => event.type !== "lesson-note"),
+  ),
 );
 const upcomingSevenDaysCount = computed(() => dueWithinSevenDays.value.length);
 // The existing teacher assignment list has a submitted-attempt count, not a distinct
@@ -3030,7 +3095,9 @@ const selectedDayEvents = computed(() => selectedDay.value?.events || []);
 const upcomingDisplayEvents = computed(() => {
   const selectedIds = new Set(selectedDayEvents.value.map((e) => e.id));
   return scheduleStore
-    .upcomingAssignments(visibleEvents.value)
+    .upcomingAssignments(
+      visibleEvents.value.filter((event) => event.type !== "lesson-note"),
+    )
     .filter((e) => !selectedIds.has(e.id))
     .slice(0, 10);
 });
@@ -3166,6 +3233,7 @@ function formatLongDate(date) {
 
 function statusColor(status) {
   return {
+    planned: "primary",
     submitted: "success",
     inProgress: "primary",
     overdue: "error",
@@ -3184,6 +3252,8 @@ function classColor(classId) {
 }
 
 function eventClassStyle(event) {
+  if (event.type === "lesson-note")
+    return { "--class-accent": bookColor(event.bookId), opacity: 1 };
   const eventClassId = Number(event.classId || event.class?.id);
   return {
     "--class-accent": classColor(eventClassId),
@@ -3626,6 +3696,10 @@ async function createQuickAssignment() {
 }
 
 function openEventDrawer(event) {
+  if (event.type === "lesson-note") {
+    router.push(`/lessons/${event.lessonId}`);
+    return;
+  }
   selectedEvent.value = event;
   drawerOpen.value = true;
   drawerError.value = "";
@@ -4942,6 +5016,10 @@ watch([expandedBooks, expandedChapters], ([bookId, chapterKeys]) => {
   background: #ffefed;
   color: #b42318;
 }
+.month-event-planned {
+  background: #eef4ff;
+  color: #175cd3;
+}
 
 .month-event-time {
   flex: 0 0 auto;
@@ -5420,6 +5498,9 @@ watch([expandedBooks, expandedChapters], ([bookId, chapterKeys]) => {
 }
 .agenda-event-upcoming {
   border-left-color: #ffb020;
+}
+.agenda-event-planned {
+  border-left-color: #2f7cf6;
 }
 
 .agenda-event-time {
