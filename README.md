@@ -1,111 +1,103 @@
-# DuckBear
+# DuckBear Frontend
 
-DuckBear is an online learning platform with a Vue web application and a NestJS API. It supports learning materials, assignments, classes, student progress, and real-time classroom notifications.
+DuckBear is a learning platform for students and teachers. This project contains the Vue 3 web application; the NestJS API and PostgreSQL database are maintained in the sibling `BE` project in the development workspace.
 
-This repository contains the frontend. The backend is maintained separately and requires PostgreSQL.
+## What’s included
 
-## Project Components
+- Student and teacher experiences for books, lessons, classes, assignments, schedules, and progress.
+- Question and exam banks, assignment play modes, and submission review.
+- Vietnamese and English translations, with Vietnamese as the default language.
+- Role-aware navigation backed by an authenticated API.
 
-| Component | Technology | Purpose |
-| --- | --- | --- |
-| Frontend (this repository) | Vue 3, Vite, Vuetify, Pinia | Web application for students, teachers, and administrators |
-| Backend (`BE`) | NestJS, Prisma, PostgreSQL | REST API, authentication, data storage, and real-time events |
+## Requirements
 
-## Prerequisites
+- Node.js `^20.19.0` or `>=22.12.0` (required by Vite 8)
+- npm
+- A running DuckBear backend for data-backed features
 
-- Node.js and npm
-- PostgreSQL for the backend
-- The DuckBear backend repository, available at `BE` alongside this frontend repository
+## Run locally
 
-## Quick Start
+Start the backend first. Follow its setup instructions in `BE/README.md` from the workspace root, then start the frontend in a second terminal:
 
-Start the backend and frontend in separate terminals. The commands below assume the workspace contains sibling `BE` and `FE` directories, with this frontend repository at `FE/FE`.
-
-### 1. Configure and start the backend
-
-From the workspace root:
-
-```powershell
-cd BE
-npm ci
-```
-
-Create `BE/.env` and configure at least `DATABASE_URL` and `JWT_SECRET`. Optional question-generation settings are documented in the backend README.
-
-Generate the Prisma client, apply development migrations, and start the API:
-
-```powershell
-npx prisma generate
-npx prisma migrate dev
-npm run dev
-```
-
-The API listens on `http://localhost:3000` by default.
-
-### 2. Configure and start the frontend
-
-In another terminal, from the workspace root:
-
-```powershell
+```sh
 cd FE/FE
 npm ci
 npm run dev
 ```
 
-Vite prints the local URL to open in your browser. The frontend uses `http://localhost:3000` as its default API URL. To use a different backend URL, set `VITE_API_BASE_URL` in the frontend `.env` file before starting Vite:
+Open the local URL printed by Vite. The frontend expects the API at `http://localhost:3000` by default. To use another API URL, create `.env.local` in this directory:
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-## Common Commands
+Restart Vite after changing environment variables. The backend must be running and accept browser requests through CORS.
 
-Run commands from the corresponding project directory.
+## Scripts
 
-| Project | Command | Description |
-| --- | --- | --- |
-| Frontend | `npm run dev` | Start the Vite development server |
-| Frontend | `npm test` | Run frontend tests |
-| Frontend | `npm run build` | Build the frontend into `dist/` |
-| Frontend | `npm run preview` | Preview the production build locally |
-| Backend | `npm run dev` | Start the NestJS API in watch mode |
-| Backend | `npm test` | Run backend unit tests |
-| Backend | `npm run test:e2e` | Run backend end-to-end tests |
-| Backend | `npm run build` | Build the backend |
+Run these from `FE/FE`:
 
-## Frontend Routes
-
-| Route | Page |
+| Command | Description |
 | --- | --- |
-| `/login` | Sign in and registration |
-| `/` | Book catalogue |
-| `/books/:id` | Book details, chapters, and lessons |
-| `/lessons/:id` | Lesson content |
-| Other routes | Not found |
+| `npm run dev` | Start the Vite development server |
+| `npm test` | Run the Node.js test suite |
+| `npm run build` | Create a production build in `dist/` |
+| `npm run preview` | Serve the production build locally |
 
-Routes other than `/login` require an access token. The frontend stores the token and user information in `localStorage` and returns to the login page when the session expires.
+## Application routes
 
-## Frontend Source Structure
+All routes require a signed-in user except `/login` and `/register`. Some routes are limited to specific roles; unauthorized users are redirected to their role’s landing page.
+
+| Route | Purpose | Roles |
+| --- | --- | --- |
+| `/login`, `/register`, `/register/:role` | Sign in and registration | Public |
+| `/` | Browse books | Signed-in users |
+| `/books/:id`, `/lessons/:id` | Book, chapter, and lesson content | Signed-in users |
+| `/student`, `/results` | Student dashboard and attempt history | Students |
+| `/classes`, `/classes/:id` | Classes and class details | Signed-in users; class details for teachers and admins |
+| `/manual-assignments`, `/classes/:id/manual-assignments` | Class assignments | Teachers, admins, students |
+| `/assignments`, `/assignments/:id/do` | Assignment list and taking an assignment | Teachers, admins, students; taking assignments for students |
+| `/submissions`, `/submissions/:assignmentId` | Review submissions | Teachers |
+| `/question-bank`, `/exam-bank` | Manage questions and exams | Teachers, admins |
+| `/schedule` | Class schedule | Teachers, students |
+| `/teacher/progress` | Student progress | Teachers, admins |
+| `/activity-log` | Assignment activity | Teachers |
+| `/profile` | Account profile | Admins, teachers, students, parents |
+
+## Project structure
 
 ```text
 src/
-├── components/   # Shared and feature-specific UI components
-├── plugins/      # Plugins, including internationalization
-├── router/       # Application routes
-├── services/     # API client and other services
-├── stores/       # Pinia application and authentication state
-├── views/        # Application pages
+├── components/   # Shared UI and feature components
+├── composables/  # Reusable Vue composition logic
+├── i18n/         # Locale setup and Vietnamese/English messages
+├── layouts/      # Page layouts
+├── router/       # Routes and navigation guard
+├── schemas/      # Data schemas
+├── services/     # API client and domain services
+├── stores/       # Pinia state
+├── styles/       # Additional styles
+├── utils/        # Shared utilities
+├── views/        # Route-level pages
 ├── App.vue       # Root component
-├── main.js       # Vue, Pinia, Router, and Vuetify setup
-└── style.css     # Global styles
+└── main.js       # Vue, router, Pinia, Vuetify, and i18n setup
 ```
 
-## Backend and API Configuration
+## Configuration and session behavior
 
-Set `VITE_API_BASE_URL` to the backend URL before running or building the frontend. For a local backend, use:
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | `http://localhost:3000` | Base URL for backend requests |
 
-```dotenv
-VITE_API_BASE_URL=http://localhost:3000
+The app stores the access token, signed-in user, and language preference in browser `localStorage`. Clearing site storage signs the user out and resets the saved language preference. Keep local environment files and credentials out of version control.
+
+## Production build
+
+Set `VITE_API_BASE_URL` to the deployed API origin before building:
+
+```sh
+npm run build
+npm run preview
 ```
 
-The backend must be running and allow requests from the frontend through CORS. Keep environment files and credentials private.
+Deploy the generated `dist/` directory to a static web host configured to serve `index.html` for application routes. Configure the backend’s CORS policy to allow the deployed frontend origin.
