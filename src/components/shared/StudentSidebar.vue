@@ -62,7 +62,7 @@ const items = [
     label: "studentSidebar.classes",
     icon: "mdi-account-group-outline",
     to: "/classes",
-    match: ["classes"],
+    match: ["classes", "class-detail"],
   },
   {
     label: "studentSidebar.curriculum",
@@ -74,7 +74,7 @@ const items = [
     label: "studentSidebar.assignments",
     icon: "mdi-clipboard-text-outline",
     to: "/assignments",
-    match: ["assignments"],
+    match: ["assignments", "assignment-take"],
   },
   {
     label: "studentSidebar.manualAssignments",
@@ -104,7 +104,10 @@ const items = [
 ];
 
 function isActive(item) {
-  return item.match?.includes(route.name);
+  if (item.match?.includes(route.name)) return true;
+  if (item.to && item.to !== "/" && route.path.startsWith(item.to)) return true;
+  if (item.to === "/" && route.path === "/") return true;
+  return false;
 }
 
 function closeOnMobile() {
@@ -178,13 +181,18 @@ onBeforeUnmount(() =>
 .student-sidebar-link:hover,
 .student-sidebar-link:focus-visible {
   outline: none;
-  background: #e9f8f5;
-  color: #147d72;
+  background: #f0f6ff;
+  color: #1f5fd0;
 }
 
 .student-sidebar-link-active {
-  background: #e2f6f1;
-  color: #147d72;
+  background: #e8f1ff;
+  color: #1f5fd0;
+  font-weight: 800;
+}
+
+.student-sidebar-link-active .v-icon {
+  color: #1f5fd0 !important;
 }
 
 .student-sidebar-link-disabled {
