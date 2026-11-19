@@ -528,7 +528,8 @@
     "difficulties": {
       "EASY": "Dễ",
       "MEDIUM": "Trung bình",
-      "HARD": "Khó"
+      "HARD": "Khó",
+      "VERY_HARD": "Rất khó"
     },
     "curriculumTree": "Giáo trình và bài học",
     "myBooksOnly": "Sách của tôi",
@@ -723,6 +724,7 @@
     "expandCurriculum": "Mở giáo trình",
     "searchCurriculum": "Tìm sách, chương, bài học",
     "loadingCurriculum": "Đang tải giáo trình...",
+    "loadingChapters": "Đang tải chương...",
     "noCurriculum": "Chưa có sách giáo khoa của bạn.",
     "noCurriculumMatch": "Không tìm thấy nội dung phù hợp.",
     "noChapters": "Sách chưa có chương nào.",
@@ -851,6 +853,7 @@
     "close": "Đóng",
     "submissionsEyebrow": "BÀI NỘP",
     "assignmentSearch": "Tìm tên bài tập",
+    "studentSearch": "Tìm tên hoặc email học sinh",
     "submissionsTitle": "Bài nộp của học sinh",
     "submissionsSubtitle": "Xem bài học sinh đã nộp, chấm tự luận và trả nhận xét.",
     "noSubmittedAssignments": "Chưa có bài nộp nào cần xem.",
@@ -1042,6 +1045,7 @@
     "assignmentsTitle": "Bài tập của lớp",
     "assignmentsCount": "bài tập",
     "assignmentSearch": "Tìm tên bài tập",
+    "studentSearch": "Tìm tên hoặc email học sinh",
     "questions": "câu hỏi",
     "attempts": "lượt làm",
     "studentSearch": "Tìm tên hoặc email học sinh",
