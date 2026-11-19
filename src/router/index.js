@@ -1,13 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
-  ...(import.meta.env.DEV
-    ? [{
-        path: "/dev/tower-sprites",
-        name: "tower-sprites-debug",
-        component: () => import("../views/dev/TowerSpriteDebugView.vue"),
-      }]
-    : []),
   {
     path: "/login",
     name: "login",
