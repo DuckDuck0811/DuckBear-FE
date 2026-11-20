@@ -460,6 +460,15 @@
           >
             {{ errorMessage }}
           </v-alert>
+          <v-alert
+            v-if="route.query.googleRegistered === '1'"
+            type="success"
+            variant="tonal"
+            rounded="lg"
+            class="mb-4 text-body-2 font-weight-medium"
+          >
+            Đăng ký thành công. Hãy đăng nhập bằng Google để tiếp tục.
+          </v-alert>
 
           <!-- Form đăng nhập / đăng ký -->
           <v-form ref="form" validate-on="submit lazy" @submit.prevent="submit">
@@ -571,6 +580,20 @@
             </v-btn>
           </v-form>
 
+          <div v-if="googleClientId" class="google-auth mt-4">
+            <div class="google-divider"><span>HOẶC</span></div>
+            <v-alert
+              v-if="googleLoadError"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              class="text-caption"
+            >
+              {{ googleLoadError }}
+            </v-alert>
+            <div v-else ref="googleButton" class="google-button" />
+          </div>
+
           <!-- Chuyển đổi nhanh cuối form -->
           <div class="text-center mt-5">
             <span class="text-caption text-secondary">
@@ -600,7 +623,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/auth";
 
@@ -630,6 +653,9 @@ const form = ref(null);
 const loading = ref(false);
 const errorMessage = ref("");
 const blink = ref(false);
+const googleButton = ref(null);
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+const googleLoadError = ref("");
 let blinkTimer = null;
 
 // Trạng thái che mắt và hé mắt
@@ -732,6 +758,96 @@ async function submit() {
   }
 }
 
+async function handleGoogleCredential(response) {
+  if (!response?.credential || loading.value) return;
+  errorMessage.value = "";
+  loading.value = true;
+  try {
+    if (mode.value === "register") {
+      await auth.registerWithGoogle({
+        credential: response.credential,
+        role: role.value,
+      });
+      await router.push("/login?googleRegistered=1");
+      return;
+    }
+    await auth.loginWithGoogle({ credential: response.credential });
+    await router.push(auth.user?.role === "STUDENT" ? "/student" : "/");
+  } catch (error) {
+    if (mode.value === "login" && error.status === 404) {
+      await router.push({ path: "/register", query: { googleRequired: "1" } });
+      return;
+    }
+    errorMessage.value =
+      error.message || "Không thể đăng nhập bằng Google. Vui lòng thử lại.";
+  } finally {
+    loading.value = false;
+  }
+}
+
+function renderGoogleButton() {
+  if (!googleButton.value || !window.google?.accounts?.id) return;
+  googleLoadError.value = "";
+  window.__duckbearGoogleCredentialCallback = handleGoogleCredential;
+  if (!window.__duckbearGoogleInitialized) {
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: (response) =>
+        window.__duckbearGoogleCredentialCallback?.(response),
+      auto_select: false,
+    });
+    window.__duckbearGoogleInitialized = true;
+  }
+  googleButton.value.replaceChildren();
+  window.google.accounts.id.renderButton(googleButton.value, {
+    theme: "outline",
+    size: "large",
+    shape: "rectangular",
+    text: mode.value === "register" ? "signup_with" : "signin_with",
+    width: Math.min(360, googleButton.value.clientWidth),
+    locale: "vi",
+  });
+}
+
+watch(mode, renderGoogleButton, { flush: "post" });
+
+function loadGoogleIdentityServices() {
+  if (!googleClientId) return;
+  if (window.google?.accounts?.id) {
+    renderGoogleButton();
+    return;
+  }
+  let script = document.getElementById("google-identity-services");
+  if (!script) {
+    script = document.createElement("script");
+    script.id = "google-identity-services";
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+  script.addEventListener(
+    "load",
+    () => {
+      if (window.google?.accounts?.id) {
+        renderGoogleButton();
+      } else {
+        googleLoadError.value =
+          "Google Sign-In chưa được cấp phép cho tên miền này.";
+      }
+    },
+    { once: true },
+  );
+  script.addEventListener(
+    "error",
+    () => {
+      googleLoadError.value =
+        "Không thể tải Google Sign-In. Kiểm tra kết nối và cấu hình tên miền.";
+    },
+    { once: true },
+  );
+}
+
 // Xử lý ném tuyết từng quả khi focus ô mật khẩu
 function onPasswordFocus() {
   passwordFocused.value = true;
@@ -758,7 +874,10 @@ function scheduleBlink() {
   );
 }
 
-onMounted(scheduleBlink);
+onMounted(() => {
+  scheduleBlink();
+  loadGoogleIdentityServices();
+});
 onBeforeUnmount(() => window.clearTimeout(blinkTimer));
 </script>
 
@@ -1217,6 +1336,37 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
   color: #217093;
   cursor: pointer;
   text-decoration: underline;
+}
+
+.google-auth {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
+
+.google-divider {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  color: #8a96a8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.google-divider::before,
+.google-divider::after {
+  height: 1px;
+  flex: 1;
+  background: #e5eaf1;
+  content: "";
+}
+
+.google-button {
+  display: flex;
+  min-height: 44px;
+  justify-content: center;
 }
 
 .btn-shub-primary {

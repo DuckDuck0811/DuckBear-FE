@@ -46,6 +46,26 @@ export const useAuthStore = defineStore("auth", {
       return data;
     },
 
+    async loginWithGoogle({ credential }) {
+      const data = await api("/auth/google/login", {
+        method: "POST",
+        body: { credential },
+      });
+
+      this.token = data.accessToken;
+      this.user = data.user;
+      localStorage.setItem("accessToken", data.accessToken);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      return data;
+    },
+
+    async registerWithGoogle({ credential, role }) {
+      return await api("/auth/google/register", {
+        method: "POST",
+        body: { credential, role },
+      });
+    },
+
     /**
      * Đăng ký tài khoản mới và tự động đăng nhập
      * @param {{ email: string, password: string, fullName: string, role: string }} info

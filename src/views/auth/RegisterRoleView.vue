@@ -33,6 +33,16 @@
         </p>
       </div>
 
+      <v-alert
+        v-if="route.query.googleRequired === '1'"
+        type="info"
+        variant="tonal"
+        rounded="lg"
+        class="google-registration-hint mb-6"
+      >
+        Chưa tìm thấy tài khoản này. Chọn vai trò để đăng ký bằng Google.
+      </v-alert>
+
       <!-- 2 Thẻ chọn vai trò -->
       <section class="role-grid" aria-label="Chọn vai trò đăng ký">
         <!-- 1. THẺ HỌC SINH -->
@@ -679,9 +689,10 @@
 </template>
 
 <script setup>
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
+const route = useRoute();
 
 function selectRole(roleKey) {
   router.push(`/register/${roleKey}`);
