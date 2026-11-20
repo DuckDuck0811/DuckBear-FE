@@ -14,6 +14,7 @@
             </div>
             <h1>{{ t("teacherProgress.title") }}</h1>
             <p>{{ t("teacherProgress.subtitle") }}</p>
+            <small>{{ t("teacherProgress.periodHint") }}</small>
           </div>
           <div class="progress-actions">
             <v-btn
@@ -25,6 +26,15 @@
               @click="exportProgress"
               >{{ t("teacherProgress.export") }}</v-btn
             >
+            <v-select
+              v-model="selectedPeriod"
+              :items="periodOptions"
+              :label="t('teacherProgress.selectPeriod')"
+              variant="outlined"
+              density="compact"
+              hide-details
+              class="period-select"
+            />
             <v-select
               v-model="selectedClassId"
               :items="classOptions"
@@ -59,6 +69,93 @@
               ><strong>{{ metric.value }}</strong>
             </v-card>
           </div>
+
+          <v-card class="report-card mb-6" rounded="xl" variant="flat">
+            <div class="report-heading">
+              <div>
+                <h2>{{ t("teacherProgress.chartTitle") }}</h2>
+                <p>{{ t("teacherProgress.chartHint") }}</p>
+              </div>
+              <div class="chart-legend">
+                <span
+                  ><i class="chart-dot chart-dot--submitted" />{{
+                    t("teacherProgress.submitted")
+                  }}</span
+                >
+                <span
+                  ><i class="chart-dot chart-dot--graded" />{{
+                    t("teacherProgress.graded")
+                  }}</span
+                >
+              </div>
+            </div>
+            <div v-if="chartAssignments.length" class="assignment-chart">
+              <div
+                v-for="assignment in chartAssignments"
+                :key="`${assignment.type}-${assignment.id}`"
+                class="chart-row"
+              >
+                <strong
+                  class="chart-assignment-title"
+                  :title="assignment.title"
+                  >{{ assignment.title }}</strong
+                >
+                <div class="chart-bars">
+                  <div class="chart-bar-row">
+                    <span>{{ t("teacherProgress.submitted") }}</span>
+                    <div
+                      class="chart-track"
+                      role="progressbar"
+                      :aria-label="`${assignment.title} · ${t('teacherProgress.submitted')}`"
+                      :aria-valuenow="
+                        progressPercent(assignment.submittedCount)
+                      "
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                    >
+                      <i
+                        class="chart-bar chart-bar--submitted"
+                        :style="{
+                          width: `${progressPercent(assignment.submittedCount)}%`,
+                        }"
+                      />
+                    </div>
+                    <small
+                      >{{ assignment.submittedCount }}/{{
+                        selectedClass.studentCount
+                      }}</small
+                    >
+                  </div>
+                  <div class="chart-bar-row">
+                    <span>{{ t("teacherProgress.graded") }}</span>
+                    <div
+                      class="chart-track"
+                      role="progressbar"
+                      :aria-label="`${assignment.title} · ${t('teacherProgress.graded')}`"
+                      :aria-valuenow="progressPercent(assignment.gradedCount)"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                    >
+                      <i
+                        class="chart-bar chart-bar--graded"
+                        :style="{
+                          width: `${progressPercent(assignment.gradedCount)}%`,
+                        }"
+                      />
+                    </div>
+                    <small
+                      >{{ assignment.gradedCount }}/{{
+                        selectedClass.studentCount
+                      }}</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="empty-row">
+              {{ t("teacherProgress.noChartData") }}
+            </div>
+          </v-card>
 
           <v-card class="report-card mb-6" rounded="xl" variant="flat">
             <div class="report-heading">
@@ -700,6 +797,7 @@ import { downloadTeacherProgressWorkbook } from "../../services/teacherProgressE
 const { t } = useI18n();
 const classes = ref([]);
 const selectedClassId = ref(null);
+const selectedPeriod = ref("all");
 const loading = ref(false);
 const error = ref("");
 const search = ref("");
@@ -730,6 +828,12 @@ const classOptions = computed(() =>
     value: item.id,
   })),
 );
+const periodOptions = computed(() => [
+  { title: t("teacherProgress.periodAll"), value: "all" },
+  { title: t("teacherProgress.periodWeek"), value: "week" },
+  { title: t("teacherProgress.periodMonth"), value: "month" },
+  { title: t("teacherProgress.periodSemester"), value: "semester" },
+]);
 const studentFilterOptions = computed(() => [
   { title: t("teacherProgress.filterAll"), value: "all" },
   { title: t("teacherProgress.filterMissing"), value: "missing" },
@@ -809,6 +913,9 @@ const pagedAssignments = computed(() =>
     assignmentsPage.value * pageSize,
   ),
 );
+const chartAssignments = computed(() =>
+  (selectedClass.value?.assignments || []).slice(0, 8),
+);
 
 const detailStats = computed(() => {
   const list = studentDetail.value?.assignments || [];
@@ -887,6 +994,11 @@ watch(selectedClassId, () => {
   studentsPage.value = 1;
   assignmentsPage.value = 1;
 });
+watch(selectedPeriod, () => {
+  studentsPage.value = 1;
+  assignmentsPage.value = 1;
+  loadProgress();
+});
 watch([search, studentFilter, studentSort], () => {
   studentsPage.value = 1;
 });
@@ -911,7 +1023,11 @@ async function loadProgress() {
   loading.value = true;
   error.value = "";
   try {
-    classes.value = await api("/teacher/overview/progress");
+    const range = progressDateRange(selectedPeriod.value);
+    const query = range
+      ? `?${new URLSearchParams({ from: range.start.toISOString(), to: range.end.toISOString() })}`
+      : "";
+    classes.value = await api(`/teacher/overview/progress${query}`);
   } catch (cause) {
     error.value = cause?.message || t("teacherProgress.loadError");
   } finally {
@@ -923,6 +1039,10 @@ function formatScore(value) {
   return value === null || value === undefined
     ? "—"
     : Number(value).toLocaleString(undefined, { maximumFractionDigits: 1 });
+}
+function progressPercent(count) {
+  const total = selectedClass.value?.studentCount || 0;
+  return total ? Math.min(100, (count / total) * 100) : 0;
 }
 function formatDate(value) {
   return new Intl.DateTimeFormat(undefined, {
@@ -956,14 +1076,44 @@ async function openStudent(student) {
   studentDialog.value = true;
   detailLoading.value = true;
   try {
+    const range = progressDateRange(selectedPeriod.value);
+    const query = range
+      ? `?${new URLSearchParams({ from: range.start.toISOString(), to: range.end.toISOString() })}`
+      : "";
     studentDetail.value = await api(
-      `/teacher/overview/progress/${selectedClass.value.id}/students/${student.id}`,
+      `/teacher/overview/progress/${selectedClass.value.id}/students/${student.id}${query}`,
     );
   } catch (cause) {
     detailError.value = cause?.message || t("teacherProgress.detailLoadError");
   } finally {
     detailLoading.value = false;
   }
+}
+function progressDateRange(period) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  let start;
+  let end;
+  if (period === "week") {
+    start = new Date(year, month, now.getDate() - ((now.getDay() + 6) % 7));
+    end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7);
+  } else if (period === "month") {
+    start = new Date(year, month, 1);
+    end = new Date(year, month + 1, 1);
+  } else if (period === "semester") {
+    if (month >= 7 || month === 0) {
+      const semesterYear = month === 0 ? year - 1 : year;
+      start = new Date(semesterYear, 7, 1);
+      end = new Date(semesterYear + 1, 1, 1);
+    } else {
+      start = new Date(year, 1, 1);
+      end = new Date(year, 5, 1);
+    }
+  } else {
+    return null;
+  }
+  return { start, end };
 }
 function assignmentKey(assignment) {
   return `${selectedClass.value?.id}-${assignment.type}-${assignment.id}`;
@@ -1037,7 +1187,7 @@ function exportProgress() {
     downloadTeacherProgressWorkbook(
       selectedClass.value,
       labels,
-      `duckbear-progress-class-${selectedClass.value.id}-${date}.xlsx`,
+      `duckbear-progress-class-${selectedClass.value.id}-${selectedPeriod.value}-${date}.xlsx`,
     );
     toast.value = {
       show: true,
@@ -1111,6 +1261,9 @@ function exportProgress() {
 .class-select {
   max-width: 260px;
 }
+.period-select {
+  max-width: 220px;
+}
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1140,6 +1293,77 @@ function exportProgress() {
   overflow: hidden;
   border: 1px solid #e3ebf7;
   background: #fff;
+}
+.chart-legend,
+.chart-legend span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chart-legend {
+  flex-wrap: wrap;
+  color: #64748b;
+  font-size: 0.82rem;
+}
+.chart-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.chart-dot--submitted,
+.chart-bar--submitted {
+  background: #347cf5;
+}
+.chart-dot--graded,
+.chart-bar--graded {
+  background: #18a879;
+}
+.assignment-chart {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 28px;
+  padding: 4px 22px 16px;
+}
+.chart-row {
+  min-width: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid #edf2f8;
+}
+.chart-assignment-title {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 9px;
+  color: #26364e;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chart-bars {
+  display: grid;
+  gap: 7px;
+}
+.chart-bar-row {
+  display: grid;
+  grid-template-columns: 58px minmax(30px, 1fr) 48px;
+  align-items: center;
+  gap: 8px;
+  color: #75839a;
+  font-size: 0.75rem;
+}
+.chart-bar-row small {
+  text-align: right;
+  font-size: 0.72rem;
+}
+.chart-track {
+  overflow: hidden;
+  height: 9px;
+  border-radius: 99px;
+  background: #edf2f8;
+}
+.chart-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 180ms ease;
 }
 .report-heading {
   display: flex;
@@ -1331,6 +1555,9 @@ function exportProgress() {
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .assignment-chart {
+    grid-template-columns: 1fr;
+  }
   .progress-hero {
     flex-wrap: wrap;
   }
@@ -1342,6 +1569,10 @@ function exportProgress() {
     flex: 1;
   }
   .class-select {
+    max-width: none;
+    width: 100%;
+  }
+  .period-select {
     max-width: none;
     width: 100%;
   }
