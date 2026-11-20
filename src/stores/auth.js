@@ -53,6 +53,13 @@ export const useAuthStore = defineStore("auth", {
       });
     },
 
+    async verifyResetOtp({ email, otp }) {
+      return await api("/auth/password/verify-otp", {
+        method: "POST",
+        body: { email, otp },
+      });
+    },
+
     async resetPassword({ email, otp, newPassword }) {
       return await api("/auth/password/reset", {
         method: "POST",

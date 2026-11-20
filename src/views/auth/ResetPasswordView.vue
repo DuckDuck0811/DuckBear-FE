@@ -25,7 +25,7 @@
           <SuccessView @to-login="handleBackToLogin" />
         </template>
 
-        <!-- MÀN HÌNH NHẬP MÃ OTP VÀ ĐẶT LẠI MẬT KHẨU -->
+        <!-- MÀN HÌNH 2 BƯỚC: BƯỚC 1 (OTP) -> BƯỚC 2 (MẬT KHẨU MỚI) -->
         <template v-else>
           <!-- 1. Logo DuckBear -->
           <div class="d-flex align-center justify-center ga-2 mb-3 brand-logo-row">
@@ -33,135 +33,196 @@
             <span class="brand-text">DuckBear</span>
           </div>
 
-          <!-- 2. Tiêu đề trang -->
-          <h1 class="page-title text-center mb-2">Nhập mã OTP</h1>
+          <Transition name="step-fade" mode="out-in">
+            <!-- BƯỚC 1: NHẬP VÀ XÁC NHẬN MÃ OTP -->
+            <div v-if="currentStep === 1" key="step-otp">
+              <!-- Tiêu đề & mô tả bước 1 -->
+              <h1 class="page-title text-center mb-2">Nhập mã OTP</h1>
+              <p class="page-description text-center mb-6">
+                Mã được gửi đến <strong class="text-email font-weight-black">{{ displayEmail }}</strong> và có hiệu lực trong 10 phút.
+              </p>
 
-          <!-- 3. Mô tả gửi mã -->
-          <p class="page-description text-center mb-6">
-            Mã được gửi đến <strong class="text-email font-weight-black">{{ displayEmail }}</strong> và có hiệu lực trong 10 phút.
-          </p>
+              <!-- Thông báo lỗi (Alert) -->
+              <v-slide-y-transition>
+                <v-alert
+                  v-if="errorMessage"
+                  type="error"
+                  variant="tonal"
+                  closable
+                  rounded="xl"
+                  class="mb-4 text-body-2 font-weight-bold"
+                  @click:close="errorMessage = ''"
+                >
+                  {{ errorMessage }}
+                </v-alert>
+              </v-slide-y-transition>
 
-          <!-- Thông báo lỗi (Alert) -->
-          <v-slide-y-transition>
-            <v-alert
-              v-if="errorMessage"
-              type="error"
-              variant="tonal"
-              closable
-              rounded="xl"
-              class="mb-4 text-body-2 font-weight-bold"
-              @click:close="errorMessage = ''"
-            >
-              {{ errorMessage }}
-            </v-alert>
-          </v-slide-y-transition>
+              <form class="reset-form d-flex flex-column ga-3" @submit.prevent="handleVerifyOtp">
+                <!-- 6 ô nhập mã OTP -->
+                <div class="form-section">
+                  <label class="form-label mb-2 d-block">Mã xác thực OTP (6 chữ số)</label>
+                  <OtpInput
+                    ref="otpInputRef"
+                    v-model="otpCode"
+                    :disabled="isSubmitting || countdown.isExpired.value"
+                    @focus="onInputFocus"
+                    @blur="onInputBlur"
+                  />
+                </div>
 
-          <v-form ref="formRef" class="reset-form d-flex flex-column ga-3" @submit.prevent="handleSubmit">
-            <!-- 4. 6 ô nhập mã OTP -->
-            <div class="form-section">
-              <label class="form-label mb-2 d-block">Mã xác thực OTP (6 chữ số)</label>
-              <OtpInput
-                ref="otpInputRef"
-                v-model="otpCode"
-                :disabled="isSubmitting || countdown.isExpired.value"
-                @focus="onInputFocus"
-                @blur="onInputBlur"
-                @complete="onOtpComplete"
-              />
+                <!-- Khối đếm ngược 10 phút & chờ gửi lại -->
+                <CountdownRing
+                  :formatted-time="countdown.formattedTime.value"
+                  :progress-percent="countdown.progressPercent.value"
+                  :resend-in="countdown.resendIn.value"
+                  :is-urgent="countdown.isUrgent.value"
+                  :is-expired="countdown.isExpired.value"
+                  :can-resend="countdown.canResend.value"
+                />
+
+                <!-- Hàng link: Đổi email / Gửi lại mã -->
+                <div class="d-flex align-center justify-space-between mt-1 mb-2 action-links-row">
+                  <v-btn
+                    variant="text"
+                    density="compact"
+                    class="btn-text-link"
+                    :disabled="isSubmitting"
+                    @click="handleChangeEmail"
+                  >
+                    Đổi email
+                  </v-btn>
+
+                  <v-btn
+                    variant="text"
+                    density="compact"
+                    class="btn-text-link"
+                    :disabled="isSubmitting || !countdown.canResend.value"
+                    @click="handleResend"
+                  >
+                    {{ countdown.resendIn.value > 0 ? `Gửi lại sau ${countdown.resendIn.value}s` : "Gửi lại mã" }}
+                  </v-btn>
+                </div>
+
+                <!-- Nút xác nhận mã OTP -->
+                <v-btn
+                  type="submit"
+                  color="primary"
+                  size="x-large"
+                  block
+                  rounded="pill"
+                  class="btn-main-submit font-weight-black text-body-1"
+                  :loading="isSubmitting"
+                  :disabled="isOtpSubmitDisabled"
+                >
+                  Xác nhận mã OTP
+                </v-btn>
+              </form>
+
+              <!-- Link quay lại trang đăng nhập -->
+              <div class="text-center mt-5">
+                <v-btn
+                  variant="text"
+                  class="btn-back-login font-weight-black"
+                  @click="handleBackToLogin"
+                >
+                  ← Quay lại đăng nhập
+                </v-btn>
+              </div>
             </div>
 
-            <!-- 5. Khối đếm ngược 10 phút & chờ gửi lại -->
-            <CountdownRing
-              :formatted-time="countdown.formattedTime.value"
-              :progress-percent="countdown.progressPercent.value"
-              :resend-in="countdown.resendIn.value"
-              :is-urgent="countdown.isUrgent.value"
-              :is-expired="countdown.isExpired.value"
-              :can-resend="countdown.canResend.value"
-            />
+            <!-- BƯỚC 2: NHẬP MẬT KHẨU MỚI (CHỈ HIỂN THỊ SAU KHI OTP HỢP LỆ) -->
+            <div v-else key="step-password">
+              <!-- Tiêu đề & mô tả bước 2 -->
+              <h1 class="page-title text-center mb-2">Đặt lại mật khẩu mới</h1>
+              <p class="page-description text-center mb-6">
+                Nhập mật khẩu mới cho tài khoản <strong class="text-email font-weight-black">{{ displayEmail }}</strong>.
+              </p>
 
-            <!-- 6. Mật khẩu mới & Thước đo độ mạnh -->
-            <div class="form-section mt-1">
-              <label class="form-label mb-2 d-block">Mật khẩu mới</label>
-              <PasswordField
-                v-model="newPassword"
-                label="Nhập mật khẩu mới"
-                placeholder="Tối thiểu 6 ký tự"
-                :rules="passwordRules"
-                @focus="onInputFocus"
-                @blur="onInputBlur"
-              />
-              <StrengthMeter
-                v-if="newPassword"
-                :score="strength.score.value"
-                :label="strength.label.value"
-                :color="strength.color.value"
-              />
+              <!-- Thông báo lỗi (Alert) -->
+              <v-slide-y-transition>
+                <v-alert
+                  v-if="errorMessage"
+                  type="error"
+                  variant="tonal"
+                  closable
+                  rounded="xl"
+                  class="mb-4 text-body-2 font-weight-bold"
+                  @click:close="errorMessage = ''"
+                >
+                  {{ errorMessage }}
+                </v-alert>
+              </v-slide-y-transition>
+
+              <v-form ref="passwordFormRef" class="reset-form d-flex flex-column ga-3" @submit.prevent="handleResetPassword">
+                <!-- Mật khẩu mới & Thước đo độ mạnh -->
+                <div class="form-section">
+                  <label class="form-label mb-2 d-block">Mật khẩu mới</label>
+                  <PasswordField
+                    v-model="newPassword"
+                    label="Nhập mật khẩu mới"
+                    placeholder="Tối thiểu 6 ký tự"
+                    :rules="passwordRules"
+                    @focus="onInputFocus"
+                    @blur="onInputBlur"
+                  />
+                  <StrengthMeter
+                    v-if="newPassword"
+                    :score="strength.score.value"
+                    :label="strength.label.value"
+                    :color="strength.color.value"
+                  />
+                </div>
+
+                <!-- Nhập lại mật khẩu mới -->
+                <div class="form-section">
+                  <label class="form-label mb-2 d-block">Xác nhận mật khẩu</label>
+                  <PasswordField
+                    v-model="confirmPassword"
+                    label="Nhập lại mật khẩu mới"
+                    placeholder="Nhập trùng khớp với mật khẩu mới"
+                    :is-confirmation="true"
+                    :is-match="isPasswordMatch"
+                    :rules="confirmationRules"
+                    @focus="onInputFocus"
+                    @blur="onInputBlur"
+                  />
+                </div>
+
+                <!-- Nút đổi mật khẩu -->
+                <v-btn
+                  type="submit"
+                  color="primary"
+                  size="x-large"
+                  block
+                  rounded="pill"
+                  class="btn-main-submit font-weight-black text-body-1 mt-2"
+                  :loading="isSubmitting"
+                  :disabled="isPasswordSubmitDisabled"
+                >
+                  Xác nhận đổi mật khẩu
+                </v-btn>
+              </v-form>
+
+              <!-- Hàng quay lại bước 1 hoặc về đăng nhập -->
+              <div class="d-flex align-center justify-space-between mt-5">
+                <v-btn
+                  variant="text"
+                  class="btn-text-link font-weight-black"
+                  @click="handleBackToStep1"
+                >
+                  ← Nhập lại mã OTP
+                </v-btn>
+
+                <v-btn
+                  variant="text"
+                  class="btn-back-login font-weight-black"
+                  @click="handleBackToLogin"
+                >
+                  Đăng nhập
+                </v-btn>
+              </div>
             </div>
-
-            <!-- 7. Nhập lại mật khẩu mới -->
-            <div class="form-section">
-              <label class="form-label mb-2 d-block">Xác nhận mật khẩu</label>
-              <PasswordField
-                v-model="confirmPassword"
-                label="Nhập lại mật khẩu mới"
-                placeholder="Nhập trùng khớp với mật khẩu mới"
-                :is-confirmation="true"
-                :is-match="isPasswordMatch"
-                :rules="confirmationRules"
-                @focus="onInputFocus"
-                @blur="onInputBlur"
-              />
-            </div>
-
-            <!-- 8. Hàng link: Đổi email / Gửi lại mã -->
-            <div class="d-flex align-center justify-space-between mt-1 mb-2 action-links-row">
-              <v-btn
-                variant="text"
-                density="compact"
-                class="btn-text-link"
-                :disabled="isSubmitting"
-                @click="handleChangeEmail"
-              >
-                Đổi email
-              </v-btn>
-
-              <v-btn
-                variant="text"
-                density="compact"
-                class="btn-text-link"
-                :disabled="isSubmitting || !countdown.canResend.value"
-                @click="handleResend"
-              >
-                {{ countdown.resendIn.value > 0 ? `Gửi lại sau ${countdown.resendIn.value}s` : "Gửi lại mã" }}
-              </v-btn>
-            </div>
-
-            <!-- 9. Nút chính xác nhận và đổi mật khẩu -->
-            <v-btn
-              type="submit"
-              color="primary"
-              size="x-large"
-              block
-              rounded="pill"
-              class="btn-main-submit font-weight-black text-body-1"
-              :loading="isSubmitting"
-              :disabled="isSubmitDisabled"
-            >
-              Xác nhận OTP và đổi mật khẩu
-            </v-btn>
-          </v-form>
-
-          <!-- 10. Link quay lại trang đăng nhập -->
-          <div class="text-center mt-5">
-            <v-btn
-              variant="text"
-              class="btn-back-login font-weight-black"
-              @click="handleBackToLogin"
-            >
-              ← Quay lại đăng nhập
-            </v-btn>
-          </div>
+          </Transition>
         </template>
       </v-card>
     </Transition>
@@ -213,8 +274,11 @@ const displayEmail = computed(() => {
   );
 });
 
+// Trạng thái các bước: 1 = Nhập OTP, 2 = Nhập mật khẩu mới
+const currentStep = ref(1);
+
 // Trạng thái form & tương tác
-const formRef = ref(null);
+const passwordFormRef = ref(null);
 const otpInputRef = ref(null);
 const otpCode = ref("");
 const newPassword = ref("");
@@ -226,7 +290,11 @@ const errorMessage = ref("");
 const isInputFocused = ref(false);
 
 // Composables
-const countdown = useCountdown(600, 60);
+const sentAt = Number(route.query.sentAt);
+const secondsSinceSend = Number.isFinite(sentAt) && sentAt > 0
+  ? Math.floor((Date.now() - sentAt) / 1000)
+  : 0;
+const countdown = useCountdown(Math.max(0, 600 - secondsSinceSend), 60);
 const strength = usePasswordStrength(newPassword);
 
 // Kiểm tra mật khẩu khớp nhau
@@ -238,17 +306,19 @@ const isPasswordMatch = computed(() => {
   );
 });
 
-// Nút submit bị vô hiệu hóa khi:
-// - Đang gửi
-// - OTP chưa đủ 6 chữ số
-// - Mã đã hết hạn 10 phút
-// - Mật khẩu mới chưa hợp lệ (< 6 ký tự)
-// - Mật khẩu nhập lại chưa khớp
-const isSubmitDisabled = computed(() => {
+// Nút submit bước 1 (Xác nhận OTP) bị disabled khi:
+const isOtpSubmitDisabled = computed(() => {
   return (
     isSubmitting.value ||
     otpCode.value.length < 6 ||
-    countdown.isExpired.value ||
+    countdown.isExpired.value
+  );
+});
+
+// Nút submit bước 2 (Đổi mật khẩu) bị disabled khi:
+const isPasswordSubmitDisabled = computed(() => {
+  return (
+    isSubmitting.value ||
     !strength.isValid.value ||
     !isPasswordMatch.value
   );
@@ -274,11 +344,7 @@ function onInputBlur() {
   isInputFocused.value = false;
 }
 
-function onOtpComplete() {
-  // Khi nhập đủ 6 số, nếu mật khẩu đã khớp thì có thể chuẩn bị submit
-}
-
-// Validation rules
+// Validation rules cho mật khẩu
 const passwordRules = [
   (v) => !!v || "Mật khẩu không được để trống",
   (v) => (v && v.length >= 6) || "Mật khẩu cần ít nhất 6 ký tự",
@@ -306,54 +372,6 @@ function fireConfetti() {
   }
 }
 
-// Xử lý nộp form
-async function handleSubmit() {
-  if (isSubmitDisabled.value) return;
-
-  const valid = await formRef.value?.validate();
-  if (valid && !valid.valid) return;
-
-  isSubmitting.value = true;
-  errorMessage.value = "";
-
-  try {
-    // 1. Nếu có prop onVerify truyền vào
-    if (typeof props.onVerify === "function") {
-      await props.onVerify(otpCode.value, newPassword.value);
-    } else if (auth?.resetPassword) {
-      // 2. Tích hợp trực tiếp với authStore
-      await auth.resetPassword({
-        email: displayEmail.value,
-        otp: otpCode.value,
-        newPassword: newPassword.value,
-      });
-    } else {
-      // 3. Mock fallback kiểm tra (mã 123456 hoặc bất kỳ số khác 000000)
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          if (otpCode.value === "000000") {
-            reject(new Error("Mã OTP không chính xác hoặc đã hết hạn"));
-          } else {
-            resolve({ success: true });
-          }
-        }, 900);
-      });
-    }
-
-    // Thành công
-    isSuccess.value = true;
-    emit("verify", { otp: otpCode.value, newPassword: newPassword.value });
-    fireConfetti();
-  } catch (err) {
-    // Thất bại: rung card + báo lỗi + xóa mã OTP
-    errorMessage.value = err.message || "Mã OTP không đúng hoặc đã hết hạn. Vui lòng thử lại.";
-    triggerShake();
-    otpInputRef.value?.clear();
-  } finally {
-    isSubmitting.value = false;
-  }
-}
-
 // Kích hoạt hiệu ứng rung card
 function triggerShake() {
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -363,6 +381,85 @@ function triggerShake() {
       isShaking.value = false;
     }, 600);
   }
+}
+
+// BƯỚC 1: XÁC THỰC MÃ OTP
+async function handleVerifyOtp() {
+  if (isOtpSubmitDisabled.value) return;
+
+  isSubmitting.value = true;
+  errorMessage.value = "";
+
+  try {
+    if (auth?.verifyResetOtp) {
+      // Gọi API xác thực OTP từ BE (/auth/password/verify-otp)
+      await auth.verifyResetOtp({
+        email: displayEmail.value,
+        otp: otpCode.value,
+      });
+    } else {
+      // Mock fallback: OTP '000000' coi như sai, còn lại coi như đúng
+      await new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (otpCode.value === "000000") {
+            reject(new Error("Mã OTP không chính xác hoặc đã hết hạn"));
+          } else {
+            resolve({ valid: true });
+          }
+        }, 600);
+      });
+    }
+
+    // OTP đúng -> chuyển sang bước 2 để nhập mật khẩu mới
+    currentStep.value = 2;
+  } catch (err) {
+    errorMessage.value = err.message || "Mã OTP không đúng hoặc đã hết hạn. Vui lòng thử lại.";
+    triggerShake();
+    otpInputRef.value?.clear();
+  } finally {
+    isSubmitting.value = false;
+  }
+}
+
+// BƯỚC 2: XÁC NHẬN ĐẶT LẠI MẬT KHẨU
+async function handleResetPassword() {
+  if (isPasswordSubmitDisabled.value) return;
+
+  const valid = await passwordFormRef.value?.validate();
+  if (valid && !valid.valid) return;
+
+  isSubmitting.value = true;
+  errorMessage.value = "";
+
+  try {
+    if (typeof props.onVerify === "function") {
+      await props.onVerify(otpCode.value, newPassword.value);
+    } else if (auth?.resetPassword) {
+      await auth.resetPassword({
+        email: displayEmail.value,
+        otp: otpCode.value,
+        newPassword: newPassword.value,
+      });
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    }
+
+    // Đổi mật khẩu thành công -> hiển thị màn hình chúc mừng
+    isSuccess.value = true;
+    emit("verify", { otp: otpCode.value, newPassword: newPassword.value });
+    fireConfetti();
+  } catch (err) {
+    errorMessage.value = err.message || "Đã có lỗi xảy ra khi đổi mật khẩu. Vui lòng thử lại.";
+    triggerShake();
+  } finally {
+    isSubmitting.value = false;
+  }
+}
+
+// Quay lại bước 1
+function handleBackToStep1() {
+  currentStep.value = 1;
+  errorMessage.value = "";
 }
 
 // Gửi lại mã OTP
@@ -448,216 +545,261 @@ function handleBackToLogin() {
   left: -90px;
   background-color: #22708F;
   opacity: 0.28;
-  animation: floatSlow 16s ease-in-out infinite alternate;
+  animation: floatSlow1 18s ease-in-out infinite alternate;
 }
 
 /* Blob 2: Cam #FFB84D (opacity .3) góc dưới phải */
 .blob-2 {
-  width: 340px;
-  height: 340px;
-  bottom: -60px;
-  right: -70px;
+  width: 380px;
+  height: 380px;
+  bottom: -90px;
+  right: -90px;
   background-color: #FFB84D;
   opacity: 0.3;
-  animation: floatSlow 18s ease-in-out infinite alternate-reverse;
+  animation: floatSlow2 22s ease-in-out infinite alternate;
 }
 
-/* Blob 3: Xanh dương #2F7BF5 (opacity .18) */
+/* Blob 3: Xanh dương #2F7BF5 (opacity .18) giữa phải */
 .blob-3 {
-  width: 280px;
-  height: 280px;
-  top: 40%;
-  right: 15%;
+  width: 260px;
+  height: 260px;
+  top: 30%;
+  right: 10%;
   background-color: #2F7BF5;
   opacity: 0.18;
-  animation: floatSlow 20s ease-in-out infinite alternate;
+  animation: floatSlow3 15s ease-in-out infinite alternate;
 }
 
-/* Blob 4: Teal nhỏ (opacity .16) */
+/* Blob 4: Teal nhỏ #22708F (opacity .16) góc dưới trái */
 .blob-4 {
-  width: 200px;
-  height: 200px;
-  bottom: 25%;
-  left: 10%;
+  width: 220px;
+  height: 220px;
+  bottom: 8%;
+  left: 8%;
   background-color: #22708F;
   opacity: 0.16;
-  animation: floatSlow 14s ease-in-out infinite alternate-reverse;
+  animation: floatSlow1 20s ease-in-out infinite alternate reverse;
 }
 
-@keyframes floatSlow {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(25px, -20px) scale(1.06);
-  }
-  100% {
-    transform: translate(-20px, 25px) scale(0.96);
-  }
+@keyframes floatSlow1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, 40px) scale(1.08); }
+  100% { transform: translate(-20px, 20px) scale(0.95); }
 }
 
-/* 3. CARD CHÍNH 480PX */
+@keyframes floatSlow2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-40px, -30px) scale(1.05); }
+  100% { transform: translate(25px, -20px) scale(0.96); }
+}
+
+@keyframes floatSlow3 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-30px, 35px); }
+}
+
+/* 3. CARD CONTAINER */
 .reset-card {
   position: relative;
-  z-index: 1;
   width: 100%;
-  max-width: 480px;
+  max-width: 540px;
   border-radius: 32px !important;
   background: rgba(255, 255, 255, 0.82) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
-  padding: 84px 40px 32px;
-  box-shadow: 0 20px 48px -12px rgba(34, 112, 143, 0.16),
-              0 8px 24px -4px rgba(47, 123, 245, 0.10),
-              0 2px 6px rgba(0, 0, 0, 0.04) !important;
-  box-sizing: border-box;
-  overflow: visible !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow:
+    0 10px 25px -5px rgba(34, 112, 143, 0.08),
+    0 20px 40px -10px rgba(47, 123, 245, 0.12),
+    0 0 1px 1px rgba(255, 255, 255, 0.9) inset !important;
+  padding: 88px 46px 40px !important;
+  z-index: 1;
 }
 
-/* Mascot nhô lên 52px */
+/* 4. MASCOT ANCHOR */
 .mascot-anchor {
   position: absolute;
   top: -56px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;
+  z-index: 2;
+  filter: drop-shadow(0 10px 14px rgba(34, 112, 143, 0.16));
 }
 
-/* Logo DuckBear */
+/* 5. LOGO BRAND */
 .brand-icon-box {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
-  background-color: #22708F;
+  background: linear-gradient(135deg, #22708F 0%, #2F7BF5 100%);
   color: #FFFFFF;
+  font-weight: 900;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 900;
-  font-size: 1.05rem;
+  box-shadow: 0 4px 10px rgba(34, 112, 143, 0.25);
 }
 
 .brand-text {
-  font-size: 1.35rem;
-  font-weight: 900;
-  color: #1B5F7B;
+  font-size: 20px;
+  font-weight: 800;
+  color: #22708F;
   letter-spacing: -0.3px;
 }
 
-/* Tiêu đề & Mô tả */
+/* 6. TIÊU ĐỀ & MÔ TẢ */
 .page-title {
-  font-size: 34px;
+  font-size: 26px;
   font-weight: 900;
-  color: #1B5F7B;
+  color: #1A3E54;
   letter-spacing: -0.5px;
-  line-height: 1.2;
 }
 
 .page-description {
-  font-size: 0.95rem;
-  color: #5A6875;
-  line-height: 1.55;
+  font-size: 14px;
+  color: #5A7184;
+  line-height: 1.5;
 }
 
 .text-email {
-  color: #1B5F7B;
+  color: #22708F;
 }
 
+/* 7. FORM SECTIONS */
 .form-label {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: #33414D;
+  font-size: 13px;
+  font-weight: 800;
+  color: #2C3E50;
+  letter-spacing: -0.2px;
 }
 
-/* Links */
+/* 8. ACTION LINKS */
 .btn-text-link {
-  color: #1F63D6 !important;
+  font-size: 13px !important;
   font-weight: 800 !important;
-  font-size: 0.85rem !important;
+  color: #22708F !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
   padding: 0 4px !important;
+  min-width: auto !important;
 }
 
-.btn-back-login {
-  color: #1F63D6 !important;
-  font-size: 0.95rem !important;
-  letter-spacing: 0.1px;
+.btn-text-link:hover {
+  color: #2F7BF5 !important;
+  background-color: transparent !important;
 }
 
-/* Nút chính Xác nhận OTP và đổi mật khẩu */
+/* 9. NÚT CHÍNH */
 .btn-main-submit {
-  background: linear-gradient(90deg, #22708F 0%, #2F7BF5 100%) !important;
+  height: 52px !important;
+  background: linear-gradient(135deg, #22708F 0%, #2F7BF5 100%) !important;
   color: #FFFFFF !important;
-  height: 56px !important;
-  box-shadow: 0 10px 24px -4px rgba(47, 123, 245, 0.45) !important;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 20px -4px rgba(34, 112, 143, 0.35) !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  text-transform: none !important;
 }
 
 .btn-main-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 14px 28px -4px rgba(47, 123, 245, 0.55) !important;
+  box-shadow: 0 12px 24px -4px rgba(34, 112, 143, 0.45) !important;
 }
 
 .btn-main-submit:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(0);
 }
 
 .btn-main-submit:disabled {
-  opacity: 0.65;
+  opacity: 0.55 !important;
+  background: #A0B4C0 !important;
   box-shadow: none !important;
 }
 
-/* Hiệu ứng Shake khi OTP sai */
+/* 10. QUAY LẠI ĐĂNG NHẬP */
+.btn-back-login {
+  font-size: 13px !important;
+  color: #22708F !important;
+  text-transform: none !important;
+}
+
+.btn-back-login:hover {
+  color: #2F7BF5 !important;
+  background: transparent !important;
+}
+
+/* 11. HIỆU ỨNG RUNG THẺ (SHAKE ANIMATION) */
 .card--shake {
-  animation: shakeCard 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  animation: cardShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-@keyframes shakeCard {
-  10%, 90% {
-    transform: translate3d(-3px, 0, 0);
-  }
-  20%, 80% {
-    transform: translate3d(5px, 0, 0);
-  }
-  30%, 50%, 70% {
-    transform: translate3d(-6px, 0, 0);
-  }
-  40%, 60% {
-    transform: translate3d(6px, 0, 0);
-  }
+@keyframes cardShake {
+  10%, 90% { transform: translate3d(-3px, 0, 0); }
+  20%, 80% { transform: translate3d(5px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+  40%, 60% { transform: translate3d(6px, 0, 0); }
 }
 
-/* Card entry transition (Fade + Slide up) */
+/* 12. STEP TRANSITION ANIMATION */
+.step-fade-enter-active,
+.step-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.step-fade-enter-from {
+  opacity: 0;
+  transform: translateX(18px);
+}
+
+.step-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-18px);
+}
+
+/* 13. CARD TRANSITION */
 .card-slide-enter-active {
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .card-slide-enter-from {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(32px) scale(0.96);
 }
 
-/* Responsive trên màn hình nhỏ */
-@media (max-width: 480px) {
+/* 14. RESPONSIVE DESIGN */
+@media (max-width: 600px) {
   .reset-password-page {
-    padding: 70px 14px 24px;
+    padding: 70px 16px 24px;
+    align-items: flex-start;
   }
+
   .reset-card {
-    padding: 74px 20px 24px;
+    max-width: 100%;
+    padding: 76px 24px 28px !important;
     border-radius: 24px !important;
   }
+
   .page-title {
-    font-size: 28px;
+    font-size: 22px;
+  }
+
+  .page-description {
+    font-size: 13px;
+  }
+
+  .btn-main-submit {
+    height: 48px !important;
   }
 }
 
-/* Tôn trọng prefers-reduced-motion */
+/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .blob,
+  .reset-card,
   .card--shake,
-  .card-slide-enter-active {
+  .step-fade-enter-active,
+  .step-fade-leave-active {
     animation: none !important;
     transition: none !important;
-    transform: none !important;
   }
 }
 </style>
