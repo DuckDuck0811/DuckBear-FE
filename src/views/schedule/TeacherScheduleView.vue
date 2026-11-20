@@ -867,7 +867,9 @@
                                 <span class="month-event-time">{{
                                   event.type === "lesson-note"
                                     ? t("schedule.allDay")
-                                    : formatTime(event.deadline)
+                                    : event.hasDeadline
+                                      ? formatTime(event.deadline)
+                                      : t("assignmentHub.noDeadline")
                                 }}</span>
                                 <v-icon
                                   :icon="eventKindIcon(event)"
@@ -954,7 +956,9 @@
                     <span>{{
                       event.type === "lesson-note"
                         ? t("schedule.allDay")
-                        : formatTime(event.deadline)
+                        : event.hasDeadline
+                          ? formatTime(event.deadline)
+                          : t("assignmentHub.noDeadline")
                     }}</span>
                   </div>
                   <div class="agenda-event-main">
@@ -1121,7 +1125,9 @@
                         <span>{{
                           event.type === "lesson-note"
                             ? t("schedule.allDay")
-                            : formatTime(event.deadline)
+                            : event.hasDeadline
+                              ? formatTime(event.deadline)
+                              : t("assignmentHub.noDeadline")
                         }}</span>
                       </div>
                       <v-chip
@@ -1371,7 +1377,9 @@
           </div>
           <div class="drawer-detail-line">
             <v-icon icon="mdi-calendar-clock-outline" /><span>{{
-              formatLongDate(selectedEvent.deadlineDate)
+              selectedEvent.hasDeadline
+                ? formatLongDate(selectedEvent.deadlineDate)
+                : t("assignmentHub.noDeadline")
             }}</span>
           </div>
           <div class="drawer-detail-line">
@@ -1748,7 +1756,9 @@
                   <span>{{
                     event.type === "lesson-note"
                       ? t("schedule.allDay")
-                      : formatTime(event.deadline)
+                      : event.hasDeadline
+                        ? formatTime(event.deadline)
+                        : t("assignmentHub.noDeadline")
                   }}</span>
                 </div>
                 <v-chip
@@ -2909,7 +2919,8 @@ function eventTooltip(event) {
 }
 
 function getEventStatus(assignment, deadline) {
-  if (assignment.type === "lesson-note") return "planned";
+  if (assignment.type === "lesson-note" || !assignment.hasDeadline)
+    return "planned";
   if (isStudent.value) {
     if (assignment.type === "manual") {
       if (assignment.submissions?.some((submission) => submission.submittedAt))
@@ -2964,11 +2975,13 @@ const allEvents = computed(() =>
       manualAssignmentId: assignment.id,
     })),
   ]
-    .filter((assignment) => assignment.deadline)
+    .filter((assignment) => assignment.deadline || assignment.createdAt)
     .map((assignment) => {
-      const deadline = new Date(assignment.deadline);
+      const hasDeadline = Boolean(assignment.deadline);
+      const deadline = new Date(assignment.deadline || assignment.createdAt);
       return {
         ...assignment,
+        hasDeadline,
         deadlineDate: deadline,
         status: getEventStatus(assignment, deadline),
       };
