@@ -174,13 +174,13 @@ onMounted(() => {
 
 .otp-cell-wrapper {
   flex: 1;
-  max-width: 60px;
+  max-width: 68px;
 }
 
 .otp-cell {
   width: 100%;
-  height: 60px;
-  border-radius: 16px;
+  height: 68px;
+  border-radius: 18px;
   border: 2px solid #B9D3E0;
   background-color: #FFFFFF;
   color: #1B5F7B;
@@ -227,8 +227,8 @@ onMounted(() => {
     gap: 6px;
   }
   .otp-cell {
-    height: 52px;
-    border-radius: 12px;
+    height: 56px;
+    border-radius: 14px;
     font-size: 22px;
   }
 }
