@@ -19,7 +19,9 @@ export async function api(
   };
 
   const isAuthEndpoint =
-    path.includes("/auth/login") || path.includes("/auth/register");
+    path.includes("/auth/login") ||
+    path.includes("/auth/register") ||
+    path.includes("/auth/google");
   if (token && !isAuthEndpoint) {
     reqHeaders["Authorization"] = `Bearer ${token}`;
   }
@@ -50,6 +52,11 @@ export async function api(
 
   // 401: Chưa đăng nhập hoặc token hết hạn
   if (response.status === 401) {
+    if (path.includes("/auth/google")) {
+      throw new Error(
+        "Không xác thực được tài khoản Google. Vui lòng thử lại.",
+      );
+    }
     if (!isAuthEndpoint) {
       window.dispatchEvent(new Event("auth:session-expired"));
       localStorage.removeItem("accessToken");
