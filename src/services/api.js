@@ -21,6 +21,7 @@ export async function api(
   const isAuthEndpoint =
     path.includes("/auth/login") ||
     path.includes("/auth/register") ||
+    path.includes("/auth/password/") ||
     path.includes("/auth/google");
   if (token && !isAuthEndpoint) {
     reqHeaders["Authorization"] = `Bearer ${token}`;

@@ -7,6 +7,16 @@ const routes = [
     component: () => import("../views/auth/LoginView.vue"),
   },
   {
+    path: "/forgot-password",
+    name: "forgot-password",
+    component: () => import("../views/auth/ForgotPasswordView.vue"),
+  },
+  {
+    path: "/reset-password",
+    name: "reset-password",
+    component: () => import("../views/auth/ResetPasswordView.vue"),
+  },
+  {
     path: "/register",
     name: "register",
     component: () => import("../views/auth/RegisterRoleView.vue"),
@@ -156,11 +166,16 @@ router.beforeEach((to) => {
         ? "/"
         : "/";
 
-  if (to.path !== "/login" && !to.path.startsWith("/register") && !token) {
+  const publicAuthRoute =
+    to.path === "/login" ||
+    to.path === "/forgot-password" ||
+    to.path === "/reset-password" ||
+    to.path.startsWith("/register");
+
+  if (!publicAuthRoute && !token) {
     return "/login";
   } else if (
-    (to.path === "/login" || to.path.startsWith("/register")) &&
-    token
+    publicAuthRoute && token
   ) {
     return landingPath;
   } else if (to.meta.roles && !to.meta.roles.includes(user?.role)) {
