@@ -469,6 +469,15 @@
           >
             Đăng ký thành công. Hãy đăng nhập bằng Google để tiếp tục.
           </v-alert>
+          <v-alert
+            v-if="route.query.passwordReset === '1'"
+            type="success"
+            variant="tonal"
+            rounded="lg"
+            class="mb-4 text-body-2 font-weight-medium"
+          >
+            Đổi mật khẩu thành công. Hãy đăng nhập bằng mật khẩu mới.
+          </v-alert>
 
           <!-- Form đăng nhập / đăng ký -->
           <v-form ref="form" validate-on="submit lazy" @submit.prevent="submit">
@@ -564,6 +573,12 @@
                   </v-btn>
                 </template>
               </v-text-field>
+            </div>
+
+            <div v-if="mode === 'login'" class="text-right mt-n2 mb-2">
+              <router-link class="forgot-password-link" to="/forgot-password">
+                Quên mật khẩu?
+              </router-link>
             </div>
 
             <!-- Nút gửi Submit Pill -->
@@ -1342,6 +1357,17 @@ onBeforeUnmount(() => window.clearTimeout(blinkTimer));
   display: grid;
   justify-items: center;
   gap: 14px;
+}
+
+.forgot-password-link {
+  color: #2674eb;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
 }
 
 .google-divider {

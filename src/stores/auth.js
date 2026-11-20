@@ -46,6 +46,20 @@ export const useAuthStore = defineStore("auth", {
       return data;
     },
 
+    async requestPasswordReset({ email }) {
+      return await api("/auth/password/reset-request", {
+        method: 'POST',
+        body: { email },
+      });
+    },
+
+    async resetPassword({ email, otp, newPassword }) {
+      return await api("/auth/password/reset", {
+        method: "POST",
+        body: { email, otp, newPassword },
+      });
+    },
+
     async loginWithGoogle({ credential }) {
       const data = await api("/auth/google/login", {
         method: "POST",
