@@ -508,10 +508,9 @@ function handleBackToLogin() {
   min-height: 100vh;
   min-height: 100dvh;
   width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px 40px;
+  display: grid;
+  place-items: center;
+  padding: 26px 20px 32px;
   background: linear-gradient(135deg, #E6F3FA 0%, #EEF4FF 48%, #FFF4E0 100%);
   font-family: 'Nunito', -apple-system, sans-serif;
   overflow-x: hidden;
@@ -601,8 +600,10 @@ function handleBackToLogin() {
 /* 3. CARD CONTAINER */
 .reset-card {
   position: relative;
+  margin: 0 auto;
   width: 100%;
   max-width: 540px;
+  overflow: visible !important;
   border-radius: 32px !important;
   background: rgba(255, 255, 255, 0.82) !important;
   backdrop-filter: blur(20px);
@@ -612,14 +613,14 @@ function handleBackToLogin() {
     0 10px 25px -5px rgba(34, 112, 143, 0.08),
     0 20px 40px -10px rgba(47, 123, 245, 0.12),
     0 0 1px 1px rgba(255, 255, 255, 0.9) inset !important;
-  padding: 88px 46px 40px !important;
+  padding: 98px 46px 40px !important;
   z-index: 1;
 }
 
 /* 4. MASCOT ANCHOR */
 .mascot-anchor {
   position: absolute;
-  top: -56px;
+  top: -26px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
@@ -660,6 +661,7 @@ function handleBackToLogin() {
   font-size: 14px;
   color: #5A7184;
   line-height: 1.5;
+  text-wrap: balance;
 }
 
 .text-email {
@@ -768,13 +770,12 @@ function handleBackToLogin() {
 /* 14. RESPONSIVE DESIGN */
 @media (max-width: 600px) {
   .reset-password-page {
-    padding: 70px 16px 24px;
-    align-items: flex-start;
+    padding: 26px 16px 24px;
   }
 
   .reset-card {
     max-width: 100%;
-    padding: 76px 24px 28px !important;
+    padding: 96px 24px 28px !important;
     border-radius: 24px !important;
   }
 
@@ -788,6 +789,13 @@ function handleBackToLogin() {
 
   .btn-main-submit {
     height: 48px !important;
+  }
+}
+
+@media (max-height: 720px) {
+  .reset-password-page {
+    place-items: start center;
+    padding-top: 26px;
   }
 }
 
