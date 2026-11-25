@@ -1,14 +1,14 @@
 <template>
   <v-navigation-drawer
-    v-if="isTeacher"
+    v-if="hasManagementSidebar"
     v-model="drawerOpen"
     :permanent="!mobile"
     :temporary="mobile"
     :width="288"
     class="teacher-sidebar"
-    :aria-label="t('sidebar.aria')"
+    :aria-label="t(authStore.user?.role === 'ADMIN' ? 'sidebar.adminAria' : 'sidebar.aria')"
   >
-    <nav class="px-3 pt-5 pb-5" :aria-label="t('sidebar.menu')">
+    <nav class="px-3 pt-5 pb-5" :aria-label="t(authStore.user?.role === 'ADMIN' ? 'sidebar.adminMenu' : 'sidebar.menu')">
       <section v-for="group in groups" :key="group.title" class="mb-4">
         <h2 class="sidebar-group-title px-3 mb-2">{{ t(group.title) }}</h2>
         <template v-for="item in group.items" :key="item.label">
@@ -50,9 +50,11 @@ const authStore = useAuthStore();
 const { mobile } = useDisplay({ mobileBreakpoint: "md" });
 const { t } = useI18n();
 const drawerOpen = ref(false);
-const isTeacher = computed(() => authStore.user?.role === "TEACHER");
+const hasManagementSidebar = computed(() =>
+  ["TEACHER", "ADMIN"].includes(authStore.user?.role),
+);
 
-const groups = computed(() => [
+const teacherGroups = [
   {
     title: "sidebar.learningSpace",
     items: [
@@ -138,7 +140,95 @@ const groups = computed(() => [
       },
     ],
   },
-]);
+];
+
+const adminGroups = [
+  {
+    title: "sidebar.adminContent",
+    items: [
+      {
+        label: "sidebar.curriculum",
+        icon: "mdi-bookshelf",
+        to: "/",
+        match: ["books", "book-detail", "lesson-detail"],
+      },
+      {
+        label: "sidebar.questionBank",
+        icon: "mdi-comment-question-outline",
+        to: "/question-bank",
+        match: ["question-bank"],
+      },
+    ],
+  },
+  {
+    title: "sidebar.adminLearning",
+    items: [
+      {
+        label: "sidebar.classes",
+        icon: "mdi-account-group-outline",
+        to: "/classes",
+        match: ["classes", "class-detail"],
+      },
+      {
+        label: "sidebar.createAssignment",
+        icon: "mdi-file-edit-outline",
+        to: "/assignments",
+        match: ["assignments"],
+      },
+      {
+        label: "sidebar.examBank",
+        icon: "mdi-folder-text-outline",
+        to: "/exam-bank",
+        match: ["exam-bank"],
+      },
+      {
+        label: "sidebar.results",
+        icon: "mdi-chart-box-outline",
+        to: "/teacher/progress",
+        match: ["teacher-progress"],
+      },
+      {
+        label: "sidebar.studentWork",
+        icon: "mdi-clipboard-check-outline",
+        to: "/submissions",
+        match: ["submissions", "submission-detail"],
+      },
+      {
+        label: "sidebar.submissions",
+        icon: "mdi-cloud-upload-outline",
+        to: "/manual-assignments",
+        match: ["manual-assignments", "class-manual-assignments"],
+      },
+      {
+        label: "sidebar.activityLog",
+        icon: "mdi-history",
+        to: "/activity-log",
+        match: ["activity-log"],
+      },
+    ],
+  },
+  {
+    title: "sidebar.adminSystem",
+    items: [
+      {
+        label: "sidebar.accountManagement",
+        icon: "mdi-account-cog-outline",
+        to: "/admin/accounts",
+        match: ["admin-accounts"],
+      },
+    ],
+  },
+  {
+    title: "sidebar.account",
+    items: [
+      { label: "sidebar.profile", icon: "mdi-account-outline", to: "/profile", match: ["profile"] },
+    ],
+  },
+];
+
+const groups = computed(() =>
+  authStore.user?.role === "ADMIN" ? adminGroups : teacherGroups,
+);
 
 function isActive(item) {
   return item.match?.includes(route.name);
@@ -149,7 +239,7 @@ function closeOnMobile() {
 }
 
 function toggleFromHeader() {
-  if (mobile.value && isTeacher.value) drawerOpen.value = !drawerOpen.value;
+  if (mobile.value && hasManagementSidebar.value) drawerOpen.value = !drawerOpen.value;
 }
 
 watch(

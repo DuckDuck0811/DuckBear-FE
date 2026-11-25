@@ -669,6 +669,16 @@
                     :title="t('assignmentHub.editAssignment')"
                     @click="openEditAssignment(assignment)"
                   />
+                  <v-btn
+                    v-if="auth.user?.role === 'ADMIN'"
+                    variant="tonal"
+                    color="error"
+                    icon="mdi-delete-outline"
+                    rounded="pill"
+                    size="small"
+                    :title="t('assignmentHub.deleteAssignment')"
+                    @click="deleteAssignment(assignment)"
+                  />
                 </div>
               </div>
             </v-card>
@@ -3076,6 +3086,17 @@ const form = reactive({
   publishTemplate: false,
   playMode: "classic",
 });
+
+async function deleteAssignment(item) {
+  if (!window.confirm(t("assignmentHub.confirmDeleteAssignment", { title: item.title }))) return;
+  errorMessage.value = "";
+  try {
+    await api(`/assignments/${item.id}`, { method: "DELETE" });
+    assignments.value = assignments.value.filter(({ id }) => id !== item.id);
+  } catch (error) {
+    errorMessage.value = error.message || t("assignmentHub.deleteError");
+  }
+}
 
 function openEditAssignment(item) {
   editingAssignment.value = item;

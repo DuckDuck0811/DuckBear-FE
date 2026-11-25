@@ -7,9 +7,15 @@ const routes = [
     component: () => import("../views/auth/LoginView.vue"),
   },
   {
-    path: "/admin/login",
+    path: "/ops/7f3a9c/entry",
     name: "admin-login",
     component: () => import("../views/auth/LoginView.vue"),
+  },
+  {
+    path: "/admin/accounts",
+    name: "admin-accounts",
+    component: () => import("../views/admin/AdminUsersView.vue"),
+    meta: { roles: ["ADMIN"] },
   },
   {
     path: "/forgot-password",
@@ -92,7 +98,7 @@ const routes = [
     path: "/submissions",
     name: "submissions",
     component: () => import("../views/assignments/SubmissionsView.vue"),
-    meta: { roles: ["TEACHER"] },
+    meta: { roles: ["TEACHER", "ADMIN"] },
   },
   {
     path: "/submissions/:assignmentId",
@@ -122,7 +128,7 @@ const routes = [
     path: "/activity-log",
     name: "activity-log",
     component: () => import("../views/assignments/ActivityLogView.vue"),
-    meta: { roles: ["TEACHER"] },
+    meta: { roles: ["TEACHER", "ADMIN"] },
   },
   {
     path: "/teacher/progress",
@@ -173,7 +179,7 @@ router.beforeEach((to) => {
 
   const publicAuthRoute =
     to.path === "/login" ||
-    to.path === "/admin/login" ||
+    to.path === "/ops/7f3a9c/entry" ||
     to.path === "/forgot-password" ||
     to.path === "/reset-password" ||
     to.path.startsWith("/register");

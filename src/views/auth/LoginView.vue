@@ -615,11 +615,6 @@
             <button type="button" class="switch-link ml-1 font-weight-bold text-caption" @click="switchMode('register')">
               Đăng ký ngay
             </button>
-            <div class="mt-2">
-            <router-link class="forgot-password-link" to="/admin/login">
-              Đăng nhập dành cho Admin
-            </router-link>
-            </div>
           </div>
           <div v-if="mode === 'register'" class="text-center mt-5">
             <span class="text-caption text-secondary">

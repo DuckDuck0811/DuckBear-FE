@@ -30,7 +30,7 @@
               size="large"
               class="btn-shub-primary px-6 font-weight-black"
               prepend-icon="mdi-plus"
-              @click="showCreateDialog = true"
+              @click="openCreateDialog"
             >
               {{ t("classesPage.createClass") }}
             </v-btn>
@@ -202,6 +202,9 @@
                     })
                   }}
                 </p>
+                <div v-if="authStore.user?.role === 'ADMIN'" class="text-caption text-secondary">
+                  {{ t("classesPage.teacher") }}: {{ schoolClass.homeroomTeacher?.fullName || t("classesPage.unassigned") }}
+                </div>
                 <v-divider class="my-4" />
                 <div class="d-flex align-center justify-space-between ga-2">
                   <div>
@@ -221,6 +224,12 @@
                     :aria-label="t('classesPage.copyCode')"
                     @click.stop="copyJoinCode(schoolClass.joinCode)"
                   />
+                </div>
+                <div v-if="authStore.user?.role === 'ADMIN'" class="d-flex justify-end ga-2 mt-3">
+                  <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-pencil" @click.stop="editClass(schoolClass)">
+                    {{ t("classesPage.editClass") }}
+                  </v-btn>
+                  <v-btn size="small" variant="tonal" color="error" icon="mdi-delete-outline" :aria-label="t('classesPage.deleteClass')" @click.stop="deleteClass(schoolClass)" />
                 </div>
               </v-card>
             </v-col>
@@ -247,7 +256,7 @@
             <v-btn
               color="primary"
               class="btn-shub-primary"
-              @click="showCreateDialog = true"
+              @click="openCreateDialog"
               >{{ t("classesPage.createClass") }}</v-btn
             >
           </v-card>
@@ -336,14 +345,14 @@
                       grade: schoolClass.gradeLevel,
                       year: schoolClass.schoolYear,
                     })
-                  }}
+        }}
                 </p>
                 <div class="text-body-2 mt-2">
                   {{ t("classesPage.teacher") }}:
                   {{
                     schoolClass.homeroomTeacher?.fullName ||
                     t("classesPage.unassigned")
-                  }}
+        }}
                 </div>
               </v-card>
             </v-col>
@@ -418,7 +427,7 @@
     <v-dialog v-model="showCreateDialog" max-width="520">
       <v-card class="pa-5 pa-sm-7">
         <v-card-title class="text-h6 font-weight-black px-0">{{
-          t("classesPage.createClass")
+          t(editingClassId ? "classesPage.editClass" : "classesPage.createClass")
         }}</v-card-title>
         <v-card-text class="px-0">
           <v-form @submit.prevent="createClass">
@@ -448,8 +457,17 @@
               maxlength="20"
               required
             />
+            <v-select
+              v-if="authStore.user?.role === 'ADMIN'"
+              v-model="createForm.homeroomTeacherId"
+              :items="teacherOptions"
+              :label="t('classesPage.teacher')"
+              item-title="title"
+              item-value="value"
+              clearable
+            />
             <div class="d-flex justify-end ga-2 mt-5">
-              <v-btn variant="text" @click="showCreateDialog = false">{{
+              <v-btn variant="text" @click="closeClassDialog">{{
                 t("classesPage.cancel")
               }}</v-btn>
               <v-btn
@@ -457,7 +475,7 @@
                 color="primary"
                 class="btn-shub-primary"
                 :loading="isSubmitting"
-                >{{ t("classesPage.create") }}</v-btn
+                >{{ t(editingClassId ? "classesPage.saveChanges" : "classesPage.create") }}</v-btn
               >
             </div>
           </v-form>
@@ -501,6 +519,7 @@ const isLoading = ref(false);
 const isSubmitting = ref(false);
 const isReviewing = ref(null);
 const showCreateDialog = ref(false);
+const editingClassId = ref(null);
 const classes = ref([]);
 const requests = ref([]);
 const classesPage = ref(1);
@@ -534,7 +553,15 @@ const joinCode = ref("");
 const classPreview = ref(null);
 const searchError = ref("");
 const notice = ref({ show: false, message: "", color: "success" });
-const createForm = ref({ name: "", gradeLevel: 1, schoolYear: "" });
+const createForm = ref({ name: "", gradeLevel: 1, schoolYear: "", homeroomTeacherId: null });
+const teachers = ref([]);
+const teacherOptions = computed(() => [
+  { title: t("classesPage.unassigned"), value: null },
+  ...teachers.value.map((teacher) => ({
+    title: `${teacher.fullName} · ${teacher.email}`,
+    value: teacher.id,
+  })),
+]);
 
 function showNotice(message, color = "success") {
   notice.value = { show: true, message, color };
@@ -555,6 +582,15 @@ async function fetchClasses() {
     showNotice(error.message, "error");
   } finally {
     isLoading.value = false;
+  }
+}
+
+async function fetchTeachers() {
+  try {
+    const users = await api("/auth/users");
+    teachers.value = users.filter((user) => user.role === "TEACHER" && user.isActive);
+  } catch (error) {
+    showNotice(error.message, "error");
   }
 }
 
@@ -597,27 +633,67 @@ async function requestToJoin() {
 async function createClass() {
   isSubmitting.value = true;
   try {
-    const schoolClass = await api("/classes", {
-      method: "POST",
+    const isEditing = editingClassId.value !== null;
+    const schoolClass = await api(isEditing ? `/classes/${editingClassId.value}` : "/classes", {
+      method: isEditing ? "PATCH" : "POST",
       body: {
         name: createForm.value.name.trim(),
         gradeLevel: Number(createForm.value.gradeLevel),
         schoolYear: createForm.value.schoolYear.trim(),
+        ...(authStore.user?.role === "ADMIN"
+          ? { homeroomTeacherId: createForm.value.homeroomTeacherId }
+          : {}),
       },
     });
     showCreateDialog.value = false;
-    createForm.value = { name: "", gradeLevel: 1, schoolYear: "" };
+    editingClassId.value = null;
+    createForm.value = { name: "", gradeLevel: 1, schoolYear: "", homeroomTeacherId: null };
     await fetchClasses();
-    showNotice(
-      t("classesPage.classCreated", {
-        name: schoolClass.name,
-        code: schoolClass.joinCode,
-      }),
-    );
+    showNotice(isEditing
+      ? t("classesPage.classUpdated", { name: schoolClass.name })
+      : t("classesPage.classCreated", { name: schoolClass.name, code: schoolClass.joinCode }));
   } catch (error) {
     showNotice(error.message, "error");
   } finally {
     isSubmitting.value = false;
+  }
+}
+
+function openCreateDialog() {
+  editingClassId.value = null;
+  createForm.value = {
+    name: "",
+    gradeLevel: 1,
+    schoolYear: "",
+    homeroomTeacherId: null,
+  };
+  showCreateDialog.value = true;
+}
+
+function closeClassDialog() {
+  showCreateDialog.value = false;
+  editingClassId.value = null;
+}
+
+function editClass(schoolClass) {
+  editingClassId.value = schoolClass.id;
+  createForm.value = {
+    name: schoolClass.name,
+    gradeLevel: schoolClass.gradeLevel,
+    schoolYear: schoolClass.schoolYear,
+    homeroomTeacherId: schoolClass.homeroomTeacher?.id ?? null,
+  };
+  showCreateDialog.value = true;
+}
+
+async function deleteClass(schoolClass) {
+  if (!window.confirm(t("classesPage.confirmDeleteClass", { name: schoolClass.name }))) return;
+  try {
+    await api(`/classes/${schoolClass.id}`, { method: "DELETE" });
+    await fetchClasses();
+    showNotice(t("classesPage.classDeleted", { name: schoolClass.name }));
+  } catch (error) {
+    showNotice(error.message, "error");
   }
 }
 
@@ -660,6 +736,7 @@ function openStudentClass(schoolClass) {
 
 onMounted(() => {
   fetchClasses();
+  if (authStore.user?.role === "ADMIN") fetchTeachers();
   window.addEventListener("classes:refresh", fetchClasses);
 });
 
