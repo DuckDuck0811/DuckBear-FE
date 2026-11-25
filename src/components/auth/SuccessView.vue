@@ -18,8 +18,12 @@
     </h2>
 
     <!-- Mô tả chi tiết -->
-    <p class="text-body-1 text-grey-darken-1 mb-8" style="line-height: 1.6; max-width: 380px; margin: 0 auto;">
-      Mật khẩu tài khoản của bạn đã được cập nhật an toàn. Vui lòng sử dụng mật khẩu mới để đăng nhập vào DuckBear.
+    <p
+      class="text-body-1 text-grey-darken-1 mb-8"
+      style="line-height: 1.6; max-width: 380px; margin: 0 auto"
+    >
+      Mật khẩu tài khoản của bạn đã được cập nhật an toàn. Vui lòng sử dụng mật
+      khẩu mới để đăng nhập vào DuckBear.
     </p>
 
     <!-- Nút chính về trang đăng nhập -->
@@ -29,7 +33,7 @@
       block
       rounded="pill"
       class="btn-gradient-primary font-weight-black text-h6"
-      style="height: 56px;"
+      style="height: 56px"
       prepend-icon="mdi-login"
       @click="emit('to-login')"
     >
@@ -55,8 +59,8 @@ const emit = defineEmits(["to-login"]);
 }
 
 .btn-gradient-primary {
-  background: linear-gradient(90deg, #22708F 0%, #2F7BF5 100%) !important;
-  color: #FFFFFF !important;
+  background: linear-gradient(90deg, #22708f 0%, #2f7bf5 100%) !important;
+  color: #ffffff !important;
   box-shadow: 0 8px 20px -4px rgba(47, 123, 245, 0.42) !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
