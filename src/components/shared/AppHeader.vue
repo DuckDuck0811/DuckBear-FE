@@ -27,12 +27,12 @@
     </div>
 
     <v-btn
-      v-if="['TEACHER', 'STUDENT'].includes(user?.role)"
+      v-if="['TEACHER', 'ADMIN', 'STUDENT'].includes(user?.role)"
       class="d-md-none ml-2"
       icon="mdi-menu"
       variant="text"
       color="primary"
-      :aria-label="t(user?.role === 'STUDENT' ? 'studentMenu' : 'teacherMenu')"
+      :aria-label="t(user?.role === 'STUDENT' ? 'studentMenu' : user?.role === 'ADMIN' ? 'sidebar.adminMenu' : 'teacherMenu')"
       @click="toggleTeacherSidebar"
     />
 
@@ -114,7 +114,7 @@
     </v-menu>
 
     <v-btn
-      v-if="user"
+      v-if="user && user.role !== 'ADMIN'"
       variant="tonal"
       color="primary"
       prepend-icon="mdi-account-group-outline"
