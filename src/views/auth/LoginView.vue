@@ -435,14 +435,14 @@
             <h1 class="text-h5 font-weight-black text-primary mb-1">
               {{
                 mode === "login"
-                  ? "Chào mừng bạn trở lại!"
+                  ? (isAdminLogin ? "Đăng nhập quản trị" : "Chào mừng bạn trở lại!")
                   : "Tạo tài khoản học tập"
               }}
             </h1>
             <p class="text-body-2 text-secondary mb-0">
               {{
                 mode === "login"
-                  ? "Đăng nhập để vào lớp học ngay hôm nay."
+                  ? (isAdminLogin ? "Dành cho quản trị viên DuckBear." : "Đăng nhập để vào lớp học ngay hôm nay.")
                   : "Tham gia cộng đồng học tập DuckBear."
               }}
             </p>
@@ -591,11 +591,11 @@
               class="btn-shub-primary py-3 font-weight-black text-body-1 mt-3"
               :loading="loading"
             >
-              {{ mode === "login" ? "Đăng nhập vào lớp" : "Tạo tài khoản" }}
+              {{ mode === "login" ? (isAdminLogin ? "Đăng nhập Admin" : "Đăng nhập vào lớp") : "Tạo tài khoản" }}
             </v-btn>
           </v-form>
 
-          <div v-if="googleClientId" class="google-auth mt-4">
+          <div v-if="googleClientId && !isAdminLogin" class="google-auth mt-4">
             <div class="google-divider"><span>HOẶC</span></div>
             <v-alert
               v-if="googleLoadError"
@@ -610,20 +610,27 @@
           </div>
 
           <!-- Chuyển đổi nhanh cuối form -->
-          <div class="text-center mt-5">
+          <div v-if="mode === 'login' && !isAdminLogin" class="text-center mt-5">
+            <span class="text-caption text-secondary">Chưa có tài khoản học tập?</span>
+            <button type="button" class="switch-link ml-1 font-weight-bold text-caption" @click="switchMode('register')">
+              Đăng ký ngay
+            </button>
+            <div class="mt-2">
+            <router-link class="forgot-password-link" to="/admin/login">
+              Đăng nhập dành cho Admin
+            </router-link>
+            </div>
+          </div>
+          <div v-if="mode === 'register'" class="text-center mt-5">
             <span class="text-caption text-secondary">
-              {{
-                mode === "login"
-                  ? "Chưa có tài khoản học tập?"
-                  : "Đã có tài khoản DuckBear?"
-              }}
+              Đã có tài khoản DuckBear?
             </span>
             <button
               type="button"
               class="switch-link ml-1 font-weight-bold text-caption"
-              @click="switchMode(mode === 'login' ? 'register' : 'login')"
+              @click="switchMode('login')"
             >
-              {{ mode === "login" ? "Đăng ký ngay" : "Đăng nhập" }}
+              Đăng nhập
             </button>
           </div>
         </section>
@@ -649,6 +656,7 @@ const auth = useAuthStore();
 const mode = computed(() =>
   route.name === "register-form" ? "register" : "login",
 );
+const isAdminLogin = computed(() => route.name === "admin-login");
 
 // Form data
 const email = ref("");
@@ -756,6 +764,10 @@ async function submit() {
   try {
     if (mode.value === "login") {
       await auth.login({ email: email.value.trim(), password: password.value });
+      if (isAdminLogin.value && auth.user?.role !== "ADMIN") {
+        auth.logout();
+        throw new Error("Tài khoản này không có quyền Admin.");
+      }
     } else {
       await auth.register({
         email: email.value.trim(),

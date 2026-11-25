@@ -7,6 +7,11 @@ const routes = [
     component: () => import("../views/auth/LoginView.vue"),
   },
   {
+    path: "/admin/login",
+    name: "admin-login",
+    component: () => import("../views/auth/LoginView.vue"),
+  },
+  {
     path: "/forgot-password",
     name: "forgot-password",
     component: () => import("../views/auth/ForgotPasswordView.vue"),
@@ -168,6 +173,7 @@ router.beforeEach((to) => {
 
   const publicAuthRoute =
     to.path === "/login" ||
+    to.path === "/admin/login" ||
     to.path === "/forgot-password" ||
     to.path === "/reset-password" ||
     to.path.startsWith("/register");
