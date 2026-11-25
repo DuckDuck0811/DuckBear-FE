@@ -1,19 +1,26 @@
 <template>
   <v-app>
     <RouterView />
+    <LearningChatbot v-if="chatbotEnabled" />
   </v-app>
 </template>
 
 <script setup>
-import { onBeforeUnmount, watch } from "vue";
+import { computed, onBeforeUnmount, watch } from "vue";
+import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { API_BASE_URL } from "./services/api";
 import { useAuthStore } from "./stores/auth";
 import { useNotificationsStore } from "./stores/notifications";
 import { useQuestionBankStore } from "./stores/questionBank";
+import LearningChatbot from "./components/student/LearningChatbot.vue";
 
 const { t } = useI18n();
 const authStore = useAuthStore();
+const route = useRoute();
+const chatbotEnabled = computed(
+  () => authStore.user?.role === "STUDENT" && route.name !== "assignment-take",
+);
 const questionBankStore = useQuestionBankStore();
 const notificationsStore = useNotificationsStore();
 let classSocket = null;

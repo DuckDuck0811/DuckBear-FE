@@ -73,7 +73,9 @@ export async function api(
 
   // 403: Không đủ quyền
   if (response.status === 403) {
-    throw new Error("Bạn không có quyền thực hiện thao tác này");
+    const error = new Error("Bạn không có quyền thực hiện thao tác này");
+    error.status = response.status;
+    throw error;
   }
 
   // Parse nội dung trả về
