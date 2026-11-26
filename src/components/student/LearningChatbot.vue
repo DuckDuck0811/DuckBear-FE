@@ -54,10 +54,17 @@
             {{ message.role === "assistant" ? readableAnswer(message.content) : message.content }}
           </div>
           <div v-if="message.sources?.length" class="chat-sources">
-            Nguồn:
-            <span v-for="source in message.sources" :key="`${source.bookTitle}-${source.chapterTitle}-${source.title}`">
-              {{ [source.bookTitle, source.chapterTitle, source.title].filter(Boolean).join(" · ") }}
-            </span>
+            <div class="chat-sources-heading">Nguồn tham khảo</div>
+            <div
+              v-for="source in message.sources"
+              :key="`${source.bookTitle}-${source.chapterTitle}-${source.title}`"
+              class="chat-source"
+            >
+              <div class="chat-source-title">{{ source.title }}</div>
+              <div v-if="source.bookTitle || source.chapterTitle" class="chat-source-location">
+                {{ [source.bookTitle, source.chapterTitle].filter(Boolean).join(" · ") }}
+              </div>
+            </div>
           </div>
         </div>
         <div v-if="busy" class="chat-line chat-line-assistant">
@@ -274,13 +281,35 @@ watch(
 }
 
 .chat-sources {
-  margin: 5px 4px 0;
+  display: grid;
+  width: 88%;
+  gap: 5px;
+  margin: 2px 4px 0;
   color: #718198;
-  font-size: 0.68rem;
 }
 
-.chat-sources span {
-  display: block;
+.chat-sources-heading {
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.chat-source {
+  padding: 6px 9px;
+  border: 1px solid #dfe8f2;
+  border-radius: 9px;
+  background: white;
+}
+
+.chat-source-title {
+  color: #35516e;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.chat-source-location {
+  margin-top: 2px;
+  color: #8390a1;
+  font-size: 0.65rem;
 }
 
 .chatbot-composer {
