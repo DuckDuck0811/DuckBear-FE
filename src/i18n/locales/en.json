@@ -1224,6 +1224,7 @@
   },
   "notifications": {
     "title": "Notifications",
+    "markAllRead": "Mark all read",
     "empty": "You have no notifications.",
     "assignmentReminderTitle": "Assignment reminder",
     "joinRequestTitle": "Class join request",

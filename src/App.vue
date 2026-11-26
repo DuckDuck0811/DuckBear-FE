@@ -47,7 +47,7 @@ watch(
     clearInterval(notificationRefreshTimer);
     notificationRefreshTimer = null;
     notificationsStore.setOwner(id || userId || email);
-    if (token && ["STUDENT", "PARENT"].includes(role)) {
+    if (token && role === "STUDENT") {
       notificationsStore.refresh();
     }
     if (token && role === "STUDENT") {

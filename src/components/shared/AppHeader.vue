@@ -39,7 +39,7 @@
     <v-spacer />
 
     <v-menu
-      v-if="user"
+      v-if="user && user.role !== 'PARENT'"
       v-model="notificationsOpen"
       location="bottom end"
       :close-on-content-click="false"
@@ -60,8 +60,16 @@
         </v-btn>
       </template>
       <v-card class="notification-menu" rounded="lg" elevation="8">
-        <div class="notification-menu-heading">
-          {{ t("notifications.title") }}
+        <div class="notification-menu-heading d-flex align-center justify-space-between">
+          <span>{{ t("notifications.title") }}</span>
+          <v-btn
+            v-if="notifications.count"
+            size="small"
+            variant="text"
+            @click="markAllNotificationsRead"
+          >
+            {{ t("notifications.markAllRead") }}
+          </v-btn>
         </div>
         <v-divider />
         <div v-if="notifications.items.length" class="notification-list">
@@ -224,7 +232,7 @@ const showAvatarImage = computed(
 );
 
 watch(notificationsOpen, (open) => {
-  if (open && ["STUDENT", "PARENT"].includes(user.value?.role)) {
+  if (open && user.value?.role === "STUDENT") {
     notifications.refresh();
   }
 });
@@ -284,6 +292,10 @@ function openNotification(item) {
   notifications.dismiss(item.id);
   notificationsOpen.value = false;
   if (item.url) router.push(item.url);
+}
+
+function markAllNotificationsRead() {
+  notifications.markAllRead().catch(() => {});
 }
 
 function formatNotificationTime(value) {
