@@ -53,6 +53,12 @@
           <div class="chat-bubble" :class="message.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-assistant'">
             {{ message.role === "assistant" ? readableAnswer(message.content) : message.content }}
           </div>
+          <div v-if="message.sources?.length" class="chat-sources">
+            Nguồn:
+            <span v-for="source in message.sources" :key="`${source.bookTitle}-${source.chapterTitle}-${source.title}`">
+              {{ [source.bookTitle, source.chapterTitle, source.title].filter(Boolean).join(" · ") }}
+            </span>
+          </div>
         </div>
         <div v-if="busy" class="chat-line chat-line-assistant">
           <div class="chat-bubble chat-bubble-assistant">
@@ -141,6 +147,7 @@ async function send(text = draft.value) {
       role: "assistant",
       content: result.answer,
       matchedQuestion: result.matchedQuestion,
+      sources: result.sources || [],
     });
   } catch (err) {
     error.value =
@@ -223,14 +230,15 @@ watch(
 
 .chat-line {
   display: flex;
+  flex-direction: column;
 }
 
 .chat-line-user {
-  justify-content: flex-end;
+  align-items: flex-end;
 }
 
 .chat-line-assistant {
-  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 .chat-bubble {
@@ -263,6 +271,16 @@ watch(
   color: #477190;
   font-size: 0.7rem;
   font-weight: 700;
+}
+
+.chat-sources {
+  margin: 5px 4px 0;
+  color: #718198;
+  font-size: 0.68rem;
+}
+
+.chat-sources span {
+  display: block;
 }
 
 .chatbot-composer {

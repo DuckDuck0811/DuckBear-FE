@@ -289,9 +289,10 @@ export function useAssignmentSession() {
     document.removeEventListener("visibilitychange", trackScreenVisibility);
   });
 
-  onBeforeRouteLeave(() => {
-    if (attemptId.value && !result.value && !document.hidden && !screenHidden) {
-      void recordScreenEvent("LEFT");
+  onBeforeRouteLeave(async () => {
+    if (attemptId.value && !result.value) {
+      window.clearInterval(activityHeartbeat);
+      await recordScreenEvent("LEFT");
     }
   });
 
