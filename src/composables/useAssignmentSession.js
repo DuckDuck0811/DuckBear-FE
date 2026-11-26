@@ -24,6 +24,7 @@ export function useAssignmentSession() {
   const currentIndex = ref(0);
   const now = ref(Date.now());
   let timer = null;
+  let activityHeartbeat = null;
   let screenHidden = false;
 
   const questions = computed(() => assignment.value?.questions || []);
@@ -275,10 +276,16 @@ export function useAssignmentSession() {
     }, 1000);
     document.addEventListener("visibilitychange", trackScreenVisibility);
     await startAttempt();
+    activityHeartbeat = window.setInterval(() => {
+      if (attemptId.value && !result.value && !document.hidden) {
+        void recordScreenEvent("ACTIVE");
+      }
+    }, 30_000);
   });
 
   onBeforeUnmount(() => {
     window.clearInterval(timer);
+    window.clearInterval(activityHeartbeat);
     document.removeEventListener("visibilitychange", trackScreenVisibility);
   });
 
