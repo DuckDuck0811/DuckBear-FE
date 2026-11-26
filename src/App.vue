@@ -19,7 +19,9 @@ const { t } = useI18n();
 const authStore = useAuthStore();
 const route = useRoute();
 const chatbotEnabled = computed(
-  () => authStore.user?.role === "STUDENT" && route.name !== "assignment-take",
+  () =>
+    ["STUDENT", "TEACHER"].includes(authStore.user?.role) &&
+    route.name !== "assignment-take",
 );
 const questionBankStore = useQuestionBankStore();
 const notificationsStore = useNotificationsStore();
