@@ -1219,6 +1219,7 @@
   },
   "notifications": {
     "title": "Thông báo",
+    "markAllRead": "Đánh dấu đã đọc",
     "empty": "Bạn chưa có thông báo nào.",
     "assignmentReminderTitle": "Nhắc nộp bài",
     "joinRequestTitle": "Yêu cầu tham gia lớp",

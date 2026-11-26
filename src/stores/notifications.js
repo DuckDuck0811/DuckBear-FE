@@ -67,6 +67,12 @@ export const useNotificationsStore = defineStore("notifications", {
       this.persist();
     },
 
+    async markAllRead() {
+      await api("/notifications/read-all", { method: "PATCH" });
+      this.items = [];
+      this.persist();
+    },
+
     persist() {
       if (!this.ownerId) return;
       localStorage.setItem(
