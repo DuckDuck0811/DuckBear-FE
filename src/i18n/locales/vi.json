@@ -1422,6 +1422,16 @@
       "dismissConfirmMessage": "Câu hỏi này sẽ được ẩn khỏi Sổ câu sai. Nếu sau này bạn làm sai lại trong bài tập, câu sẽ tự động xuất hiện lại.",
       "dismissConfirmButton": "Bỏ khỏi sổ"
     },
+    "explain": {
+      "button": "Giải thích bằng AI",
+      "whyWrong": "Vì sao mình sai?",
+      "loading": "Đang giải thích...",
+      "sourcePrefix": "Từ bài:",
+      "disclaimer": "Giải thích do AI tạo, có thể chưa chính xác",
+      "lockedError": "Đáp án sẽ mở sau khi bài tập kết thúc",
+      "rateLimitError": "Bạn hỏi hơi nhanh, đợi một chút nhé",
+      "genericError": "Không thể tạo giải thích lúc này. Vui lòng thử lại."
+    },
     "dashboardDueTitle": "Hôm nay cần ôn: {count} câu",
     "dashboardDueSubtitle": "Bấm để bắt đầu phiên ôn tập Leitner ngay.",
     "dashboardDoneTitle": "Đã ôn xong hôm nay",

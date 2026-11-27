@@ -1427,6 +1427,16 @@
       "dismissConfirmMessage": "This question will be hidden from your Wrong Notebook. If you miss it again in a future assignment, it will reappear automatically.",
       "dismissConfirmButton": "Remove"
     },
+    "explain": {
+      "button": "Explain with AI",
+      "whyWrong": "Why was I wrong?",
+      "loading": "Explaining...",
+      "sourcePrefix": "From lesson:",
+      "disclaimer": "AI-generated explanation, may not be completely accurate",
+      "lockedError": "The answer will unlock after the assignment ends",
+      "rateLimitError": "You're asking too fast, please wait a moment",
+      "genericError": "Could not generate explanation right now. Please try again."
+    },
     "dashboardDueTitle": "Due today: {count} questions",
     "dashboardDueSubtitle": "Click to start your Leitner review session.",
     "dashboardDoneTitle": "All caught up for today",

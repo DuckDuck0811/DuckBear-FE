@@ -95,11 +95,30 @@
               </v-timeline-item>
             </v-timeline>
           </div>
+
+          <NotebookExplainBox
+            :loading="explainLoading"
+            :error="explainError"
+            :can-retry="explainCanRetry"
+            :data="explainData"
+            @retry="handleExplain"
+          />
         </template>
       </v-card-text>
 
       <v-card-actions v-if="detail && !loading" class="pa-4 border-t flex-wrap ga-2">
-        <!-- Reserved hidden slot for future AI explanation button -->
+        <v-btn
+          v-if="!detail.answerLocked"
+          variant="tonal"
+          color="primary"
+          rounded="lg"
+          prepend-icon="mdi-sparkles"
+          :loading="explainLoading"
+          :disabled="explainLoading"
+          @click="handleExplain"
+        >
+          {{ t("notebook.explain.button") }}
+        </v-btn>
         <v-btn
           variant="text"
           color="error"
@@ -137,7 +156,8 @@
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import ConfirmDialog from "../shared/ConfirmDialog.vue";
-import { dismissQuestion, getDetail } from "../../services/notebook";
+import NotebookExplainBox from "./NotebookExplainBox.vue";
+import { dismissQuestion, explainQuestion, getDetail } from "../../services/notebook";
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -153,6 +173,12 @@ const error = ref("");
 const confirmDismiss = ref(false);
 const dismissing = ref(false);
 
+const explainLoading = ref(false);
+const explainError = ref("");
+const explainCanRetry = ref(false);
+const explainData = ref(null);
+const explainSessionCache = new Map();
+
 function optionClass(optionId) {
   if (detail.value && !detail.value.answerLocked && optionId === detail.value.correctOptionId) {
     return "border-success bg-success-subtle";
@@ -167,12 +193,48 @@ async function loadDetail() {
   if (!props.questionId) return;
   loading.value = true;
   error.value = "";
+  explainError.value = "";
+  explainCanRetry.value = false;
+  explainData.value = null;
   try {
     detail.value = await getDetail(props.questionId);
+    const cacheKey = `${props.questionId}:${detail.value?.lastWrongOption?.id ?? "null"}`;
+    if (explainSessionCache.has(cacheKey)) {
+      explainData.value = explainSessionCache.get(cacheKey);
+    }
   } catch (err) {
     error.value = err?.message || t("notebook.loadError");
   } finally {
     loading.value = false;
+  }
+}
+
+async function handleExplain() {
+  if (!props.questionId || explainLoading.value) return;
+  const cacheKey = `${props.questionId}:${detail.value?.lastWrongOption?.id ?? "null"}`;
+  if (explainSessionCache.has(cacheKey)) {
+    explainData.value = explainSessionCache.get(cacheKey);
+    return;
+  }
+
+  explainLoading.value = true;
+  explainError.value = "";
+  explainCanRetry.value = false;
+  try {
+    const res = await explainQuestion(props.questionId);
+    explainData.value = res;
+    explainSessionCache.set(cacheKey, res);
+  } catch (err) {
+    if (err?.status === 403) {
+      explainError.value = t("notebook.explain.lockedError");
+    } else if (err?.status === 429) {
+      explainError.value = t("notebook.explain.rateLimitError");
+    } else {
+      explainError.value = err?.message || t("notebook.explain.genericError");
+      explainCanRetry.value = true;
+    }
+  } finally {
+    explainLoading.value = false;
   }
 }
 
