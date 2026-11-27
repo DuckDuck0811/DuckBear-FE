@@ -113,6 +113,12 @@ const items = [
     match: ["student-leaderboard"],
   },
   {
+    label: "practice.sidebarTitle",
+    icon: "mdi-lightning-bolt-outline",
+    to: "/student/practice",
+    match: ["student-practice", "student-practice-session"],
+  },
+  {
     label: "studentSidebar.manualAssignments",
     icon: "mdi-cloud-upload-outline",
     to: "/manual-assignments",

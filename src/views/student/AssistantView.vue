@@ -229,15 +229,26 @@
                       class="mb-3"
                     />
                   </div>
-                  <v-btn
-                    size="small"
-                    variant="tonal"
-                    color="primary"
-                    :to="w.route"
-                    block
-                  >
-                    {{ t("assistant.reviewThisLesson") }}
-                  </v-btn>
+                  <div class="d-flex flex-column ga-2">
+                    <v-btn
+                      size="small"
+                      variant="tonal"
+                      color="primary"
+                      :to="w.route"
+                      block
+                    >
+                      {{ t("assistant.reviewThisLesson") }}
+                    </v-btn>
+                    <v-btn
+                      size="small"
+                      variant="outlined"
+                      color="secondary"
+                      :to="`/student/practice?lessonId=${w.lessonId}`"
+                      block
+                    >
+                      {{ t("practice.practiceThis") }}
+                    </v-btn>
+                  </div>
                 </v-card>
               </v-col>
             </v-row>
