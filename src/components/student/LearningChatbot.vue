@@ -139,7 +139,7 @@ async function send(text = draft.value) {
   if (!content || busy.value) return;
   const history = messages.value
     .slice(-8)
-    .map(({ role, content }) => ({ role, content }));
+    .map(({ role, content }) => ({ role, content: content.slice(-1500) }));
   messages.value.push({ role: "user", content });
   draft.value = "";
   error.value = "";
