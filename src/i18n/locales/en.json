@@ -1368,6 +1368,7 @@
     "subtitle": "Review your missed multiple-choice questions using spaced repetition.",
     "startReview": "Start review ({count})",
     "unitFilter": "Filter by unit / lesson ID",
+    "chapterFilter": "Filter by chapter",
     "retry": "Retry",
     "loadError": "Failed to load wrong notebook.",
     "boxLabel": "Box {box}/5",
@@ -1375,6 +1376,57 @@
     "dueNow": "Due now",
     "reviewInDays": "Review in {days}d",
     "masteredBadge": "Mastered",
+    "questionTypes": {
+      "MCQ": "Multiple Choice",
+      "TRUE_FALSE": "True / False"
+    },
+    "stats": {
+      "totalWrong": "Total missed",
+      "mastered": "Mastered",
+      "reviewedThisWeek": "Reviewed this week",
+      "accuracyFmt": "{pct}% correct",
+      "streakDays": "Study streak",
+      "daysUnit": "days",
+      "chartTitle": "Last 14 days review activity",
+      "chartNeedMoreDays": "Review for a few more days to see the chart"
+    },
+    "statsSection": {
+      "title": "Statistics & Progress"
+    },
+    "hero": {
+      "dueCount": "{count} due to review today",
+      "allDone": "All caught up for today",
+      "dueHint": "Review now to keep your Leitner memory streak.",
+      "allDoneHint": "You can practice freely or browse your active questions below.",
+      "streak": "{days}-day study streak",
+      "otherModes": "Other modes"
+    },
+    "quickReview": {
+      "title": "Quick review",
+      "dueHint": "You have {count} due questions to review today.",
+      "freeHint": "No questions due right now. Practice freely to reinforce your memory.",
+      "reviewDue": "Review now",
+      "reviewFree": "Free practice",
+      "reviewFrequent": "Frequently missed",
+      "reviewByChapter": "By chapter"
+    },
+    "weakChapters": {
+      "title": "Chapters needing attention",
+      "reviewChapter": "Review chapter"
+    },
+    "detail": {
+      "title": "Question details",
+      "correctAnswer": "Correct answer",
+      "lastWrong": "Your last wrong choice",
+      "answerLocked": "The correct answer and explanation will unlock after the original assignment ends.",
+      "explanation": "Explanation",
+      "history": "Recent review history",
+      "dismiss": "I know this, remove from notebook",
+      "reviewNow": "Review this question",
+      "dismissConfirmTitle": "Remove from notebook?",
+      "dismissConfirmMessage": "This question will be hidden from your Wrong Notebook. If you miss it again in a future assignment, it will reappear automatically.",
+      "dismissConfirmButton": "Remove"
+    },
     "dashboardDueTitle": "Due today: {count} questions",
     "dashboardDueSubtitle": "Click to start your Leitner review session.",
     "dashboardDoneTitle": "All caught up for today",
@@ -1384,11 +1436,14 @@
     "tabs": {
       "due": "Due today",
       "active": "Active",
-      "mastered": "Mastered"
+      "mastered": "Mastered",
+      "all": "All"
     },
     "empty": {
       "dueTitle": "No questions due today — great job!",
       "dueDescription": "You have completed all due reviews for today.",
+      "frequentTitle": "No questions missed 2 or more times yet",
+      "frequentDescription": "Questions you miss repeatedly will appear here for focused practice.",
       "activeTitle": "No active questions yet",
       "activeDescription": "Missed multiple-choice questions from submitted assignments will appear here.",
       "masteredTitle": "No mastered questions yet",
@@ -1406,6 +1461,9 @@
       "promotedCount": "Promoted",
       "masteredCount": "Mastered",
       "continueReview": "Review more",
+      "wrongInSessionTitle": "Missed in this session",
+      "viewDetail": "View details",
+      "retryWrong": "Retry missed questions",
       "masteredMsg": "Mastered 🎉",
       "wrongResetMsg": "Back to Box 1, review tomorrow",
       "earlyReviewMsg": "Not due yet, box unchanged",

@@ -105,12 +105,24 @@
 </template>
 
 <script setup>
-import { nextTick, ref, watch } from "vue";
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useAuthStore } from "../../stores/auth";
 import { api } from "../../services/api";
 
 const auth = useAuthStore();
 const open = ref(false);
+
+function handleOpenEvent() {
+  open.value = true;
+}
+
+onMounted(() => {
+  window.addEventListener("open-learning-chatbot", handleOpenEvent);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("open-learning-chatbot", handleOpenEvent);
+});
 const busy = ref(false);
 const draft = ref("");
 const error = ref("");

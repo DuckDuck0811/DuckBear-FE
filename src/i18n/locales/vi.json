@@ -1363,6 +1363,7 @@
     "subtitle": "Ôn tập lại các câu trắc nghiệm đã làm sai theo chu kỳ ghi nhớ.",
     "startReview": "Bắt đầu ôn ({count} câu)",
     "unitFilter": "Lọc theo mã bài / chương",
+    "chapterFilter": "Lọc theo chương",
     "retry": "Thử lại",
     "loadError": "Không tải được danh sách câu sai.",
     "boxLabel": "Hộp {box}/5",
@@ -1370,6 +1371,57 @@
     "dueNow": "Đến hạn",
     "reviewInDays": "Ôn lại sau {days} ngày",
     "masteredBadge": "Đã thuộc",
+    "questionTypes": {
+      "MCQ": "Trắc nghiệm",
+      "TRUE_FALSE": "Đúng/Sai"
+    },
+    "stats": {
+      "totalWrong": "Tổng câu sai",
+      "mastered": "Đã thuộc",
+      "reviewedThisWeek": "Ôn tuần này",
+      "accuracyFmt": "đúng {pct}%",
+      "streakDays": "Chuỗi ngày ôn",
+      "daysUnit": "ngày",
+      "chartTitle": "Lịch sử ôn 14 ngày gần nhất",
+      "chartNeedMoreDays": "Ôn thêm vài ngày để xem biểu đồ"
+    },
+    "statsSection": {
+      "title": "Thống kê & Tiến độ"
+    },
+    "hero": {
+      "dueCount": "Hôm nay cần ôn {count} câu",
+      "allDone": "Hôm nay đã ôn xong",
+      "dueHint": "Ôn ngay để giữ nhịp ghi nhớ Leitner.",
+      "allDoneHint": "Bạn có thể ôn tự do hoặc xem lại các câu đang học bên dưới.",
+      "streak": "Chuỗi {days} ngày ôn liên tiếp",
+      "otherModes": "Chế độ khác"
+    },
+    "quickReview": {
+      "title": "Ôn tập nhanh",
+      "dueHint": "Bạn có {count} câu đã đến hạn cần ôn hôm nay.",
+      "freeHint": "Không có câu đến hạn. Bạn có thể ôn tự do để củng cố kiến thức.",
+      "reviewDue": "Ôn ngay",
+      "reviewFree": "Ôn tự do",
+      "reviewFrequent": "Câu sai nhiều lần",
+      "reviewByChapter": "Ôn theo chương"
+    },
+    "weakChapters": {
+      "title": "Chương cần chú ý",
+      "reviewChapter": "Ôn chương này"
+    },
+    "detail": {
+      "title": "Chi tiết câu hỏi",
+      "correctAnswer": "Đáp án đúng",
+      "lastWrong": "Bạn đã chọn sai",
+      "answerLocked": "Đáp án và giải thích sẽ mở sau khi bài tập gốc kết thúc.",
+      "explanation": "Giải thích",
+      "history": "Lịch sử ôn gần đây",
+      "dismiss": "Đã nhớ rồi, bỏ khỏi sổ",
+      "reviewNow": "Ôn câu này",
+      "dismissConfirmTitle": "Bỏ câu hỏi khỏi sổ?",
+      "dismissConfirmMessage": "Câu hỏi này sẽ được ẩn khỏi Sổ câu sai. Nếu sau này bạn làm sai lại trong bài tập, câu sẽ tự động xuất hiện lại.",
+      "dismissConfirmButton": "Bỏ khỏi sổ"
+    },
     "dashboardDueTitle": "Hôm nay cần ôn: {count} câu",
     "dashboardDueSubtitle": "Bấm để bắt đầu phiên ôn tập Leitner ngay.",
     "dashboardDoneTitle": "Đã ôn xong hôm nay",
@@ -1379,11 +1431,14 @@
     "tabs": {
       "due": "Cần ôn hôm nay",
       "active": "Đang học",
-      "mastered": "Đã thuộc"
+      "mastered": "Đã thuộc",
+      "all": "Tất cả"
     },
     "empty": {
       "dueTitle": "Hôm nay không còn câu nào cần ôn, giỏi quá!",
       "dueDescription": "Bạn đã hoàn thành hết các câu đến hạn hôm nay.",
+      "frequentTitle": "Chưa có câu nào sai từ 2 lần trở lên",
+      "frequentDescription": "Các câu bạn làm sai nhiều lần sẽ xuất hiện ở đây để tập trung ôn lại.",
       "activeTitle": "Chưa có câu nào đang học",
       "activeDescription": "Các câu trắc nghiệm làm sai khi nộp bài sẽ tự động lưu vào đây.",
       "masteredTitle": "Chưa có câu nào đạt trạng thái Đã thuộc",
@@ -1401,6 +1456,9 @@
       "promotedCount": "Lên hộp",
       "masteredCount": "Đã thuộc",
       "continueReview": "Ôn tiếp",
+      "wrongInSessionTitle": "Các câu sai trong phiên này",
+      "viewDetail": "Xem chi tiết",
+      "retryWrong": "Ôn lại các câu sai",
       "masteredMsg": "Đã thuộc 🎉",
       "wrongResetMsg": "Quay về hộp 1, ôn lại ngày mai",
       "earlyReviewMsg": "Chưa đến hạn nên chưa lên hộp",
