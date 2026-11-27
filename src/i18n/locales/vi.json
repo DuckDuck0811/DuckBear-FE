@@ -1476,5 +1476,43 @@
       "skipError": "Câu hỏi không thể ôn tiếp, đang chuyển sang câu tiếp theo.",
       "networkError": "Lỗi kết nối mạng. Vui lòng thử lại."
     }
+  },
+  "gamification": {
+    "sidebarLeaderboard": "Bảng xếp hạng",
+    "level": "Cấp {level}",
+    "streak": "{days} ngày liên tiếp",
+    "xpToday": "XP hôm nay",
+    "xpThisWeek": "XP tuần này",
+    "totalXp": "Tổng XP",
+    "viewAllBadges": "Xem tất cả huy hiệu",
+    "noBadgesYet": "Chưa có huy hiệu nào",
+    "leaderboard": {
+      "title": "Bảng xếp hạng lớp",
+      "subtitle": "Thi đua XP tuần cùng các bạn trong lớp",
+      "classSelect": "Chọn lớp",
+      "anonymous": "Ẩn tên của mình",
+      "anonymousHint": "Khi bật, các bạn khác sẽ thấy bạn là \"Bạn ẩn danh\".",
+      "rank": "Hạng",
+      "student": "Học sinh",
+      "level": "Cấp",
+      "xpWeek": "XP tuần",
+      "you": "(Bạn)",
+      "yourPosition": "Vị trí của bạn",
+      "emptyTitle": "Chưa có dữ liệu xếp hạng",
+      "emptyDesc": "Hãy làm bài tập hoặc ôn Sổ câu sai để tích lũy XP tuần này!",
+      "noClassTitle": "Bạn chưa tham gia lớp học nào",
+      "loadError": "Không thể tải bảng xếp hạng. Vui lòng thử lại."
+    },
+    "badges": {
+      "title": "Huy hiệu",
+      "earned": "Đã nhận",
+      "notEarned": "Chưa nhận",
+      "earnedAt": "Nhận ngày {date}"
+    },
+    "toast": {
+      "xpEarned": "+{xp} XP 🎉",
+      "levelUp": "Lên cấp {level}! 🎉",
+      "badgeEarned": "Huy hiệu mới: {name} 🏅"
+    }
   }
 }

@@ -2,6 +2,7 @@
   <v-app>
     <RouterView />
     <LearningChatbot v-if="chatbotEnabled" />
+    <XpToast />
   </v-app>
 </template>
 
@@ -14,6 +15,7 @@ import { useAuthStore } from "./stores/auth";
 import { useNotificationsStore } from "./stores/notifications";
 import { useQuestionBankStore } from "./stores/questionBank";
 import LearningChatbot from "./components/student/LearningChatbot.vue";
+import XpToast from "./components/gamification/XpToast.vue";
 
 const { t } = useI18n();
 const authStore = useAuthStore();
