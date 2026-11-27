@@ -62,6 +62,30 @@
           rounded
         />
       </v-card>
+      <v-card
+        rounded="xl"
+        border
+        elevation="0"
+        class="pa-4 mb-4 d-flex align-center justify-space-between flex-wrap ga-3"
+        to="/student/assistant"
+      >
+        <div class="d-flex align-center ga-3">
+          <v-avatar color="primary" variant="tonal" size="44">
+            <v-icon icon="mdi-robot-outline" />
+          </v-avatar>
+          <div>
+            <div class="text-subtitle-1 font-weight-bold">
+              {{ t("assistant.dashboardCardTitle") }}
+            </div>
+            <div class="text-body-2 text-medium-emphasis">
+              {{ t("assistant.dashboardCardDesc", { count: assistantTodayCount }) }}
+            </div>
+          </div>
+        </div>
+        <v-btn color="primary" variant="tonal" append-icon="mdi-arrow-right">
+          {{ t("assistant.dashboardCardAction") }}
+        </v-btn>
+      </v-card>
       <BadgesDialog
         v-model="badgesOpen"
         :all-badges="gamificationStore.me?.allBadges || []"
@@ -132,6 +156,7 @@ import { useAuthStore } from "../../stores/auth";
 import { useStudentDashboardStore } from "../../stores/studentDashboard";
 import { useNotebookStore } from "../../stores/notebook";
 import { useGamificationStore } from "../../stores/gamification";
+import { useAssistantStore } from "../../stores/assistant";
 import StudentDashboardLayout from "../../layouts/StudentDashboardLayout.vue";
 import StudentWelcomeCard from "../../components/student/StudentWelcomeCard.vue";
 import StudentDashboardPanels from "../../components/student/StudentDashboardPanels.vue";
@@ -142,6 +167,16 @@ const authStore = useAuthStore();
 const dashboard = useStudentDashboardStore();
 const notebookStore = useNotebookStore();
 const gamificationStore = useGamificationStore();
+const assistantStore = useAssistantStore();
+const assistantTodayCount = computed(() => {
+  const tsk = assistantStore.overview?.todayTasks;
+  if (!tsk) return notebookStore.summary.dueToday || 0;
+  return (
+    (tsk.dueNotebookCount || 0) +
+    (tsk.onlineAssignmentsDue?.length || 0) +
+    (tsk.manualAssignmentsDue?.length || 0)
+  );
+});
 const badgesOpen = ref(false);
 const isEn = computed(() => String(locale.value).startsWith("en"));
 const xpPercent = computed(() => {
@@ -180,5 +215,6 @@ onMounted(() => {
   dashboard.load();
   notebookStore.loadSummary();
   gamificationStore.loadMe();
+  assistantStore.loadOverview();
 });
 </script>

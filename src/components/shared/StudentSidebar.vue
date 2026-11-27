@@ -130,7 +130,12 @@ const items = [
     to: "/results",
     match: ["results"],
   },
-  { label: "studentSidebar.chatbot", icon: "mdi-robot-outline", action: "openChatbot" },
+  {
+    label: "studentSidebar.chatbot",
+    icon: "mdi-robot-outline",
+    to: "/student/assistant",
+    match: ["student-assistant"],
+  },
   {
     label: "studentSidebar.profile",
     icon: "mdi-account-circle-outline",

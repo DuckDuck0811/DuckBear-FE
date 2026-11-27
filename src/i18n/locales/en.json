@@ -1519,5 +1519,32 @@
       "levelUp": "Level up! Level {level} 🎉",
       "badgeEarned": "New badge: {name} 🏅"
     }
+  },
+  "assistant": {
+    "title": "AI Learning Assistant",
+    "subtitle": "Your daily study coach and task planner",
+    "coachTitle": "Coach's Note",
+    "aiGeneratedLabel": "AI generated",
+    "refreshBtn": "Refresh",
+    "retry": "Retry",
+    "todayTitle": "Today's Tasks",
+    "overdueCount": "{count} overdue",
+    "suggestedNextLabel": "Suggested next",
+    "startNow": "Start now",
+    "dueNotebookItem": "Review {count} notebook questions",
+    "dueTodayBadge": "Due today",
+    "overdueBadge": "Overdue",
+    "dueSoonBadge": "Due soon",
+    "weaknessesTitle": "Areas to improve",
+    "wrongRateLabel": "Wrong rate {rate}% · {count} active",
+    "reviewThisLesson": "Practice this",
+    "encouragementTitle": "Today's encouragement",
+    "streakAtRisk": "No XP today yet—complete 1 task to keep your streak!",
+    "nextBadgeHint": "{days} more days for the streak badge!",
+    "emptyTitle": "No data yet",
+    "emptyDesc": "Complete a few exercises and come back!",
+    "dashboardCardTitle": "What to do today?",
+    "dashboardCardDesc": "{count} tasks waiting for you today",
+    "dashboardCardAction": "View plan"
   }
 }
