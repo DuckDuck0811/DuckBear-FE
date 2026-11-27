@@ -47,7 +47,7 @@ const routes = [
     path: "/profile",
     name: "profile",
     component: () => import("../views/profile/ProfileView.vue"),
-    meta: { roles: ["ADMIN", "TEACHER", "STUDENT", "PARENT"] },
+    meta: { roles: ["ADMIN", "TEACHER", "STUDENT"] },
   },
   {
     path: "/",

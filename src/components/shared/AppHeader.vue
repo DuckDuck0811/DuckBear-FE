@@ -39,7 +39,7 @@
     <v-spacer />
 
     <v-menu
-      v-if="user && user.role !== 'PARENT'"
+      v-if="user"
       v-model="notificationsOpen"
       location="bottom end"
       :close-on-content-click="false"
