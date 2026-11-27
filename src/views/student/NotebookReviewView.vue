@@ -175,10 +175,32 @@
           variant="tonal"
           class="mb-4"
         >
-          <div class="font-weight-bold mb-1">{{ boxFeedbackMessage }}</div>
+          <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+            <span class="font-weight-bold">{{ boxFeedbackMessage }}</span>
+            <v-btn
+              v-if="!reviewResult.isCorrect"
+              size="small"
+              variant="tonal"
+              color="primary"
+              prepend-icon="mdi-sparkles"
+              :loading="explainLoading"
+              :disabled="explainLoading"
+              @click="handleExplainCurrent"
+            >
+              {{ t("notebook.explain.whyWrong") }}
+            </v-btn>
+          </div>
         </v-alert>
 
-        <!-- Reserved slot for future AI explanation button -->
+        <NotebookExplainBox
+          v-if="reviewResult && !reviewResult.isCorrect"
+          :loading="explainLoading"
+          :error="explainError"
+          :can-retry="explainCanRetry"
+          :data="explainData"
+          class="mb-4"
+          @retry="handleExplainCurrent"
+        />
         <div class="d-flex align-center justify-end flex-wrap ga-3">
           <v-btn
             v-if="!reviewResult"
@@ -219,7 +241,8 @@ import { useI18n } from "vue-i18n";
 import StudentDashboardLayout from "../../layouts/StudentDashboardLayout.vue";
 import EmptyState from "../../components/shared/EmptyState.vue";
 import NotebookDetailDialog from "../../components/notebook/NotebookDetailDialog.vue";
-import { getSession, submitReview } from "../../services/notebook";
+import NotebookExplainBox from "../../components/notebook/NotebookExplainBox.vue";
+import { explainQuestion, getSession, submitReview } from "../../services/notebook";
 import { useNotebookStore } from "../../stores/notebook";
 
 const route = useRoute();
@@ -230,6 +253,11 @@ const questions = ref([]);
 const currentIndex = ref(0);
 const selectedOptionId = ref(null);
 const reviewResult = ref(null);
+const explainLoading = ref(false);
+const explainError = ref("");
+const explainCanRetry = ref(false);
+const explainData = ref(null);
+const explainSessionCache = new Map();
 const loading = ref(false);
 const submitting = ref(false);
 const loadError = ref("");
@@ -293,6 +321,10 @@ function resetSessionState() {
   currentIndex.value = 0;
   selectedOptionId.value = null;
   reviewResult.value = null;
+  explainLoading.value = false;
+  explainError.value = "";
+  explainCanRetry.value = false;
+  explainData.value = null;
   submitError.value = "";
   stats.value = { correct: 0, wrong: 0, promoted: 0, mastered: 0 };
   wrongItemsInSession.value = [];
@@ -338,6 +370,36 @@ function openDetail(questionId) {
   detailOpen.value = true;
 }
 
+async function handleExplainCurrent() {
+  const q = currentQuestion.value;
+  if (!q || explainLoading.value) return;
+  const cacheKey = `${q.questionId}:${reviewResult.value?.selectedOptionId ?? ""}`;
+  if (explainSessionCache.has(cacheKey)) {
+    explainData.value = explainSessionCache.get(cacheKey);
+    return;
+  }
+
+  explainLoading.value = true;
+  explainError.value = "";
+  explainCanRetry.value = false;
+  try {
+    const res = await explainQuestion(q.questionId);
+    explainData.value = res;
+    explainSessionCache.set(cacheKey, res);
+  } catch (err) {
+    if (err?.status === 403) {
+      explainError.value = t("notebook.explain.lockedError");
+    } else if (err?.status === 429) {
+      explainError.value = t("notebook.explain.rateLimitError");
+    } else {
+      explainError.value = err?.message || t("notebook.explain.genericError");
+      explainCanRetry.value = true;
+    }
+  } finally {
+    explainLoading.value = false;
+  }
+}
+
 async function handleCheck() {
   if (!currentItem.value || !selectedOptionId.value || submitting.value) return;
   submitting.value = true;
@@ -379,6 +441,10 @@ function nextQuestion() {
   reviewResult.value = null;
   submitError.value = "";
   canRetrySubmit.value = false;
+  explainLoading.value = false;
+  explainError.value = "";
+  explainCanRetry.value = false;
+  explainData.value = null;
   if (currentIndex.value + 1 < questions.value.length) {
     currentIndex.value += 1;
   } else {

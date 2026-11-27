@@ -53,6 +53,12 @@ export function dismissQuestion(questionId) {
   });
 }
 
+export function explainQuestion(questionId) {
+  return api(`/notebook/${questionId}/explain`, {
+    method: "POST",
+  });
+}
+
 export function submitReview({ questionId, selectedOptionId }) {
   return api("/notebook/review", {
     method: "POST",
