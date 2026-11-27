@@ -394,7 +394,6 @@
       "ADMIN": "Administrator",
       "TEACHER": "Teacher",
       "STUDENT": "Student",
-      "PARENT": "Parent",
       "member": "Member"
     },
     "changePhoto": "Change profile photo",

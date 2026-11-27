@@ -62,7 +62,7 @@ All routes require a signed-in user except `/login` and `/register`. Some routes
 | `/schedule` | Class schedule | Teachers, students |
 | `/teacher/progress` | Student progress | Teachers, admins |
 | `/activity-log` | Assignment activity | Teachers |
-| `/profile` | Account profile | Admins, teachers, students, parents |
+| `/profile` | Account profile | Admins, teachers, students |
 
 ## Project structure
 

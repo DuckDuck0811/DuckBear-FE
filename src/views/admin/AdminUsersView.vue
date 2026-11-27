@@ -135,7 +135,6 @@ const roles = [
   { title: "Quản trị viên", value: "ADMIN" },
   { title: "Giáo viên", value: "TEACHER" },
   { title: "Học sinh", value: "STUDENT" },
-  { title: "Phụ huynh", value: "PARENT" },
 ];
 
 const filteredUsers = computed(() => {
