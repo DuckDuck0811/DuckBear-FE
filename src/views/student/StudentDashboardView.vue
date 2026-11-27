@@ -6,6 +6,53 @@
         :grade-style="gradeStyle"
         :grade-style-label="gradeStyleLabel"
       />
+      <v-card
+        rounded="xl"
+        border
+        elevation="0"
+        class="pa-4 mb-6 d-flex align-center justify-space-between flex-wrap ga-3"
+        :to="notebookStore.summary.dueToday > 0 ? '/student/notebook/review' : '/student/notebook'"
+      >
+        <div class="d-flex align-center ga-3">
+          <v-avatar
+            :color="notebookStore.summary.dueToday > 0 ? 'warning' : 'success'"
+            variant="tonal"
+            size="44"
+          >
+            <v-icon
+              :icon="notebookStore.summary.dueToday > 0 ? 'mdi-notebook-edit-outline' : 'mdi-check-decagram-outline'"
+            />
+          </v-avatar>
+          <div>
+            <div class="text-subtitle-1 font-weight-bold">
+              {{
+                notebookStore.summary.dueToday > 0
+                  ? t("notebook.dashboardDueTitle", { count: notebookStore.summary.dueToday })
+                  : t("notebook.dashboardDoneTitle")
+              }}
+            </div>
+            <div class="text-caption text-medium-emphasis">
+              {{
+                notebookStore.summary.dueToday > 0
+                  ? t("notebook.dashboardDueSubtitle")
+                  : t("notebook.dashboardDoneSubtitle")
+              }}
+            </div>
+          </div>
+        </div>
+        <v-btn
+          :color="notebookStore.summary.dueToday > 0 ? 'primary' : 'default'"
+          variant="tonal"
+          rounded="lg"
+          append-icon="mdi-arrow-right"
+        >
+          {{
+            notebookStore.summary.dueToday > 0
+              ? t("notebook.dashboardStartAction")
+              : t("notebook.dashboardOpenAction")
+          }}
+        </v-btn>
+      </v-card>
       <StudentDashboardPanels
         :classes="dashboard.classes"
         :pending-requests="dashboard.pendingRequests"
@@ -22,6 +69,7 @@ import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "../../stores/auth";
 import { useStudentDashboardStore } from "../../stores/studentDashboard";
+import { useNotebookStore } from "../../stores/notebook";
 import StudentDashboardLayout from "../../layouts/StudentDashboardLayout.vue";
 import StudentWelcomeCard from "../../components/student/StudentWelcomeCard.vue";
 import StudentDashboardPanels from "../../components/student/StudentDashboardPanels.vue";
@@ -29,6 +77,7 @@ import StudentDashboardPanels from "../../components/student/StudentDashboardPan
 const { t } = useI18n();
 const authStore = useAuthStore();
 const dashboard = useStudentDashboardStore();
+const notebookStore = useNotebookStore();
 
 const firstName = computed(() => {
   const name = authStore.user?.fullName?.trim();
@@ -56,5 +105,8 @@ const displayError = computed(() =>
     : "",
 );
 
-onMounted(dashboard.load);
+onMounted(() => {
+  dashboard.load();
+  notebookStore.loadSummary();
+});
 </script>
