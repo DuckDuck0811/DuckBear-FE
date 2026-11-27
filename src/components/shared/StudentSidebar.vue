@@ -33,6 +33,15 @@
             {{ notebookStore.summary.dueToday }}
           </v-chip>
         </RouterLink>
+        <button
+          v-else-if="item.action === 'openChatbot'"
+          type="button"
+          class="student-sidebar-link"
+          @click="openChatbot"
+        >
+          <v-icon :icon="item.icon" size="20" />
+          <span>{{ t(item.label) }}</span>
+        </button>
         <div
           v-else
           class="student-sidebar-link student-sidebar-link-disabled"
@@ -115,7 +124,7 @@ const items = [
     to: "/results",
     match: ["results"],
   },
-  { label: "studentSidebar.chatbot", icon: "mdi-robot-outline" },
+  { label: "studentSidebar.chatbot", icon: "mdi-robot-outline", action: "openChatbot" },
   {
     label: "studentSidebar.profile",
     icon: "mdi-account-circle-outline",
@@ -133,6 +142,11 @@ function isActive(item) {
 
 function closeOnMobile() {
   if (mobile.value) drawerOpen.value = false;
+}
+
+function openChatbot() {
+  window.dispatchEvent(new CustomEvent("open-learning-chatbot"));
+  closeOnMobile();
 }
 
 function toggleFromHeader() {
