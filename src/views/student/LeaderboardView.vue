@@ -1,5 +1,6 @@
 <template>
-  <v-container class="py-6" style="max-width: 900px">
+  <StudentDashboardLayout>
+    <v-container class="py-6" style="max-width: 900px">
     <div class="d-flex flex-wrap align-center justify-space-between ga-3 mb-5">
       <div>
         <h1 class="text-h5 font-weight-bold d-flex align-center ga-2">
@@ -131,21 +132,24 @@
       </v-card>
     </template>
   </v-container>
+  </StudentDashboardLayout>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { api } from "../../services/api";
 import { getLeaderboard, updateSettings } from "../../services/gamification";
 import { useGamificationStore } from "../../stores/gamification";
+import { useStudentDashboardStore } from "../../stores/studentDashboard";
+import StudentDashboardLayout from "../../layouts/StudentDashboardLayout.vue";
 
 const { t } = useI18n();
 const gamificationStore = useGamificationStore();
+const dashboardStore = useStudentDashboardStore();
 
-const classes = ref([]);
+const classes = computed(() => dashboardStore.classes || []);
 const selectedClassId = ref(null);
-const loadingClasses = ref(true);
+const loadingClasses = computed(() => dashboardStore.isLoading);
 const loadingBoard = ref(false);
 const savingAnon = ref(false);
 const error = ref("");
@@ -163,18 +167,16 @@ function rankColor(rank) {
 }
 
 async function loadClasses() {
-  loadingClasses.value = true;
-  try {
-    const res = await api("/classes/mine");
-    classes.value = Array.isArray(res) ? res : res?.items || [];
-    if (classes.value.length > 0) {
-      selectedClassId.value = classes.value[0].id;
-      await loadBoard();
-    }
-  } catch (err) {
-    error.value = err?.message || t("gamification.leaderboard.loadError");
-  } finally {
-    loadingClasses.value = false;
+  if (classes.value.length === 0) {
+    await dashboardStore.load();
+  }
+  if (dashboardStore.hasError) {
+    error.value = dashboardStore.errorMessage || t("gamification.leaderboard.loadError");
+    return;
+  }
+  if (classes.value.length > 0) {
+    selectedClassId.value = classes.value[0].id;
+    await loadBoard();
   }
 }
 
