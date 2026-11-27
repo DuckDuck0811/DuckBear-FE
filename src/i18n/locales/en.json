@@ -1481,5 +1481,43 @@
       "skipError": "This question cannot be reviewed; skipping to the next one.",
       "networkError": "Network error. Please try again."
     }
+  },
+  "gamification": {
+    "sidebarLeaderboard": "Leaderboard",
+    "level": "Level {level}",
+    "streak": "{days} day streak",
+    "xpToday": "XP today",
+    "xpThisWeek": "XP this week",
+    "totalXp": "Total XP",
+    "viewAllBadges": "View all badges",
+    "noBadgesYet": "No badges yet",
+    "leaderboard": {
+      "title": "Class Leaderboard",
+      "subtitle": "Weekly XP standings in your class",
+      "classSelect": "Select class",
+      "anonymous": "Hide my name",
+      "anonymousHint": "When enabled, classmates will see you as \"Anonymous\".",
+      "rank": "Rank",
+      "student": "Student",
+      "level": "Level",
+      "xpWeek": "Weekly XP",
+      "you": "(You)",
+      "yourPosition": "Your position",
+      "emptyTitle": "No leaderboard data yet",
+      "emptyDesc": "Complete assignments or review your notebook to earn weekly XP!",
+      "noClassTitle": "You have not joined any class yet",
+      "loadError": "Could not load leaderboard. Please try again."
+    },
+    "badges": {
+      "title": "Badges",
+      "earned": "Earned",
+      "notEarned": "Not earned",
+      "earnedAt": "Earned on {date}"
+    },
+    "toast": {
+      "xpEarned": "+{xp} XP 🎉",
+      "levelUp": "Level up! Level {level} 🎉",
+      "badgeEarned": "New badge: {name} 🏅"
+    }
   }
 }

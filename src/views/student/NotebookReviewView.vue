@@ -244,10 +244,12 @@ import NotebookDetailDialog from "../../components/notebook/NotebookDetailDialog
 import NotebookExplainBox from "../../components/notebook/NotebookExplainBox.vue";
 import { explainQuestion, getSession, submitReview } from "../../services/notebook";
 import { useNotebookStore } from "../../stores/notebook";
+import { useGamificationStore } from "../../stores/gamification";
 
 const route = useRoute();
 const { t } = useI18n();
 const notebookStore = useNotebookStore();
+const gamificationStore = useGamificationStore();
 
 const questions = ref([]);
 const currentIndex = ref(0);
@@ -421,6 +423,8 @@ async function handleCheck() {
       wrongItemsInSession.value.push(currentItem.value);
     }
     notebookStore.loadSummary();
+    gamificationStore.notifyXp(res.xpAwarded, res.newBadges);
+    gamificationStore.loadMe();
   } catch (err) {
     if (err?.status === 400 || err?.status === 404) {
       submitError.value = err.message || t("notebook.review.skipError");

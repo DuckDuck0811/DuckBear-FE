@@ -107,6 +107,12 @@ const items = [
     badge: true,
   },
   {
+    label: "gamification.sidebarLeaderboard",
+    icon: "mdi-trophy-outline",
+    to: "/student/leaderboard",
+    match: ["student-leaderboard"],
+  },
+  {
     label: "studentSidebar.manualAssignments",
     icon: "mdi-cloud-upload-outline",
     to: "/manual-assignments",
