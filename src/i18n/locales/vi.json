@@ -1514,5 +1514,32 @@
       "levelUp": "Lên cấp {level}! 🎉",
       "badgeEarned": "Huy hiệu mới: {name} 🏅"
     }
+  },
+  "assistant": {
+    "title": "Trợ lý học tập AI",
+    "subtitle": "Người đồng hành nhắc việc và gợi ý lộ trình học mỗi ngày",
+    "coachTitle": "Nhận xét của cô giáo",
+    "aiGeneratedLabel": "Nhận xét do AI tạo",
+    "refreshBtn": "Làm mới",
+    "retry": "Thử lại",
+    "todayTitle": "Hôm nay nên làm",
+    "overdueCount": "{count} bài quá hạn",
+    "suggestedNextLabel": "Gợi ý làm trước",
+    "startNow": "Làm ngay",
+    "dueNotebookItem": "Ôn {count} câu trong Sổ câu sai",
+    "dueTodayBadge": "Cần ôn hôm nay",
+    "overdueBadge": "Quá hạn",
+    "dueSoonBadge": "Sắp đến hạn",
+    "weaknessesTitle": "Điểm cần cố gắng",
+    "wrongRateLabel": "Tỷ lệ sai {rate}% · {count} câu đang ôn",
+    "reviewThisLesson": "Ôn bài này",
+    "encouragementTitle": "Khích lệ hôm nay",
+    "streakAtRisk": "Hôm nay chưa có XP, làm 1 bài để giữ chuỗi nhé!",
+    "nextBadgeHint": "Còn {days} ngày nữa đạt huy hiệu chuỗi!",
+    "emptyTitle": "Chưa có dữ liệu",
+    "emptyDesc": "Em làm vài bài rồi quay lại nhé!",
+    "dashboardCardTitle": "Hôm nay nên làm gì?",
+    "dashboardCardDesc": "Có {count} việc đang chờ em hoàn thành hôm nay",
+    "dashboardCardAction": "Xem gợi ý"
   }
 }
