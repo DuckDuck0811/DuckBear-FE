@@ -44,6 +44,18 @@ const routes = [
     meta: { roles: ["STUDENT"] },
   },
   {
+    path: "/student/notebook",
+    name: "student-notebook",
+    component: () => import("../views/student/NotebookView.vue"),
+    meta: { roles: ["STUDENT"] },
+  },
+  {
+    path: "/student/notebook/review",
+    name: "student-notebook-review",
+    component: () => import("../views/student/NotebookReviewView.vue"),
+    meta: { roles: ["STUDENT"] },
+  },
+  {
     path: "/profile",
     name: "profile",
     component: () => import("../views/profile/ProfileView.vue"),

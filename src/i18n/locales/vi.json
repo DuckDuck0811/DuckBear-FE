@@ -1355,5 +1355,58 @@
       "submitNow": "💎 NỘP BÀI NHẬN THƯỞNG",
       "submitting": "ĐANG NỘP BÀI..."
     }
+  },
+  "notebook": {
+    "sidebarTitle": "Sổ câu sai",
+    "eyebrow": "ÔN TẬP LEITNER",
+    "title": "Sổ câu sai",
+    "subtitle": "Ôn tập lại các câu trắc nghiệm đã làm sai theo chu kỳ ghi nhớ.",
+    "startReview": "Bắt đầu ôn ({count} câu)",
+    "unitFilter": "Lọc theo mã bài / chương",
+    "retry": "Thử lại",
+    "loadError": "Không tải được danh sách câu sai.",
+    "boxLabel": "Hộp {box}/5",
+    "wrongCount": "Sai {count} lần",
+    "dueNow": "Đến hạn",
+    "reviewInDays": "Ôn lại sau {days} ngày",
+    "masteredBadge": "Đã thuộc",
+    "dashboardDueTitle": "Hôm nay cần ôn: {count} câu",
+    "dashboardDueSubtitle": "Bấm để bắt đầu phiên ôn tập Leitner ngay.",
+    "dashboardDoneTitle": "Đã ôn xong hôm nay",
+    "dashboardDoneSubtitle": "Xem lại các câu đang học hoặc đã thuộc trong sổ.",
+    "dashboardStartAction": "Ôn ngay",
+    "dashboardOpenAction": "Mở sổ",
+    "tabs": {
+      "due": "Cần ôn hôm nay",
+      "active": "Đang học",
+      "mastered": "Đã thuộc"
+    },
+    "empty": {
+      "dueTitle": "Hôm nay không còn câu nào cần ôn, giỏi quá!",
+      "dueDescription": "Bạn đã hoàn thành hết các câu đến hạn hôm nay.",
+      "activeTitle": "Chưa có câu nào đang học",
+      "activeDescription": "Các câu trắc nghiệm làm sai khi nộp bài sẽ tự động lưu vào đây.",
+      "masteredTitle": "Chưa có câu nào đạt trạng thái Đã thuộc",
+      "masteredDescription": "Ôn đúng đến hộp 5 để đưa câu hỏi vào danh sách Đã thuộc."
+    },
+    "review": {
+      "backToNotebook": "Về Sổ câu sai",
+      "progress": "Câu {current}/{total}",
+      "check": "Kiểm tra",
+      "next": "Câu tiếp theo",
+      "finish": "Xem tổng kết",
+      "summaryTitle": "Hoàn thành phiên ôn tập!",
+      "correctCount": "Câu đúng",
+      "wrongCount": "Câu sai",
+      "promotedCount": "Lên hộp",
+      "masteredCount": "Đã thuộc",
+      "continueReview": "Ôn tiếp",
+      "masteredMsg": "Đã thuộc 🎉",
+      "wrongResetMsg": "Quay về hộp 1, ôn lại ngày mai",
+      "earlyReviewMsg": "Chưa đến hạn nên chưa lên hộp",
+      "promotedMsg": "Lên hộp {box}, ôn lại sau {days} ngày",
+      "skipError": "Câu hỏi không thể ôn tiếp, đang chuyển sang câu tiếp theo.",
+      "networkError": "Lỗi kết nối mạng. Vui lòng thử lại."
+    }
   }
 }

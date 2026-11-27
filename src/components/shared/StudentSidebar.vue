@@ -23,6 +23,15 @@
         >
           <v-icon :icon="item.icon" size="20" />
           <span>{{ t(item.label) }}</span>
+          <v-chip
+            v-if="item.badge && notebookStore.summary.dueToday > 0"
+            size="x-small"
+            color="warning"
+            variant="flat"
+            class="ml-auto font-weight-bold"
+          >
+            {{ notebookStore.summary.dueToday }}
+          </v-chip>
         </RouterLink>
         <div
           v-else
@@ -44,13 +53,18 @@ import { useDisplay } from "vuetify";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useAuthStore } from "../../stores/auth";
+import { useNotebookStore } from "../../stores/notebook";
 
 const route = useRoute();
 const authStore = useAuthStore();
+const notebookStore = useNotebookStore();
 const { mobile } = useDisplay({ mobileBreakpoint: "md" });
 const { t } = useI18n();
 const drawerOpen = ref(false);
 const isStudent = computed(() => authStore.user?.role === "STUDENT");
+if (isStudent.value) {
+  notebookStore.loadSummary();
+}
 const items = [
   {
     label: "studentSidebar.overview",
@@ -75,6 +89,13 @@ const items = [
     icon: "mdi-clipboard-text-outline",
     to: "/assignments",
     match: ["assignments", "assignment-take"],
+  },
+  {
+    label: "notebook.sidebarTitle",
+    icon: "mdi-notebook-edit-outline",
+    to: "/student/notebook",
+    match: ["student-notebook", "student-notebook-review"],
+    badge: true,
   },
   {
     label: "studentSidebar.manualAssignments",

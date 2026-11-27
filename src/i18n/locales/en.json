@@ -1360,5 +1360,58 @@
       "submitNow": "💎 SUBMIT & CLAIM REWARDS",
       "submitting": "SUBMITTING..."
     }
+  },
+  "notebook": {
+    "sidebarTitle": "Wrong Notebook",
+    "eyebrow": "LEITNER REVIEW",
+    "title": "Wrong Notebook",
+    "subtitle": "Review your missed multiple-choice questions using spaced repetition.",
+    "startReview": "Start review ({count})",
+    "unitFilter": "Filter by unit / lesson ID",
+    "retry": "Retry",
+    "loadError": "Failed to load wrong notebook.",
+    "boxLabel": "Box {box}/5",
+    "wrongCount": "Missed {count}x",
+    "dueNow": "Due now",
+    "reviewInDays": "Review in {days}d",
+    "masteredBadge": "Mastered",
+    "dashboardDueTitle": "Due today: {count} questions",
+    "dashboardDueSubtitle": "Click to start your Leitner review session.",
+    "dashboardDoneTitle": "All caught up for today",
+    "dashboardDoneSubtitle": "Browse active or mastered questions in your notebook.",
+    "dashboardStartAction": "Review now",
+    "dashboardOpenAction": "Open notebook",
+    "tabs": {
+      "due": "Due today",
+      "active": "Active",
+      "mastered": "Mastered"
+    },
+    "empty": {
+      "dueTitle": "No questions due today — great job!",
+      "dueDescription": "You have completed all due reviews for today.",
+      "activeTitle": "No active questions yet",
+      "activeDescription": "Missed multiple-choice questions from submitted assignments will appear here.",
+      "masteredTitle": "No mastered questions yet",
+      "masteredDescription": "Answer correctly up to Box 5 to mark a question as mastered."
+    },
+    "review": {
+      "backToNotebook": "Back to Notebook",
+      "progress": "Question {current}/{total}",
+      "check": "Check",
+      "next": "Next question",
+      "finish": "View summary",
+      "summaryTitle": "Review session complete!",
+      "correctCount": "Correct",
+      "wrongCount": "Wrong",
+      "promotedCount": "Promoted",
+      "masteredCount": "Mastered",
+      "continueReview": "Review more",
+      "masteredMsg": "Mastered 🎉",
+      "wrongResetMsg": "Back to Box 1, review tomorrow",
+      "earlyReviewMsg": "Not due yet, box unchanged",
+      "promotedMsg": "Promoted to Box {box}, review in {days} days",
+      "skipError": "This question cannot be reviewed; skipping to the next one.",
+      "networkError": "Network error. Please try again."
+    }
   }
 }
