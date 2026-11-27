@@ -1,5 +1,6 @@
 <template>
-  <div class="success-view text-center pa-2">1
+  <div class="success-view text-center pa-2">
+    1
     <!-- Mascot DuckBear mỉm cười chúc mừng -->
     <div class="d-flex justify-center mb-5">
       <DuckBearMascot mood="success" />
