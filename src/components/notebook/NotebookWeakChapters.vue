@@ -29,15 +29,27 @@
           />
         </div>
 
-        <v-btn
-          size="small"
-          variant="tonal"
-          color="primary"
-          rounded="lg"
-          :to="`/student/notebook/review?mode=chapter&chapterId=${ch.chapterId}`"
-        >
-          {{ t("notebook.weakChapters.reviewChapter") }}
-        </v-btn>
+        <div class="d-flex ga-2 flex-wrap">
+          <v-btn
+            size="small"
+            variant="outlined"
+            color="secondary"
+            rounded="lg"
+            :loading="practiceStarting"
+            @click="startPractice({ mode: 'CHAPTER', chapterId: ch.chapterId })"
+          >
+            {{ t("notebook.practice.practiceChapterBtn") }}
+          </v-btn>
+          <v-btn
+            size="small"
+            variant="tonal"
+            color="primary"
+            rounded="lg"
+            :to="`/student/notebook/review?mode=chapter&chapterId=${ch.chapterId}`"
+          >
+            {{ t("notebook.weakChapters.reviewChapter") }}
+          </v-btn>
+        </div>
       </div>
     </div>
   </v-card>
@@ -45,6 +57,9 @@
 
 <script setup>
 import { useI18n } from "vue-i18n";
+import { useNotebookPractice } from "../../composables/useNotebookPractice";
+
+const { starting: practiceStarting, startPractice } = useNotebookPractice();
 
 defineProps({
   chapters: { type: Array, default: () => [] },

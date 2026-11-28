@@ -65,3 +65,37 @@ export function submitReview({ questionId, selectedOptionId }) {
     body: { questionId, selectedOptionId },
   });
 }
+
+export function createNotebookPractice(payload) {
+  return api("/notebook/practice", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function getNotebookPracticeDetail(sessionId) {
+  return api(`/notebook/practice/${encodeURIComponent(String(sessionId))}`);
+}
+
+export function answerNotebookPractice(sessionId, payload) {
+  return api(`/notebook/practice/${encodeURIComponent(String(sessionId))}/answer`, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function finishNotebookPractice(sessionId) {
+  return api(`/notebook/practice/${encodeURIComponent(String(sessionId))}/finish`, {
+    method: "POST",
+  });
+}
+
+export function getNotebookPracticeSessions(limit = 10) {
+  return api(`/notebook/practice?limit=${encodeURIComponent(String(limit))}`);
+}
+
+export function reportNotebookPracticeQuestion(questionId) {
+  return api(`/notebook/practice/questions/${encodeURIComponent(String(questionId))}/report`, {
+    method: "POST",
+  });
+}

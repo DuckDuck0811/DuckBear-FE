@@ -56,6 +56,12 @@ const routes = [
     meta: { roles: ["STUDENT"] },
   },
   {
+    path: "/student/notebook/practice/:sessionId",
+    name: "student-notebook-practice",
+    component: () => import("../views/student/NotebookPracticeView.vue"),
+    meta: { roles: ["STUDENT"] },
+  },
+  {
     path: "/student/leaderboard",
     name: "student-leaderboard",
     component: () => import("../views/student/LeaderboardView.vue"),

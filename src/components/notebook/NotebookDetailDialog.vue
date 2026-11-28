@@ -129,6 +129,17 @@
         </v-btn>
         <v-spacer />
         <v-btn
+          v-if="!detail.answerLocked"
+          variant="tonal"
+          color="secondary"
+          rounded="lg"
+          :loading="practiceStarting"
+          @click="startSimilar"
+        >
+          <v-icon start>mdi-lightning-bolt-outline</v-icon>
+          {{ t("notebook.practice.similarBtn") }}
+        </v-btn>
+        <v-btn
           v-if="detail.status === 'ACTIVE'"
           color="primary"
           rounded="lg"
@@ -158,6 +169,7 @@ import { useI18n } from "vue-i18n";
 import ConfirmDialog from "../shared/ConfirmDialog.vue";
 import NotebookExplainBox from "./NotebookExplainBox.vue";
 import { dismissQuestion, explainQuestion, getDetail } from "../../services/notebook";
+import { useNotebookPractice } from "../../composables/useNotebookPractice";
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -166,6 +178,12 @@ const props = defineProps({
 
 const emit = defineEmits(["update:modelValue", "dismissed"]);
 const { t } = useI18n();
+const { starting: practiceStarting, startPractice } = useNotebookPractice();
+
+function startSimilar() {
+  if (!detail.value?.questionId) return;
+  startPractice({ mode: "SIMILAR", questionId: detail.value.questionId, count: 3 });
+}
 
 const detail = ref(null);
 const loading = ref(false);
