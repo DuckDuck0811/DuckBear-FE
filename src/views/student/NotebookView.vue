@@ -65,6 +65,12 @@
                   :title="t('notebook.quickReview.reviewFrequent')"
                   to="/student/notebook/review?mode=frequent"
                 />
+                <v-list-item
+                  prepend-icon="mdi-lightning-bolt-outline"
+                  :title="t('notebook.practice.practiceAllBtn')"
+                  :disabled="practiceStarting"
+                  @click="startPractice({ mode: 'ALL' })"
+                />
                 <v-divider v-if="chapters.length" />
                 <v-list-subheader v-if="chapters.length">
                   {{ t('notebook.quickReview.reviewByChapter') }}
@@ -78,6 +84,16 @@
                 />
               </v-list>
             </v-menu>
+            <v-btn
+              variant="outlined"
+              color="secondary"
+              rounded="lg"
+              prepend-icon="mdi-lightning-bolt-outline"
+              :loading="practiceStarting"
+              @click="startPractice({ mode: 'ALL' })"
+            >
+              {{ t('notebook.practice.practiceAllBtn') }}
+            </v-btn>
           </div>
         </div>
       </v-card>
@@ -344,6 +360,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useNotebookPractice } from '../../composables/useNotebookPractice';
 import StudentDashboardLayout from '../../layouts/StudentDashboardLayout.vue';
 import FilterChips from '../../components/shared/FilterChips.vue';
 import EmptyState from '../../components/shared/EmptyState.vue';
@@ -353,6 +370,7 @@ import { getChapters, getNotebook, getStats } from '../../services/notebook';
 import { useNotebookStore } from '../../stores/notebook';
 
 const { t } = useI18n();
+const { starting: practiceStarting, startPractice } = useNotebookPractice();
 const notebookStore = useNotebookStore();
 
 // ---- list state ----

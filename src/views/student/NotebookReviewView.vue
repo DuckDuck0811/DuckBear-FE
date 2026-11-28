@@ -203,6 +203,18 @@
         />
         <div class="d-flex align-center justify-end flex-wrap ga-3">
           <v-btn
+            v-if="reviewResult && !reviewResult.isCorrect && !current.answerLocked"
+            variant="tonal"
+            color="secondary"
+            size="large"
+            rounded="lg"
+            :loading="practiceStarting"
+            @click="startPractice({ mode: 'SIMILAR', questionId: current.questionId, count: 3 })"
+          >
+            <v-icon start>mdi-lightning-bolt-outline</v-icon>
+            {{ t("notebook.practice.similarBtn") }}
+          </v-btn>
+          <v-btn
             v-if="!reviewResult"
             color="primary"
             size="large"
@@ -238,6 +250,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { useNotebookPractice } from "../../composables/useNotebookPractice";
 import StudentDashboardLayout from "../../layouts/StudentDashboardLayout.vue";
 import EmptyState from "../../components/shared/EmptyState.vue";
 import NotebookDetailDialog from "../../components/notebook/NotebookDetailDialog.vue";
@@ -248,6 +261,7 @@ import { useGamificationStore } from "../../stores/gamification";
 
 const route = useRoute();
 const { t } = useI18n();
+const { starting: practiceStarting, startPractice } = useNotebookPractice();
 const notebookStore = useNotebookStore();
 const gamificationStore = useGamificationStore();
 
