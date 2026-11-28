@@ -10,7 +10,7 @@
     <div class="success-badge-icon mb-4">
       <v-avatar color="success" size="64" class="elevation-3">
         <v-icon icon="mdi-check-bold" size="32" color="white" />
-      </v-avatar> 
+      </v-avatar>
     </div>
 
     <!-- Tiêu đề lớn -->
