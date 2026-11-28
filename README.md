@@ -1,68 +1,64 @@
 # DuckBear Frontend
 
-DuckBear is a learning platform for students and teachers. This project contains the Vue 3 web application; the NestJS API and PostgreSQL database are maintained in the sibling `BE` project in the development workspace.
-
-## What’s included
-
-- Student and teacher experiences for books, lessons, classes, assignments, schedules, and progress.
-- Question and exam banks, assignment play modes, and submission review.
-- Vietnamese and English translations, with Vietnamese as the default language.
-- Role-aware navigation backed by an authenticated API.
+Vue 3 web app for DuckBear Classroom. The NestJS API and PostgreSQL database live in the sibling `BE` directory.
 
 ## Requirements
 
-- Node.js `^20.19.0` or `>=22.12.0` (required by Vite 8)
+- Node.js compatible with Vite 8 (`^20.19.0` or `>=22.12.0`)
 - npm
 - A running DuckBear backend for data-backed features
 
 ## Run locally
 
-Start the backend first. Follow its setup instructions in `BE/README.md` from the workspace root, then start the frontend in a second terminal:
+Start the backend using [`BE/README.md`](../../BE/README.md), then open a second terminal in `FE/FE`:
 
 ```sh
-cd FE/FE
 npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. The frontend expects the API at `http://localhost:3000` by default. To use another API URL, create `.env.local` in this directory:
+Vite prints the local URL when it starts. The app uses `http://localhost:3000` as its API by default. To change it, create `.env.local` in `FE/FE`:
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:3000
+VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id
 ```
 
-Restart Vite after changing environment variables. The backend must be running and accept browser requests through CORS.
+For Google sign-in, use the same OAuth client ID as `GOOGLE_CLIENT_ID` in the backend. Restart Vite after changing environment variables. The backend must allow requests from the frontend origin through CORS.
 
 ## Scripts
 
-Run these from `FE/FE`:
+Run from `FE/FE`:
 
 | Command | Description |
 | --- | --- |
 | `npm run dev` | Start the Vite development server |
-| `npm test` | Run the Node.js test suite |
 | `npm run build` | Create a production build in `dist/` |
-| `npm run preview` | Serve the production build locally |
+| `npm run preview` | Preview the production build locally |
+| `npm test` | Run the Node.js test suite |
+| `npm run test:e2e` | Run Playwright end-to-end tests |
 
-## Application routes
+## Routes
 
-All routes require a signed-in user except `/login` and `/register`. Some routes are limited to specific roles; unauthorized users are redirected to their role’s landing page.
+The router requires a signed-in user for app pages and redirects users who do not have the required role. Public account routes are login, registration, and password recovery.
 
-| Route | Purpose | Roles |
+| Route | Purpose | Access |
 | --- | --- | --- |
-| `/login`, `/register`, `/register/:role` | Sign in and registration | Public |
-| `/` | Browse books | Signed-in users |
-| `/books/:id`, `/lessons/:id` | Book, chapter, and lesson content | Signed-in users |
+| `/login`, `/ops/7f3a9c/entry` | Sign in (including the admin entry) | Public |
+| `/register`, `/register/:role` | Choose a role or register | Public |
+| `/forgot-password`, `/reset-password` | Recover an account | Public |
+| `/` and `/books/:id`, `/lessons/:id` | Browse books and study lessons | Signed-in users |
 | `/student`, `/results` | Student dashboard and attempt history | Students |
-| `/classes`, `/classes/:id` | Classes and class details | Signed-in users; class details for teachers and admins |
-| `/manual-assignments`, `/classes/:id/manual-assignments` | Class assignments | Teachers, admins, students |
-| `/assignments`, `/assignments/:id/do` | Assignment list and taking an assignment | Teachers, admins, students; taking assignments for students |
-| `/submissions`, `/submissions/:assignmentId` | Review submissions | Teachers |
-| `/question-bank`, `/exam-bank` | Manage questions and exams | Teachers, admins |
-| `/schedule` | Class schedule | Teachers, students |
-| `/teacher/progress` | Student progress | Teachers, admins |
-| `/activity-log` | Assignment activity | Teachers |
-| `/profile` | Account profile | Admins, teachers, students |
+| `/student/notebook`, `/student/notebook/review` | Review saved questions | Students |
+| `/student/leaderboard`, `/student/assistant` | Leaderboard and learning assistant | Students |
+| `/student/practice`, `/student/practice/session/:id` | Practice sessions | Students |
+| `/classes`, `/classes/:id` | Class list and class details | Signed-in users; detail for teachers/admins |
+| `/manual-assignments`, `/classes/:id/manual-assignments` | Manual class assignments | Students, teachers, admins |
+| `/assignments`, `/assignments/:id/do` | Assignments and taking an assignment | Signed-in users; taking for students |
+| `/submissions`, `/submissions/:assignmentId` | Review assignment submissions | Teachers/admins; detail for teachers |
+| `/question-bank`, `/exam-bank` | Manage questions and exams | Teachers/admins |
+| `/schedule`, `/teacher/progress`, `/activity-log` | Schedule, progress, and assignment activity | Role-limited |
+| `/profile`, `/admin/accounts` | Profile and account management | Signed-in users; accounts for admins |
 
 ## Project structure
 
@@ -70,26 +66,17 @@ All routes require a signed-in user except `/login` and `/register`. Some routes
 src/
 ├── components/   # Shared UI and feature components
 ├── composables/  # Reusable Vue composition logic
-├── i18n/         # Locale setup and Vietnamese/English messages
+├── i18n/         # Vietnamese and English messages
 ├── layouts/      # Page layouts
 ├── router/       # Routes and navigation guard
-├── schemas/      # Data schemas
 ├── services/     # API client and domain services
 ├── stores/       # Pinia state
-├── styles/       # Additional styles
+├── styles/       # App styles
 ├── utils/        # Shared utilities
 ├── views/        # Route-level pages
-├── App.vue       # Root component
+├── App.vue
 └── main.js       # Vue, router, Pinia, Vuetify, and i18n setup
 ```
-
-## Configuration and session behavior
-
-| Variable | Default | Purpose |
-| --- | --- | --- |
-| `VITE_API_BASE_URL` | `http://localhost:3000` | Base URL for backend requests |
-
-The app stores the access token, signed-in user, and language preference in browser `localStorage`. Clearing site storage signs the user out and resets the saved language preference. Keep local environment files and credentials out of version control.
 
 ## Production build
 
@@ -100,4 +87,4 @@ npm run build
 npm run preview
 ```
 
-Deploy the generated `dist/` directory to a static web host configured to serve `index.html` for application routes. Configure the backend’s CORS policy to allow the deployed frontend origin.
+Deploy `dist/` to a static host configured to serve `index.html` for app routes, and configure the backend CORS policy to allow the deployed frontend origin. The access token, user session, and language preference are stored in browser `localStorage`.
