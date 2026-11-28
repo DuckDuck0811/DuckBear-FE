@@ -1,29 +1,36 @@
 <template>
   <StudentDashboardLayout>
-    <v-container class="py-6 px-4 px-md-8" style="max-width: 820px">
-      <div class="d-flex align-center justify-space-between mb-4">
+    <v-container class="py-4 px-3 px-md-6" style="max-width: 820px">
+
+      <!-- ── Top navigation bar ── -->
+      <div class="review-topbar d-flex align-center justify-space-between mb-3 px-1">
         <v-btn
           variant="text"
+          size="small"
           prepend-icon="mdi-arrow-left"
+          class="text-medium-emphasis"
           :to="'/student/notebook'"
         >
           {{ t("notebook.review.backToNotebook") }}
         </v-btn>
-        <div v-if="!finished && questions.length" class="text-body-2 font-weight-bold">
+        <div v-if="!finished && questions.length" class="text-body-2 font-weight-bold text-medium-emphasis">
           {{ t("notebook.review.progress", { current: currentIndex + 1, total: questions.length }) }}
         </div>
       </div>
 
-      <v-progress-linear
-        v-if="!finished && questions.length"
-        :model-value="((currentIndex + 1) / questions.length) * 100"
-        color="primary"
-        height="8"
-        rounded
-        class="mb-6"
-      />
+      <!-- ── Progress bar ── -->
+      <div v-if="!finished && questions.length" class="mb-5">
+        <v-progress-linear
+          :model-value="((currentIndex + 1) / questions.length) * 100"
+          color="primary"
+          bg-color="primary-lighten-4"
+          height="10"
+          rounded
+        />
+      </div>
 
-      <v-alert v-if="loadError" type="error" variant="tonal" class="mb-4">
+      <!-- ── Load error ── -->
+      <v-alert v-if="loadError" type="error" variant="tonal" class="mb-4" rounded="lg">
         <div class="d-flex align-center justify-space-between flex-wrap ga-2">
           <span>{{ loadError }}</span>
           <v-btn size="small" variant="text" color="error" @click="loadSession">
@@ -32,10 +39,12 @@
         </div>
       </v-alert>
 
+      <!-- ── Loading skeleton ── -->
       <div v-if="loading" class="d-flex flex-column ga-3">
         <v-skeleton-loader type="article, actions" rounded="xl" />
       </div>
 
+      <!-- ── Empty state ── -->
       <EmptyState
         v-else-if="!questions.length && !loadError"
         icon="mdi-check-decagram-outline"
@@ -49,134 +58,175 @@
         </template>
       </EmptyState>
 
-      <!-- Summary Screen -->
-      <v-card v-else-if="finished" rounded="xl" border elevation="0" class="pa-6 text-center">
-        <v-icon icon="mdi-party-popper" size="48" color="primary" class="mb-3" />
-        <h2 class="text-h5 font-weight-bold mb-2">
-          {{ t("notebook.review.summaryTitle") }}
-        </h2>
-        <v-row class="my-4" justify="center">
-          <v-col cols="6" sm="3">
-            <div class="text-h5 font-weight-black text-success">{{ stats.correct }}</div>
-            <div class="text-caption text-medium-emphasis">{{ t("notebook.review.correctCount") }}</div>
-          </v-col>
-          <v-col cols="6" sm="3">
-            <div class="text-h5 font-weight-black text-error">{{ stats.wrong }}</div>
-            <div class="text-caption text-medium-emphasis">{{ t("notebook.review.wrongCount") }}</div>
-          </v-col>
-          <v-col cols="6" sm="3">
-            <div class="text-h5 font-weight-black text-primary">{{ stats.promoted }}</div>
-            <div class="text-caption text-medium-emphasis">{{ t("notebook.review.promotedCount") }}</div>
-          </v-col>
-          <v-col cols="6" sm="3">
-            <div class="text-h5 font-weight-black text-warning">{{ stats.mastered }}</div>
-            <div class="text-caption text-medium-emphasis">{{ t("notebook.review.masteredCount") }}</div>
-          </v-col>
-        </v-row>
-
-        <div v-if="wrongItemsInSession.length" class="text-left mt-5 mb-4">
-          <div class="text-subtitle-2 font-weight-bold mb-2">
-            {{ t("notebook.review.wrongInSessionTitle") }}
-          </div>
-          <v-list density="compact" rounded="lg" border>
-            <v-list-item
-              v-for="item in wrongItemsInSession"
-              :key="item.questionId"
-              :title="item.question?.content"
-            >
-              <template #append>
-                <v-btn
-                  size="small"
-                  variant="text"
-                  color="primary"
-                  @click="openDetail(item.questionId)"
-                >
-                  {{ t("notebook.review.viewDetail") }}
-                </v-btn>
-              </template>
-            </v-list-item>
-          </v-list>
+      <!-- ══════════════════════════════════════
+           Summary Screen
+      ══════════════════════════════════════ -->
+      <v-card v-else-if="finished" rounded="xl" elevation="2" class="overflow-hidden">
+        <!-- Header strip -->
+        <div class="summary-header pa-6 text-center">
+          <v-icon icon="mdi-party-popper" size="56" color="white" class="mb-2" />
+          <h2 class="text-h5 font-weight-bold text-white">
+            {{ t("notebook.review.summaryTitle") }}
+          </h2>
         </div>
 
-        <div class="d-flex justify-center flex-wrap ga-3 mt-4">
-          <v-btn variant="tonal" rounded="lg" :to="'/student/notebook'">
-            {{ t("notebook.review.backToNotebook") }}
-          </v-btn>
-          <v-btn
-            v-if="wrongItemsInSession.length"
-            color="warning"
-            variant="tonal"
-            rounded="lg"
-            @click="retryWrongQuestions"
-          >
-            {{ t("notebook.review.retryWrong") }}
-          </v-btn>
-          <v-btn
-            v-if="notebookStore.summary.dueToday > 0"
-            color="primary"
-            rounded="lg"
-            @click="loadSession"
-          >
-            {{ t("notebook.review.continueReview") }}
-          </v-btn>
+        <!-- Stat cards -->
+        <div class="pa-5">
+          <v-row dense class="mb-4">
+            <v-col cols="6" sm="3">
+              <div class="stat-card stat-success text-center rounded-xl pa-3">
+                <div class="text-h4 font-weight-black">{{ stats.correct }}</div>
+                <div class="text-caption font-weight-medium">{{ t("notebook.review.correctCount") }}</div>
+              </div>
+            </v-col>
+            <v-col cols="6" sm="3">
+              <div class="stat-card stat-error text-center rounded-xl pa-3">
+                <div class="text-h4 font-weight-black">{{ stats.wrong }}</div>
+                <div class="text-caption font-weight-medium">{{ t("notebook.review.wrongCount") }}</div>
+              </div>
+            </v-col>
+            <v-col cols="6" sm="3">
+              <div class="stat-card stat-primary text-center rounded-xl pa-3">
+                <div class="text-h4 font-weight-black">{{ stats.promoted }}</div>
+                <div class="text-caption font-weight-medium">{{ t("notebook.review.promotedCount") }}</div>
+              </div>
+            </v-col>
+            <v-col cols="6" sm="3">
+              <div class="stat-card stat-warning text-center rounded-xl pa-3">
+                <div class="text-h4 font-weight-black">{{ stats.mastered }}</div>
+                <div class="text-caption font-weight-medium">{{ t("notebook.review.masteredCount") }}</div>
+              </div>
+            </v-col>
+          </v-row>
+
+          <!-- Wrong items list -->
+          <div v-if="wrongItemsInSession.length" class="mb-4">
+            <div class="text-subtitle-2 font-weight-bold mb-2 text-medium-emphasis">
+              {{ t("notebook.review.wrongInSessionTitle") }}
+            </div>
+            <v-list density="compact" rounded="lg" border>
+              <v-list-item
+                v-for="item in wrongItemsInSession"
+                :key="item.questionId"
+                :title="item.question?.content"
+              >
+                <template #append>
+                  <v-btn
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    @click="openDetail(item.questionId)"
+                  >
+                    {{ t("notebook.review.viewDetail") }}
+                  </v-btn>
+                </template>
+              </v-list-item>
+            </v-list>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="d-flex justify-center flex-wrap ga-3">
+            <v-btn variant="tonal" rounded="lg" :to="'/student/notebook'">
+              {{ t("notebook.review.backToNotebook") }}
+            </v-btn>
+            <v-btn
+              v-if="wrongItemsInSession.length"
+              color="warning"
+              variant="tonal"
+              rounded="lg"
+              @click="retryWrongQuestions"
+            >
+              {{ t("notebook.review.retryWrong") }}
+            </v-btn>
+            <v-btn
+              v-if="notebookStore.summary.dueToday > 0"
+              color="primary"
+              rounded="lg"
+              @click="loadSession"
+            >
+              {{ t("notebook.review.continueReview") }}
+            </v-btn>
+          </div>
         </div>
       </v-card>
 
-      <!-- Question Card -->
-      <v-card v-else-if="currentItem" rounded="xl" border elevation="0" class="pa-5 pa-sm-6">
-        <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-3">
-          <v-chip size="small" color="primary" variant="tonal">
+      <!-- ══════════════════════════════════════
+           Question Card
+      ══════════════════════════════════════ -->
+      <v-card v-else-if="currentItem" rounded="xl" elevation="2" class="overflow-hidden">
+
+        <!-- Card header strip: type chip + box badge -->
+        <div class="question-card-header d-flex align-center justify-space-between px-5 py-3">
+          <v-chip
+            size="small"
+            color="primary"
+            variant="flat"
+            class="font-weight-bold"
+          >
             {{ t(`notebook.questionTypes.${currentItem.question?.type}`, currentItem.question?.type) }}
           </v-chip>
-          <span class="text-caption text-medium-emphasis">
-            {{ t("notebook.boxLabel", { box: currentItem.box }) }}
-          </span>
-        </div>
-
-        <div class="text-h6 font-weight-bold mb-5" style="line-height: 1.5">
-          {{ currentItem.question?.content }}
-        </div>
-
-        <div class="d-flex flex-column ga-3 mb-5">
-          <v-btn
-            v-for="option in currentItem.question?.options || []"
-            :key="option.id"
-            block
-            size="large"
-            rounded="lg"
-            :variant="optionVariant(option.id)"
-            :color="optionColor(option.id)"
-            class="justify-start text-none py-3 px-4 option-btn"
-            :disabled="Boolean(reviewResult) || submitting"
-            @click="selectedOptionId = option.id"
-          >
-            <span class="text-wrap text-left">{{ option.content }}</span>
-          </v-btn>
-        </div>
-
-        <v-alert v-if="submitError" type="error" variant="tonal" class="mb-4">
-          <div class="d-flex align-center justify-space-between flex-wrap ga-2">
-            <span>{{ submitError }}</span>
-            <v-btn
-              v-if="canRetrySubmit"
-              size="small"
-              variant="text"
-              color="error"
-              @click="handleCheck"
-            >
-              {{ t("notebook.retry") }}
-            </v-btn>
+          <div class="box-badge d-flex align-center ga-1" :title="t('notebook.boxLabel', { box: currentItem.box })">
+            <span
+              v-for="n in 5"
+              :key="n"
+              class="box-dot"
+              :class="n <= currentItem.box ? 'box-dot--active' : ''"
+            />
           </div>
-        </v-alert>
+        </div>
 
-        <v-alert
-          v-if="reviewResult"
-          :type="reviewResult.isCorrect ? 'success' : 'error'"
-          variant="tonal"
-          class="mb-4"
-        >
-          <div class="d-flex align-center justify-space-between flex-wrap ga-2">
-            <span class="font-weight-bold">{{ boxFeedbackMessage }}</span>
+        <div class="pa-5 pa-sm-6">
+          <!-- Question text -->
+          <div class="question-text text-body-1 font-weight-bold mb-6">
+            {{ currentItem.question?.content }}
+          </div>
+
+          <!-- ── Answer options ── -->
+          <div class="d-flex flex-column ga-3 mb-5">
+            <button
+              v-for="(option, idx) in currentItem.question?.options || []"
+              :key="option.id"
+              class="option-tile"
+              :class="[
+                `option-tile--${optionColor(option.id) || 'default'}`,
+                optionVariant(option.id) === 'flat' ? 'option-tile--filled' : '',
+                selectedOptionId === option.id && !reviewResult ? 'option-tile--selected' : '',
+                (Boolean(reviewResult) || submitting) ? 'option-tile--disabled' : '',
+              ]"
+              :disabled="Boolean(reviewResult) || submitting"
+              @click="selectedOptionId = option.id"
+            >
+              <span class="option-letter">{{ String.fromCharCode(65 + idx) }}</span>
+              <span class="option-content">{{ option.content }}</span>
+            </button>
+          </div>
+
+          <!-- Submit error -->
+          <v-alert v-if="submitError" type="error" variant="tonal" class="mb-4" rounded="lg">
+            <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+              <span>{{ submitError }}</span>
+              <v-btn
+                v-if="canRetrySubmit"
+                size="small"
+                variant="text"
+                color="error"
+                @click="handleCheck"
+              >
+                {{ t("notebook.retry") }}
+              </v-btn>
+            </div>
+          </v-alert>
+
+          <!-- Result feedback banner -->
+          <div
+            v-if="reviewResult"
+            class="result-banner mb-4 rounded-xl pa-4 d-flex align-center justify-space-between flex-wrap ga-2"
+            :class="reviewResult.isCorrect ? 'result-banner--correct' : 'result-banner--wrong'"
+          >
+            <div class="d-flex align-center ga-2">
+              <v-icon :icon="reviewResult.isCorrect ? 'mdi-check-circle' : 'mdi-close-circle'" size="22" />
+              <span class="font-weight-bold text-body-2">{{ boxFeedbackMessage }}</span>
+            </div>
             <v-btn
               v-if="!reviewResult.isCorrect"
               size="small"
@@ -190,54 +240,57 @@
               {{ t("notebook.explain.whyWrong") }}
             </v-btn>
           </div>
-        </v-alert>
 
-        <NotebookExplainBox
-          v-if="reviewResult && !reviewResult.isCorrect"
-          :loading="explainLoading"
-          :error="explainError"
-          :can-retry="explainCanRetry"
-          :data="explainData"
-          class="mb-4"
-          @retry="handleExplainCurrent"
-        />
-        <div class="d-flex align-center justify-end flex-wrap ga-3">
-          <v-btn
-            v-if="reviewResult && !reviewResult.isCorrect && !current.answerLocked"
-            variant="tonal"
-            color="secondary"
-            size="large"
-            rounded="lg"
-            :loading="practiceStarting"
-            @click="startPractice({ mode: 'SIMILAR', questionId: current.questionId, count: 3 })"
-          >
-            <v-icon start>mdi-lightning-bolt-outline</v-icon>
-            {{ t("notebook.practice.similarBtn") }}
-          </v-btn>
-          <v-btn
-            v-if="!reviewResult"
-            color="primary"
-            size="large"
-            rounded="lg"
-            :disabled="!selectedOptionId || submitting"
-            :loading="submitting"
-            @click="handleCheck"
-          >
-            {{ t("notebook.review.check") }}
-          </v-btn>
-          <v-btn
-            v-else
-            color="primary"
-            size="large"
-            rounded="lg"
-            @click="nextQuestion"
-          >
-            {{
-              currentIndex + 1 < questions.length
-                ? t("notebook.review.next")
-                : t("notebook.review.finish")
-            }}
-          </v-btn>
+          <!-- Explain box -->
+          <NotebookExplainBox
+            v-if="reviewResult && !reviewResult.isCorrect"
+            :loading="explainLoading"
+            :error="explainError"
+            :can-retry="explainCanRetry"
+            :data="explainData"
+            class="mb-4"
+            @retry="handleExplainCurrent"
+          />
+
+          <!-- Action row -->
+          <div class="d-flex align-center justify-end flex-wrap ga-3">
+            <v-btn
+              v-if="reviewResult && !reviewResult.isCorrect && !current.answerLocked"
+              variant="tonal"
+              color="secondary"
+              size="large"
+              rounded="lg"
+              :loading="practiceStarting"
+              @click="startPractice({ mode: 'SIMILAR', questionId: current.questionId, count: 3 })"
+            >
+              <v-icon start>mdi-lightning-bolt-outline</v-icon>
+              {{ t("notebook.practice.similarBtn") }}
+            </v-btn>
+            <v-btn
+              v-if="!reviewResult"
+              color="primary"
+              size="large"
+              rounded="lg"
+              :disabled="!selectedOptionId || submitting"
+              :loading="submitting"
+              @click="handleCheck"
+            >
+              {{ t("notebook.review.check") }}
+            </v-btn>
+            <v-btn
+              v-else
+              color="primary"
+              size="large"
+              rounded="lg"
+              @click="nextQuestion"
+            >
+              {{
+                currentIndex + 1 < questions.length
+                  ? t("notebook.review.next")
+                  : t("notebook.review.finish")
+              }}
+            </v-btn>
+          </div>
         </div>
       </v-card>
 
@@ -477,8 +530,161 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.option-btn {
-  min-height: 52px;
-  height: auto !important;
+/* ── Box indicator dots ── */
+.box-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: rgba(var(--v-theme-on-surface), 0.15);
+  transition: background 0.2s;
+}
+.box-dot--active {
+  background: #f59e0b;
+}
+
+/* ── Top bar ── */
+.review-topbar {
+  min-height: 40px;
+}
+
+/* ── Question header strip ── */
+.question-card-header {
+  background: linear-gradient(135deg, #e8f4fd 0%, #f0f7ff 100%);
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.12);
+}
+
+/* ── Question text ── */
+.question-text {
+  font-size: 1.1rem;
+  line-height: 1.65;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+/* ── Option tiles ── */
+.option-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 2px solid rgba(var(--v-theme-on-surface), 0.14);
+  background: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  white-space: normal;
+}
+.option-tile:hover:not(.option-tile--disabled) {
+  border-color: rgba(var(--v-theme-primary), 0.5);
+  background: rgba(var(--v-theme-primary), 0.05);
+}
+.option-tile--selected {
+  border-color: rgb(var(--v-theme-primary)) !important;
+  background: rgba(var(--v-theme-primary), 0.08) !important;
+  box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.15);
+}
+.option-tile--primary.option-tile--filled {
+  border-color: rgb(var(--v-theme-primary));
+  background: rgba(var(--v-theme-primary), 0.08);
+}
+.option-tile--success.option-tile--filled {
+  border-color: rgb(var(--v-theme-success));
+  background: rgba(var(--v-theme-success), 0.1);
+  color: rgb(var(--v-theme-success));
+}
+.option-tile--error.option-tile--filled {
+  border-color: rgb(var(--v-theme-error));
+  background: rgba(var(--v-theme-error), 0.1);
+  color: rgb(var(--v-theme-error));
+}
+.option-tile--disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Letter badge */
+.option-letter {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(var(--v-theme-primary), 0.12);
+  color: rgb(var(--v-theme-primary));
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.option-tile--selected .option-letter {
+  background: rgb(var(--v-theme-primary));
+  color: white;
+}
+.option-tile--success.option-tile--filled .option-letter {
+  background: rgb(var(--v-theme-success));
+  color: white;
+}
+.option-tile--error.option-tile--filled .option-letter {
+  background: rgb(var(--v-theme-error));
+  color: white;
+}
+
+.option-content {
+  flex: 1;
+}
+
+/* ── Result banner ── */
+.result-banner {
+  font-size: 0.95rem;
+}
+.result-banner--correct {
+  background: rgba(var(--v-theme-success), 0.1);
+  border: 1.5px solid rgba(var(--v-theme-success), 0.4);
+  color: rgb(var(--v-theme-success));
+}
+.result-banner--wrong {
+  background: rgba(var(--v-theme-error), 0.08);
+  border: 1.5px solid rgba(var(--v-theme-error), 0.35);
+  color: rgb(var(--v-theme-error));
+}
+
+/* ── Summary header strip ── */
+.summary-header {
+  background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, #1a73e8 100%);
+}
+
+/* ── Stat cards ── */
+.stat-card {
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.stat-success {
+  background: rgba(var(--v-theme-success), 0.1);
+  color: rgb(var(--v-theme-success));
+}
+.stat-error {
+  background: rgba(var(--v-theme-error), 0.1);
+  color: rgb(var(--v-theme-error));
+}
+.stat-primary {
+  background: rgba(var(--v-theme-primary), 0.1);
+  color: rgb(var(--v-theme-primary));
+}
+.stat-warning {
+  background: rgba(var(--v-theme-warning), 0.1);
+  color: rgb(var(--v-theme-warning));
 }
 </style>
